@@ -45,3 +45,8 @@ Las contribuciones son bienvenidas. Si deseas colaborar, por favor abre un *pull
 ## 📄 Licencia
 
 Este proyecto está bajo una licencia educativa. Su uso está destinado al fortalecimiento académico y al desarrollo territorial de Esmeraldas.
+
+
+## Como levantar el proyecto
+> npm install
+> ng serve 

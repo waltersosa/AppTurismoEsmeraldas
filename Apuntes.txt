@@ -1,0 +1,11 @@
+*- Para crear un nuevo componente en Angular debemos usar este comando:
+ng generate component <Nombre del componente>
+
+*- app.routes.ts es el archivo que controla las rutas.
+
+*- <router-outlet></router-outlet> Esta sección de codigo htlm sirver para cargar las rutas
+con el Angular sabe que debe cargar los componentes en las URL actual.
+
+*- [(ngModel)] Permite unir un input con una variable del componente.
+Es decir que recoge el valor que se ingresa en el input y lo manda al componente.
+
