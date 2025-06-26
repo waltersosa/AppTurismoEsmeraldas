@@ -49,4 +49,5 @@ Este proyecto está bajo una licencia educativa. Su uso está destinado al forta
 
 ## Como levantar el proyecto
 > npm install
+
 > ng serve 
