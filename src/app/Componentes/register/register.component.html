@@ -1,4 +1,19 @@
-<form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body class="fondo">
+
+  <h1 class="titulo">
+    REGISTRARSE
+  </h1>
+
+  <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="formulario">
   <div>
     <label for="username">Username:</label>
     <input
@@ -46,3 +61,6 @@
   </div>
 
   <button type="submit" [disabled]="registerForm.invalid">Registrar</button>
+  </form>
+</body>
+</html>

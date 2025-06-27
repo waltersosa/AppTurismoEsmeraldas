@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+
+.titulo{
+    color: #ffffff;
+    font-family: "Archivo Black", sans-serif;
+    text-shadow: gray -2px 2px 5px;
+}
+
+
+.fondo {
+    background: linear-gradient(15deg, #daf864, #66ff61);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: "Archivo Black", sans-serif;
+}
+
+.formulario {
+    margin: 2%;
+    width: 300px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    font-family: "Open Sans", sans-serif;
+}
+
+input{
+    width: 90%;
+    padding: 10px 15px;
+    margin: 10px 0px;
+    border: 2px solid #66ff61;
+    border-radius: 30px;
+}
+
+button{
+    width: 70%;
+    padding: 10px;
+    margin: 10px auto;
+    background-color: #66ff61;
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #5cd55c;
+}
