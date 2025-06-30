@@ -5,10 +5,10 @@ Microservicio de autenticación para el sistema "Esmeraldas Turismo" desarrollad
 ## 🏗️ Arquitectura del Sistema
 
 ### Arquitectura Completa
-![Arquitectura Completa](./arquitectura//aquitectura-turismo-esmeraldas.jpg)
+![Arquitectura Completa](./backend/arquitectura/aquitectura-turismo-esmeraldas.jpg)
 
 ### Estructura de Microservicios
-![Estructura Microservicios](./arquitectura/arquitectura-microservicios.jpg)
+![Estructura Microservicios](./backend/arquitectura/arquitectura-microservicios.jpg)
 
 ## 🚀 Características
 
@@ -104,7 +104,7 @@ backend/
 ## 🧪 Pruebas
 
 Para probar todas las funcionalidades del microservicio, consulta el archivo:
-**[Postman_Collection.md](./Postman_Collection.md)**
+**[Postman_Collection.md](./backend/Postman_Collection.md)**
 
 Este archivo contiene:
 - Configuración completa para Postman
@@ -162,23 +162,6 @@ import { autorizarPropietarioOGAD, autorizarGAD } from './middlewares/auth.js';
 | `JWT_EXPIRES_IN` | Tiempo de expiración del token | `24h` |
 | `CORS_ORIGIN` | Origen permitido para CORS | `http://localhost:3000` |
 
-## 🚀 Despliegue
-
-### Docker (Recomendado)
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-
-EXPOSE 3001
-
-CMD ["npm", "start"]
-```
 
 ### Variables de Producción
 ```env
