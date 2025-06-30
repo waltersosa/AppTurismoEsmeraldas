@@ -139,4 +139,10 @@ out/
 
 # Package lock files (optional - descomenta si quieres ignorarlos)
 # package-lock.json
-# yarn.lock 
+# yarn.lock
+
+# IMPORTANT: Ensure these files are NOT ignored
+!README.md
+!LICENSE
+!CHANGELOG.md
+!CONTRIBUTING.md 
