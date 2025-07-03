@@ -23,13 +23,6 @@ router.delete('/profile', autenticarToken, authController.eliminarUsuario);
 router.put('/change-password', autenticarToken, validarCambioContraseña, authController.cambiarContraseña);
 
 // Rutas administrativas (solo GAD)
-router.get('/users', autenticarToken, autorizarRoles('gad'), (req, res) => {
-  // TODO: Implementar listado de usuarios para administración
-  res.status(501).json({
-    success: false,
-    message: 'Funcionalidad en desarrollo',
-    timestamp: new Date().toISOString()
-  });
-});
+router.get('/users', autenticarToken, autorizarRoles('gad'), authController.listarUsuarios);
 
 export default router; 

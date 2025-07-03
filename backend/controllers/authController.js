@@ -1,5 +1,6 @@
 import authService from '../services/authService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
+import User from '../models/User.js';
 
 export class AuthController {
   /**
@@ -189,6 +190,24 @@ export class AuthController {
         status: 'healthy'
       }
     );
+  }
+
+  /**
+   * Listar todos los usuarios (solo GAD)
+   * GET /auth/users
+   */
+  async listarUsuarios(req, res) {
+    try {
+      const usuarios = await User.find();
+      return successResponse(
+        res,
+        200,
+        'Usuarios obtenidos exitosamente',
+        { usuarios }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al obtener usuarios', error.message);
+    }
   }
 }
 
