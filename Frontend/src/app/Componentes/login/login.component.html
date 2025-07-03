@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body class="fondo">
+  <!--<form (ngSubmit)="onSubmit()" #loginForm="ngForm">:
+Cuando el usuario envíe el formulario (botón submit), se ejecuta la función onSubmit() en el archivo TypeScript.
+La variable local loginForm contiene el estado del formulario (si es válido o no).-->
+
+  <h1 class="titulo">
+    INICIAR SESIÓN
+  </h1>
+
+  <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="formulario">
+
+    <!--Input para colocar el nombre de usaurio-->
+    <div>
+      <label for="email">Correo:</label>
+      <input type="email" id="email" name="email" required [(ngModel)]="email" #emailInput="ngModel">
+      <!---SI el usuario no coloca nada, saltará esta advertencia-->
+      <div *ngIf="emailInput.invalid && emailInput.touched" style="color:red">
+        El usuario es obligatorio.
+      </div>
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required [(ngModel)]="password" #passwordInput="ngModel">
+      <!---SI el usuario no coloca nada, saltará esta advertencia-->
+      <div *ngIf="passwordInput.invalid && passwordInput.touched" style="color:red">
+        La contraseña es obligatoria.
+      </div>
+    </div>
+
+    <button type="submit" [disabled]="loginForm.invalid">Ingresar</button>
+  </form>
+</body>
+
+</html>
