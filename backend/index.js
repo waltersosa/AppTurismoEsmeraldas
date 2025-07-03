@@ -4,12 +4,16 @@ import { config } from './config/config.js';
 import { connectDB } from './db/connection.js';
 import authRoutes from './routes/auth.js';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
+import { connectMongo } from './config/mongo.js';
+import placeRoutes from './routes/place.js';
+import { validatePlace } from './middlewares/placeValidation.js';
 
 // Crear aplicación Express
 const app = express();
 
 // Conectar a la base de datos
 connectDB();
+connectMongo();
 
 // Middlewares básicos
 app.use(express.json({ limit: '10mb' }));
@@ -31,6 +35,7 @@ app.use((req, res, next) => {
 
 // Rutas
 app.use('/auth', authRoutes);
+app.use('/places', placeRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {
