@@ -1,0 +1,131 @@
+.login-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: #181a1b;
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 370px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+}
+
+.admin-icon {
+  font-size: 3.5rem;
+  color: #90caf9;
+  background: #232526;
+  border-radius: 50%;
+  padding: 0.7rem;
+  box-shadow: 0 2px 8px rgba(144,202,249,0.15);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #90caf9;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+// Estilos para los campos de formulario
+.mat-form-field {
+  width: 100%;
+}
+
+// Color del outline del campo
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  color: #90caf9 !important;
+}
+
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: #90caf9 !important;
+}
+
+// Color del texto del input
+.mat-form-field input.mat-input-element {
+  color: #ffffff !important;
+  caret-color: #90caf9 !important;
+}
+
+// Color del placeholder/label
+.mat-form-field-label {
+  color: #b0bec5 !important;
+}
+
+.mat-form-field.mat-focused .mat-form-field-label {
+  color: #90caf9 !important;
+}
+
+// Color del texto dentro del input
+.mat-form-field-appearance-outline .mat-form-field-infix {
+  color: #ffffff !important;
+}
+
+// Forzar color blanco en todos los inputs
+input[type="email"], 
+input[type="password"], 
+input[type="text"] {
+  color: #ffffff !important;
+}
+
+// Estilos específicos para Angular Material inputs
+.mat-mdc-form-field input {
+  color: #ffffff !important;
+}
+
+.mat-mdc-input-element {
+  color: #ffffff !important;
+}
+
+// Estilos para el autocomplete del navegador
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 30px #181a1b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+button[mat-raised-button] {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #1976d2 0%, #90caf9 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.15);
+}
+
+button[mat-raised-button]:hover {
+  background: linear-gradient(90deg, #1565c0 0%, #64b5f6 100%);
+}
+
+.error-message {
+  color: #f44336;
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 14px;
+}
