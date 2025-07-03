@@ -70,7 +70,7 @@ backend/
    MONGODB_URI=mongodb://localhost:27017/turismoDB
    JWT_SECRET=tu_jwt_secret_super_seguro_aqui
    JWT_EXPIRES_IN=24h
-   CORS_ORIGIN=http://localhost:3000
+   CORS_ORIGIN=http://localhost:3000, http://localhost:4200
    ```
 3. **Iniciar MongoDB**
 4. **Ejecutar el servidor**
@@ -97,6 +97,13 @@ backend/
 - `PUT /auth/change-password` - Cambiar contraseña
 
 ## 🧪 Pruebas (Auth)
+=======
+
+### Rutas Administrativas (solo GAD)
+- `GET /auth/users` - Listar todos los usuarios activos
+- `DELETE /auth/users/:id` - Eliminar usuario (eliminación física)
+
+## 🧪 Pruebas
 
 Para probar todas las funcionalidades del microservicio, consulta el archivo:
 **[Postman_Collection.md](./backend/Postman_Collection.md)**
@@ -108,6 +115,14 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 Microservicio de gestión de lugares turísticos para el sistema "Esmeraldas Turismo".
 
 ## 🚀 Características
+=======
+  - Solo el rol `gad` puede acceder a los endpoints administrativos de usuarios.
+
+### Middlewares de Autorización
+```javascript
+// Verificar autenticación
+import { autenticarToken } from './middlewares/auth.js';
+>>>>>>> 184db219c3ce61055ea39b242308b0e7b8b665aa
 
 - **CRUD completo de lugares turísticos**
 - **Paginación, filtrado y orden dinámico**
@@ -173,6 +188,7 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
   updatedAt: Date           // Timestamp automático
 }
 ```
+- **Eliminación física:** Cuando se elimina un usuario desde el panel de administración, se borra completamente de la base de datos.
 
 ## Places - Colección: `places`
 
@@ -204,6 +220,34 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 | `JWT_SECRET`     | Clave secreta para JWT (solo Auth)         | `default_secret_change_in_production` |
 | `JWT_EXPIRES_IN` | Tiempo de expiración del token (solo Auth) | `24h`                                 |
 | `CORS_ORIGIN`    | Origen permitido para CORS                 | `http://localhost:3000`               |
+=======
+| Variable | Descripción | Default |
+|----------|-------------|---------|
+| `PORT` | Puerto del servidor | `3001` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `MONGODB_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017/turismoDB` |
+| `JWT_SECRET` | Clave secreta para JWT | `default_secret_change_in_production` |
+| `JWT_EXPIRES_IN` | Tiempo de expiración del token | `24h` |
+| `CORS_ORIGIN` | Origen permitido para CORS | `http://localhost:3000, http://localhost:4200` |
+
+## 🚀 Despliegue
+
+### Docker (Recomendado)
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+
+EXPOSE 3001
+
+CMD ["npm", "start"]
+```
+>>>>>>> 184db219c3ce61055ea39b242308b0e7b8b665aa
 
 ### Variables de Producción
 
@@ -251,3 +295,9 @@ MONGODB_URI=mongodb://tu-servidor-mongodb:27017/turismoDB
 # 📞 Soporte
 
 Para soporte técnico o preguntas sobre los microservicios, contactar al equipo de desarrollo de Esmeraldas Turismo.
+=======
+Para soporte técnico o preguntas sobre el microservicio, contactar al equipo de desarrollo de Esmeraldas Turismo. 
+
+## 🛠️ Notas adicionales
+- El frontend solo permite visualizar y eliminar usuarios. No es posible agregar ni actualizar usuarios desde la interfaz.
+- El backend maneja errores de correo duplicado (409) y usuario no encontrado (404) de forma clara. 
