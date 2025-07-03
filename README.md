@@ -72,7 +72,7 @@ backend/
    MONGODB_URI=mongodb://localhost:27017/turismoDB
    JWT_SECRET=tu_jwt_secret_super_seguro_aqui
    JWT_EXPIRES_IN=24h
-   CORS_ORIGIN=http://localhost:3000
+   CORS_ORIGIN=http://localhost:3000, http://localhost:4200
    ```
 
 3. **Iniciar MongoDB**
@@ -101,6 +101,11 @@ backend/
 - `DELETE /auth/profile` - Eliminar usuario
 - `PUT /auth/change-password` - Cambiar contraseña
 
+
+### Rutas Administrativas (solo GAD)
+- `GET /auth/users` - Listar todos los usuarios activos
+- `DELETE /auth/users/:id` - Eliminar usuario (eliminación física)
+
 ## 🧪 Pruebas
 
 Para probar todas las funcionalidades del microservicio, consulta el archivo:
@@ -118,6 +123,8 @@ Este archivo contiene:
 - **usuario**: Usuario básico del sistema
 - **propietario**: Propietario de establecimientos turísticos
 - **gad**: Administrador del GAD (Gobierno Autónomo Descentralizado)
+
+  - Solo el rol `gad` puede acceder a los endpoints administrativos de usuarios.
 
 ### Middlewares de Autorización
 ```javascript
@@ -148,6 +155,7 @@ import { autorizarPropietarioOGAD, autorizarGAD } from './middlewares/auth.js';
   updatedAt: Date           // Timestamp automático
 }
 ```
+- **Eliminación física:** Cuando se elimina un usuario desde el panel de administración, se borra completamente de la base de datos.
 
 ## 🔧 Configuración
 
@@ -160,7 +168,7 @@ import { autorizarPropietarioOGAD, autorizarGAD } from './middlewares/auth.js';
 | `MONGODB_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017/turismoDB` |
 | `JWT_SECRET` | Clave secreta para JWT | `default_secret_change_in_production` |
 | `JWT_EXPIRES_IN` | Tiempo de expiración del token | `24h` |
-| `CORS_ORIGIN` | Origen permitido para CORS | `http://localhost:3000` |
+| `CORS_ORIGIN` | Origen permitido para CORS | `http://localhost:3000, http://localhost:4200` |
 
 ## 🚀 Despliegue
 
@@ -216,3 +224,7 @@ Para integrar con un API Gateway:
 ## 📞 Soporte
 
 Para soporte técnico o preguntas sobre el microservicio, contactar al equipo de desarrollo de Esmeraldas Turismo. 
+
+## 🛠️ Notas adicionales
+- El frontend solo permite visualizar y eliminar usuarios. No es posible agregar ni actualizar usuarios desde la interfaz.
+- El backend maneja errores de correo duplicado (409) y usuario no encontrado (404) de forma clara. 
