@@ -3,6 +3,7 @@ import { Login } from './auth/login';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { HomeComponent } from './dashboard/home/home.component';
 import { authGuard } from './auth/auth.guard';
+import { UsuariosComponent } from './dashboard/usuarios/usuarios.component';
 
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
@@ -13,6 +14,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: HomeComponent },
       { path: 'home', component: HomeComponent },
+      { path: 'usuarios', component: UsuariosComponent },
       // Aquí puedes agregar más rutas del dashboard como:
       // { path: 'usuarios', component: UsuariosComponent },
       // { path: 'destinos', component: DestinosComponent },

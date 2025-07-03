@@ -14,8 +14,12 @@ export interface User {
 export interface LoginResponse {
   success: boolean;
   message: string;
-  token: string;
-  user: User;
+  token?: string;
+  user?: User;
+  data?: {
+    usuario: User;
+    token: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,13 +37,17 @@ export class AuthService {
   }
 
   login(credentials: { correo: string; contraseña: string }): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials)
+    return this.http.post<any>(`${this.apiUrl}/login`, credentials)
       .pipe(
         tap(response => {
           if (response.success) {
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response.user));
-            this.currentUserSubject.next(response.user);
+            const user = response.data?.usuario || response.user;
+            const token = response.data?.token || response.token;
+            if (user && token) {
+              localStorage.setItem('token', token);
+              localStorage.setItem('user', JSON.stringify(user));
+              this.currentUserSubject.next(user);
+            }
           }
         })
       );
