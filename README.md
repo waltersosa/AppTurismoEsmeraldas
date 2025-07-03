@@ -1,6 +1,20 @@
 # 🏝️ Esmeraldas Turismo - Microservicios (Auth & Places)
 
-Este repositorio contiene los microservicios principales del sistema "Esmeraldas Turismo" desarrollados en Node.js con Express y MongoDB.
+**Esmeraldas Turismo** es un sistema modular basado en microservicios para la gestión de usuarios y lugares turísticos, pensado para gobiernos locales (GAD), propietarios y turistas. Incluye autenticación robusta, gestión de lugares, y está listo para integrarse con frontends modernos y un API Gateway.
+
+---
+
+## 📑 Tabla de Contenido
+
+- [Arquitectura del Sistema](#arquitectura-del-sistema)
+- [Auth Service](#auth-service)
+- [Places Service](#places-service)
+- [Modelos de Base de Datos](#modelos-de-base-de-datos)
+- [Configuración](#configuración)
+- [Seguridad](#seguridad)
+- [Integración con API Gateway](#integración-con-api-gateway)
+- [Notas Importantes](#notas-importantes)
+- [Soporte](#soporte)
 
 ---
 
@@ -30,6 +44,7 @@ Microservicio de autenticación para el sistema "Esmeraldas Turismo".
 - **Manejo de errores**: Sistema centralizado de manejo de errores
 - **CORS configurado**: Soporte para peticiones cross-origin
 - **Logging**: Registro de todas las peticiones
+- **Rutas administrativas solo para GAD**
 
 ## 📁 Estructura del Proyecto (Auth)
 
@@ -96,14 +111,12 @@ backend/
 - `DELETE /auth/profile` - Eliminar usuario
 - `PUT /auth/change-password` - Cambiar contraseña
 
-## 🧪 Pruebas (Auth)
-=======
-
 ### Rutas Administrativas (solo GAD)
+
 - `GET /auth/users` - Listar todos los usuarios activos
 - `DELETE /auth/users/:id` - Eliminar usuario (eliminación física)
 
-## 🧪 Pruebas
+## 🧪 Pruebas (Auth)
 
 Para probar todas las funcionalidades del microservicio, consulta el archivo:
 **[Postman_Collection.md](./backend/Postman_Collection.md)**
@@ -115,14 +128,6 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 Microservicio de gestión de lugares turísticos para el sistema "Esmeraldas Turismo".
 
 ## 🚀 Características
-=======
-  - Solo el rol `gad` puede acceder a los endpoints administrativos de usuarios.
-
-### Middlewares de Autorización
-```javascript
-// Verificar autenticación
-import { autenticarToken } from './middlewares/auth.js';
->>>>>>> 184db219c3ce61055ea39b242308b0e7b8b665aa
 
 - **CRUD completo de lugares turísticos**
 - **Paginación, filtrado y orden dinámico**
@@ -188,6 +193,7 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
   updatedAt: Date           // Timestamp automático
 }
 ```
+
 - **Eliminación física:** Cuando se elimina un usuario desde el panel de administración, se borra completamente de la base de datos.
 
 ## Places - Colección: `places`
@@ -210,54 +216,17 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 
 # 🔧 Configuración
 
-### Variables de Entorno
+### Variables de Entorno (Generales)
 
-| Variable         | Descripción                                | Default                               |
-| ---------------- | ------------------------------------------ | ------------------------------------- |
-| `PORT`           | Puerto del servidor                        | `3001`                                |
-| `NODE_ENV`       | Entorno de ejecución                       | `development`                         |
-| `MONGODB_URI`    | URI de conexión a MongoDB                  | `mongodb://localhost:27017/turismoDB` |
-| `JWT_SECRET`     | Clave secreta para JWT (solo Auth)         | `default_secret_change_in_production` |
-| `JWT_EXPIRES_IN` | Tiempo de expiración del token (solo Auth) | `24h`                                 |
-| `CORS_ORIGIN`    | Origen permitido para CORS                 | `http://localhost:3000`               |
-=======
-| Variable | Descripción | Default |
-|----------|-------------|---------|
-| `PORT` | Puerto del servidor | `3001` |
-| `NODE_ENV` | Entorno de ejecución | `development` |
-| `MONGODB_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017/turismoDB` |
-| `JWT_SECRET` | Clave secreta para JWT | `default_secret_change_in_production` |
-| `JWT_EXPIRES_IN` | Tiempo de expiración del token | `24h` |
-| `CORS_ORIGIN` | Origen permitido para CORS | `http://localhost:3000, http://localhost:4200` |
+| Variable         | Descripción                                | Default                                        |
+| ---------------- | ------------------------------------------ | ---------------------------------------------- |
+| `PORT`           | Puerto del servidor                        | `3001`                                         |
+| `NODE_ENV`       | Entorno de ejecución                       | `development`                                  |
+| `MONGODB_URI`    | URI de conexión a MongoDB                  | `mongodb://localhost:27017/turismoDB`          |
+| `CORS_ORIGIN`    | Origen permitido para CORS                 | `http://localhost:3000, http://localhost:4200` |
+| `JWT_SECRET`     | Clave secreta para JWT (solo Auth)         | `default_secret_change_in_production`          |
+| `JWT_EXPIRES_IN` | Tiempo de expiración del token (solo Auth) | `24h`                                          |
 
-## 🚀 Despliegue
-
-### Docker (Recomendado)
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-
-EXPOSE 3001
-
-CMD ["npm", "start"]
-```
->>>>>>> 184db219c3ce61055ea39b242308b0e7b8b665aa
-
-### Variables de Producción
-
-```env
-NODE_ENV=production
-JWT_SECRET=tu_jwt_secret_super_seguro_y_complejo_aqui
-MONGODB_URI=mongodb://tu-servidor-mongodb:27017/turismoDB
-```
-
----
 
 # 🔒 Seguridad
 
@@ -295,9 +264,8 @@ MONGODB_URI=mongodb://tu-servidor-mongodb:27017/turismoDB
 # 📞 Soporte
 
 Para soporte técnico o preguntas sobre los microservicios, contactar al equipo de desarrollo de Esmeraldas Turismo.
-=======
-Para soporte técnico o preguntas sobre el microservicio, contactar al equipo de desarrollo de Esmeraldas Turismo. 
 
 ## 🛠️ Notas adicionales
+
 - El frontend solo permite visualizar y eliminar usuarios. No es posible agregar ni actualizar usuarios desde la interfaz.
-- El backend maneja errores de correo duplicado (409) y usuario no encontrado (404) de forma clara. 
+- El backend maneja errores de correo duplicado (409) y usuario no encontrado (404) de forma clara.
