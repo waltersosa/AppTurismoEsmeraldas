@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 import { connectMongo } from './config/mongo.js';
 import placeRoutes from './routes/place.js';
 import { validatePlace } from './middlewares/placeValidation.js';
+import reviewRoutes from './routes/review.js';
 
 // Crear aplicación Express
 const app = express();
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
 // Rutas
 app.use('/auth', authRoutes);
 app.use('/places', placeRoutes);
+app.use('/reviews', reviewRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {
