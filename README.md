@@ -1,6 +1,6 @@
-# 🏝️ Esmeraldas Turismo - Microservicios (Auth & Places)
+# 🏝️ Esmeraldas Turismo - Microservicios (Auth, Places & Reviews)
 
-**Esmeraldas Turismo** es un sistema modular basado en microservicios para la gestión de usuarios y lugares turísticos, pensado para gobiernos locales (GAD), propietarios y turistas. Incluye autenticación robusta, gestión de lugares, y está listo para integrarse con frontends modernos y un API Gateway.
+**Esmeraldas Turismo** es un sistema modular basado en microservicios para la gestión de usuarios, lugares turísticos y reseñas, pensado para gobiernos locales (GAD), propietarios y turistas. Incluye autenticación robusta, gestión de lugares, reseñas y está listo para integrarse con frontends modernos y un API Gateway.
 
 ---
 
@@ -9,6 +9,7 @@
 - [Arquitectura del Sistema](#arquitectura-del-sistema)
 - [Auth Service](#auth-service)
 - [Places Service](#places-service)
+- [Reviews Service](#reviews-service)
 - [Modelos de Base de Datos](#modelos-de-base-de-datos)
 - [Configuración](#configuración)
 - [Seguridad](#seguridad)
@@ -175,6 +176,59 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 
 ---
 
+# 📝 Reviews Service
+
+Microservicio de gestión de reseñas de lugares turísticos para el sistema "Esmeraldas Turismo".
+
+## 🚀 Características
+
+- **Creación y gestión de reseñas**
+- **Estados: aprobada/bloqueada**
+- **Paginación, filtrado y orden dinámico**
+- **Validación robusta**: express-validator
+- **Moderación por administradores (GAD)**
+- **CORS configurado**
+- **Logging de peticiones**
+
+## 📁 Estructura del Proyecto (Reviews)
+
+```
+backend/
+├── controllers/
+│   └── reviewController.js
+├── services/
+│   └── reviewService.js
+├── middlewares/
+│   ├── reviewValidation.js
+│   └── errorHandler.js
+├── models/
+│   └── Review.js
+├── routes/
+│   └── review.js
+```
+
+## 📡 Endpoints (Reviews)
+
+### Rutas Públicas
+
+- `GET /reviews/health` - Estado del servicio
+- `GET /reviews/lugar/:lugarId` - Listar reseñas públicas de un lugar (todas excepto bloqueadas)
+- `POST /reviews` - Crear reseña (requiere autenticación)
+
+### Rutas de Administración (solo GAD)
+
+- `GET /reviews/admin` - Listar todas las reseñas (con filtros, paginación y orden)
+- `GET /reviews/admin/:id` - Obtener una reseña específica por ID
+- `PUT /reviews/admin/:id` - Cambiar estado (aprobada/bloqueada)
+- `DELETE /reviews/admin/:id` - Eliminar reseña
+
+## 🧪 Pruebas (Reviews)
+
+Para probar todas las funcionalidades del microservicio, consulta el archivo:
+**[Postman_Collection_Reviews.md](./backend/Postman_Collection_Reviews.md)**
+
+---
+
 # 🗄️ Modelos de Base de Datos
 
 ## Auth - Colección: `users`
@@ -212,6 +266,22 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 }
 ```
 
+## Reviews - Colección: `reviews`
+
+```javascript
+{
+  _id: ObjectId,
+  lugarId: ObjectId,        // Referencia a Place
+  usuarioId: ObjectId,      // Referencia a User
+  comentario: String,       // Requerido
+  calificacion: Number,     // 1-5
+  fecha: Date,              // Default: Date.now
+  estado: String,           // 'aprobada' o 'bloqueada'
+  createdAt: Date,          // Timestamp automático
+  updatedAt: Date           // Timestamp automático
+}
+```
+
 ---
 
 # 🔧 Configuración
@@ -227,7 +297,6 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 | `JWT_SECRET`     | Clave secreta para JWT (solo Auth)         | `default_secret_change_in_production`          |
 | `JWT_EXPIRES_IN` | Tiempo de expiración del token (solo Auth) | `24h`                                          |
 
-
 # 🔒 Seguridad
 
 - **Contraseñas hasheadas** (Auth): Uso de bcrypt con salt de 12 rondas
@@ -240,14 +309,14 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 
 # 🤝 Integración con API Gateway
 
-- **Health Check**: Usar `/auth/health` y `/places/health` para verificar disponibilidad
+- **Health Check**: Usar `/auth/health`, `/places/health` y `/reviews/health` para verificar disponibilidad
 - **Autenticación**: Validar tokens en `/auth/validate` (Auth)
 - **CORS**: Configurar según el dominio del frontend
 - **Load Balancing**: Los servicios son stateless y pueden escalar horizontalmente
 
 ---
 
-# 📝 Notas Importantes
+# �� Notas Importantes
 
 - **Tokens JWT**: Duración de 24 horas por defecto (Auth)
 - **Contraseñas**: Mínimo 6 caracteres, mayúsculas, minúsculas y números (Auth)
@@ -256,8 +325,10 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 - **Campos obligatorios en places**: name, description, location
 - **active en places**: Por defecto es `true`, puedes desactivar un lugar sin eliminarlo
 - **category en places**: Puede ser cualquier string, se recomienda usar valores estándar
+- **Las reviews están aprobadas por defecto y solo pueden ser bloqueadas por el admin**
+- **El endpoint público de reviews muestra todas excepto las bloqueadas**
 - **Base de datos**: MongoDB en `mongodb://localhost:27017/turismoDB`
-- **Eliminación**: Soft delete en users, delete físico en places
+- **Eliminación**: Soft delete en users, delete físico en places y reviews
 
 ---
 
