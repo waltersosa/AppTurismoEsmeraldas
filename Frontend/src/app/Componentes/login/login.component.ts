@@ -24,7 +24,10 @@ export class LoginComponent {
         contraseña: this.password
       }).subscribe({
         next: (response) => {
-      this.router.navigate(['/inicio']); // Redirige a la página de inicio
+          const token = response.data?.token;
+          localStorage.setItem('token', token); // Guarda el token en el almacenamiento local
+
+       this.router.navigate(['/inicio']); // Redirige a la página de inicio
         },
         error: (err) => {
           if (err.error?.errors) {

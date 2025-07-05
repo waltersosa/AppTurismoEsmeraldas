@@ -6,11 +6,15 @@ import { FormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 import { HttpClientModule } from '@angular/common/http';
-
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { AuthInterceptor } from './app/services/auth.interceptor';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     importProvidersFrom(FormsModule, HttpClientModule), // <-- Agrega HttpClientModule aquí
+    provideHttpClient(
+      withInterceptors([AuthInterceptor])
+    )
   ]
 });

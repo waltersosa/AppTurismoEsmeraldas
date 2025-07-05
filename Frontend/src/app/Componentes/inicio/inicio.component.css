@@ -1,0 +1,140 @@
+h1 {
+    display: flex;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: xxx-large;
+    margin: 0%;
+}
+
+h2{
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0%;
+}
+.TextoEsmeraldas{
+    color: rgb(7, 189, 7);
+    margin:0;
+    margin-bottom: 5%;
+    font-size: 4cap;
+    font-weight: bolder;
+}
+
+.buttonOpcions {
+    background-color: rgb(50, 175, 16);
+    /* Green */
+    border: none;
+    border-radius: 30px;
+    color: white;
+    min-width: 40vh;
+    max-width: 70vh;
+    min-height: 8vh;
+    max-height: 10vh;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    font-size: large;
+    cursor: pointer;
+    box-shadow: 0 3px 0px rgb(25, 73, 7);
+}
+
+.buttonOpcions:active {
+    animation: buttonOpcions 0.2s forwards;
+}
+
+@keyframes buttonOpcions {
+    0% {
+        min-width: 40vh;
+        background-color: rgb(50, 175, 16);
+        box-shadow: 0 3px 0px rgb(25, 73, 7);
+    }
+
+    50% {
+        min-width: 45vh;
+        background-color: rgb(25, 73, 7);
+        box-shadow: 0 3px 0 rgb(0, 30, 0);
+    }
+
+    100% {
+        min-width: 40vh;
+        background-color: rgb(50, 175, 16);
+        box-shadow: 0 3px 0px rgb(25, 73, 7);
+    }
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+
+body {
+    background: linear-gradient(rgb(230, 255, 200), rgb(200, 255, 230));
+    height: 100vh;
+}
+
+.bottom-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 2vh;
+    margin-top: 2vh;
+}
+
+.bottom-iconos {
+    width: 5vh;
+    height: 5vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.boton-iconos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    font-size: large;
+    text-decoration: none;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.boton-iconos:active {
+    animation: boton-iconos 0.2s ease-in-out;
+}
+
+@keyframes boton-iconos {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.main-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding-bottom: 10px;
+}
+
+.bottom-navigation {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  background-color: rgb(155, 231, 133);
+  border-top: 1px solid rgb(230, 255, 213);
+}

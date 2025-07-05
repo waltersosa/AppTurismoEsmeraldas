@@ -32,4 +32,17 @@ export class AuthService {
   login(data: LoginData): Observable<any> {
     return this.http.post(this.loginUrl, data);
   }
+
+  obtenerPerfil(){
+    return this.http.get<{ 
+    data: {
+      usuario: {
+        id: string;
+        nombre: string;
+        correo: string;
+      }
+    }
+    }>('http://localhost:3001/auth/profile');
+  }
+  
 }
