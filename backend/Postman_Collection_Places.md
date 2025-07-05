@@ -72,11 +72,18 @@ Antes de probar, asegúrate de:
 
 ---
 
-### 2. Crear Lugar Turístico
+### 2. Crear Lugar Turístico (Solo GAD)
 
 **Método:** `POST`  
 **URL:** `{{base_url}}/places`  
-**Headers:** `Content-Type: application/json`
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer {{gad_token}}
+```
+
+**Nota:** Requiere autenticación con rol GAD. Obtén el token desde el Auth Service.
 
 **Body (JSON):**
 
@@ -86,7 +93,11 @@ Antes de probar, asegúrate de:
   "description": "Paseo turístico junto al río Esmeraldas.",
   "location": "Esmeraldas, Ecuador",
   "category": "natural",
-  "images": ["https://ejemplo.com/malecon1.jpg"],
+  "coverImageUrl": "https://ejemplo.com/malecon-cover.jpg",
+  "imageUrls": [
+    "https://ejemplo.com/malecon1.jpg",
+    "https://ejemplo.com/malecon2.jpg"
+  ],
   "active": true
 }
 ```
@@ -102,7 +113,11 @@ Antes de probar, asegúrate de:
     "description": "Paseo turístico junto al río Esmeraldas.",
     "location": "Esmeraldas, Ecuador",
     "category": "natural",
-    "images": ["https://ejemplo.com/malecon1.jpg"],
+    "coverImageUrl": "https://ejemplo.com/malecon-cover.jpg",
+    "imageUrls": [
+      "https://ejemplo.com/malecon1.jpg",
+      "https://ejemplo.com/malecon2.jpg"
+    ],
     "active": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
@@ -139,7 +154,11 @@ if (pm.response.code === 201) {
       "description": "Paseo turístico junto al río Esmeraldas.",
       "location": "Esmeraldas, Ecuador",
       "category": "natural",
-      "images": ["https://ejemplo.com/malecon1.jpg"],
+      "coverImageUrl": "https://ejemplo.com/malecon-cover.jpg",
+      "imageUrls": [
+        "https://ejemplo.com/malecon1.jpg",
+        "https://ejemplo.com/malecon2.jpg"
+      ],
       "active": true,
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
@@ -171,7 +190,11 @@ if (pm.response.code === 201) {
     "description": "Paseo turístico junto al río Esmeraldas.",
     "location": "Esmeraldas, Ecuador",
     "category": "natural",
-    "images": ["https://ejemplo.com/malecon1.jpg"],
+    "coverImageUrl": "https://ejemplo.com/malecon-cover.jpg",
+    "imageUrls": [
+      "https://ejemplo.com/malecon1.jpg",
+      "https://ejemplo.com/malecon2.jpg"
+    ],
     "active": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
@@ -181,11 +204,18 @@ if (pm.response.code === 201) {
 
 ---
 
-### 5. Actualizar Lugar
+### 5. Actualizar Lugar (Solo GAD)
 
 **Método:** `PUT`  
 **URL:** `{{base_url}}/places/{{place_id}}`  
-**Headers:** `Content-Type: application/json`
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer {{gad_token}}
+```
+
+**Nota:** Requiere autenticación con rol GAD.
 
 **Body (JSON):**
 
@@ -195,7 +225,11 @@ if (pm.response.code === 201) {
   "description": "Renovado paseo turístico junto al río.",
   "location": "Esmeraldas, Ecuador",
   "category": "natural",
-  "images": ["https://ejemplo.com/malecon2.jpg"],
+  "coverImageUrl": "https://ejemplo.com/malecon-renovado-cover.jpg",
+  "imageUrls": [
+    "https://ejemplo.com/malecon-renovado1.jpg",
+    "https://ejemplo.com/malecon-renovado2.jpg"
+  ],
   "active": true
 }
 ```
@@ -211,7 +245,11 @@ if (pm.response.code === 201) {
     "description": "Renovado paseo turístico junto al río.",
     "location": "Esmeraldas, Ecuador",
     "category": "natural",
-    "images": ["https://ejemplo.com/malecon2.jpg"],
+    "coverImageUrl": "https://ejemplo.com/malecon-renovado-cover.jpg",
+    "imageUrls": [
+      "https://ejemplo.com/malecon-renovado1.jpg",
+      "https://ejemplo.com/malecon-renovado2.jpg"
+    ],
     "active": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
@@ -221,10 +259,17 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6. Eliminar Lugar
+### 6. Eliminar Lugar (Solo GAD)
 
 **Método:** `DELETE`  
-**URL:** `{{base_url}}/places/{{place_id}}`
+**URL:** `{{base_url}}/places/{{place_id}}`  
+**Headers:**
+
+```
+Authorization: Bearer {{gad_token}}
+```
+
+**Nota:** Requiere autenticación con rol GAD.
 
 **Respuesta esperada:**
 
@@ -237,10 +282,100 @@ if (pm.response.code === 201) {
     "description": "Renovado paseo turístico junto al río.",
     "location": "Esmeraldas, Ecuador",
     "category": "natural",
-    "images": ["https://ejemplo.com/malecon2.jpg"],
+    "coverImageUrl": "https://ejemplo.com/malecon-renovado-cover.jpg",
+    "imageUrls": [
+      "https://ejemplo.com/malecon-renovado1.jpg",
+      "https://ejemplo.com/malecon-renovado2.jpg"
+    ],
     "active": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   }
+}
+```
+
+---
+
+## 📝 Notas Importantes
+
+### Tipos de Imágenes Soportados
+
+**URLs de Imágenes:**
+
+- ✅ URLs HTTP/HTTPS válidas
+- ✅ Formatos: JPG, JPEG, PNG, GIF, WEBP, BMP
+- ✅ Validación automática de accesibilidad
+- ✅ Timeout de 5 segundos para validación
+
+**Archivos Locales:**
+
+- ✅ Subida a través del Media Service
+- ✅ Almacenamiento en `/uploads/`
+- ✅ Referencias por ObjectId
+
+### Campos de Imágenes
+
+- **`coverImageUrl`**: URL directa de la imagen de portada
+- **`imageUrls`**: Array de URLs de imágenes de galería
+- **`coverImage`**: Referencia a Media (archivo local)
+- **`images`**: Array de referencias a Media (archivos locales)
+
+### Validaciones
+
+- **Nombre**: 2-100 caracteres
+- **Descripción**: 10-1000 caracteres
+- **Ubicación**: 5-200 caracteres
+- **Categoría**: 2-50 caracteres (opcional)
+- **URLs**: Deben ser válidas y accesibles
+- **Imágenes**: Solo formatos de imagen soportados
+
+### Ejemplos de Uso
+
+**Lugar con solo URLs (Recomendado):**
+
+```json
+{
+  "name": "Playa Esmeraldas",
+  "description": "Hermosa playa del Pacífico",
+  "location": "Esmeraldas, Ecuador",
+  "coverImageUrl": "https://ejemplo.com/playa-cover.jpg",
+  "imageUrls": [
+    "https://ejemplo.com/playa1.jpg",
+    "https://ejemplo.com/playa2.jpg"
+  ]
+}
+```
+
+**Lugar con URLs en campo images (Compatibilidad):**
+
+```json
+{
+  "name": "Playa Esmeraldas",
+  "description": "Hermosa playa del Pacífico",
+  "location": "Esmeraldas, Ecuador",
+  "images": ["https://ejemplo.com/playa1.jpg", "https://ejemplo.com/playa2.jpg"]
+}
+```
+
+_Nota: El sistema automáticamente moverá las URLs del campo `images` al campo `imageUrls`_
+
+**Lugar sin imágenes:**
+
+```json
+{
+  "name": "Parque Central",
+  "description": "Parque central de la ciudad",
+  "location": "Esmeraldas, Ecuador"
+}
+```
+
+**Lugar mixto (URLs + archivos locales):**
+
+```json
+{
+  "name": "Museo Regional",
+  "description": "Museo con historia local",
+  "location": "Esmeraldas, Ecuador",
+  "coverImageUrl": "https://ejemplo.com/museo-cover.jpg"
 }
 ```

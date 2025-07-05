@@ -1,6 +1,6 @@
-# 🏝️ Esmeraldas Turismo - Microservicios (Auth, Places & Reviews)
+# 🏝️ Esmeraldas Turismo - Microservicios (Auth, Places, Reviews & Media)
 
-**Esmeraldas Turismo** es un sistema modular basado en microservicios para la gestión de usuarios, lugares turísticos y reseñas, pensado para gobiernos locales (GAD), propietarios y turistas. Incluye autenticación robusta, gestión de lugares, reseñas y está listo para integrarse con frontends modernos y un API Gateway.
+**Esmeraldas Turismo** es un sistema modular basado en microservicios para la gestión de usuarios, lugares turísticos, reseñas y archivos multimedia, pensado para gobiernos locales (GAD), propietarios y turistas. Incluye autenticación robusta, gestión de lugares, reseñas, subida de imágenes y está listo para integrarse con frontends modernos y un API Gateway.
 
 ---
 
@@ -10,6 +10,7 @@
 - [Auth Service](#auth-service)
 - [Places Service](#places-service)
 - [Reviews Service](#reviews-service)
+- [Media Service](#media-service)
 - [Modelos de Base de Datos](#modelos-de-base-de-datos)
 - [Configuración](#configuración)
 - [Seguridad](#seguridad)
@@ -131,12 +132,16 @@ Microservicio de gestión de lugares turísticos para el sistema "Esmeraldas Tur
 ## 🚀 Características
 
 - **CRUD completo de lugares turísticos**
+- **Gestión de imágenes**: URLs de la web y archivos locales
+- **Validación automática de URLs**: Verificación de accesibilidad
+- **Compatibilidad total**: Mapeo automático de campos
 - **Paginación, filtrado y orden dinámico**
-- **Validación robusta**: express-validator
+- **Validación robusta**: express-validator con mensajes en español
 - **Arquitectura modular**
 - **Manejo de errores centralizado**
 - **CORS configurado**
 - **Logging de peticiones**
+- **Acceso restringido**: Solo GAD puede gestionar lugares
 
 ## 📁 Estructura del Proyecto (Places)
 
@@ -145,7 +150,8 @@ backend/
 ├── controllers/
 │   └── placeController.js
 ├── services/
-│   └── placeService.js
+│   ├── placeService.js
+│   └── uploadMediaService.js
 ├── middlewares/
 │   ├── placeValidation.js
 │   └── errorHandler.js
@@ -153,6 +159,9 @@ backend/
 │   └── Place.js
 ├── routes/
 │   └── place.js
+├── scripts/
+│   ├── migratePlaces.js
+│   └── cleanPlacesData.js
 ```
 
 ## 📡 Endpoints (Places)
@@ -163,11 +172,44 @@ backend/
 - `GET /places` - Listar lugares (con paginación, filtro y orden)
 - `GET /places/:id` - Obtener lugar por ID
 
-### Rutas de Gestión
+### Rutas de Gestión (Solo GAD)
 
-- `POST /places` - Crear lugar
-- `PUT /places/:id` - Actualizar lugar
-- `DELETE /places/:id` - Eliminar lugar
+- `POST /places` - Crear lugar (requiere autenticación GAD)
+- `PUT /places/:id` - Actualizar lugar (requiere autenticación GAD)
+- `DELETE /places/:id` - Eliminar lugar (requiere autenticación GAD)
+
+## 🖼️ Gestión de Imágenes
+
+### Tipos de Imágenes Soportados
+
+**URLs de la Web:**
+
+- ✅ URLs HTTP/HTTPS válidas
+- ✅ Formatos: JPG, JPEG, PNG, GIF, WEBP, BMP
+- ✅ Validación automática de accesibilidad
+- ✅ Timeout de 5 segundos para validación
+
+**Archivos Locales:**
+
+- ✅ Subida a través del Media Service
+- ✅ Almacenamiento en `/uploads/`
+- ✅ Referencias por ObjectId
+
+### Campos de Imágenes
+
+- **`coverImageUrl`**: URL directa de la imagen de portada
+- **`imageUrls`**: Array de URLs de imágenes de galería
+- **`coverImage`**: Referencia a Media (archivo local)
+- **`images`**: Array de referencias a Media (archivos locales)
+
+### Validaciones
+
+- **Nombre**: 2-100 caracteres
+- **Descripción**: 10-1000 caracteres
+- **Ubicación**: 5-200 caracteres
+- **Categoría**: 2-50 caracteres (opcional)
+- **URLs**: Deben ser válidas y accesibles
+- **Imágenes**: Solo formatos de imagen soportados
 
 ## 🧪 Pruebas (Places)
 
@@ -229,6 +271,58 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 
 ---
 
+# 📸 Media Service
+
+Microservicio de gestión de archivos multimedia (imágenes) para el sistema "Esmeraldas Turismo".
+
+## 🚀 Características
+
+- **Subida de imágenes asociadas a lugares**
+- **Imagen de portada específica por lugar**
+- **Galería de imágenes por lugar**
+- **Validación de tipos de archivo**
+- **Almacenamiento local con URLs accesibles**
+- **Relación directa con el Places Service**
+- **CORS configurado**
+- **Logging de peticiones**
+- **Acceso restringido**: Solo GAD puede subir/eliminar imágenes
+
+## 📁 Estructura del Proyecto (Media)
+
+```
+backend/
+├── controllers/
+│   └── mediaController.js
+├── middlewares/
+│   └── mediaValidation.js
+├── models/
+│   └── Media.js
+├── routes/
+│   └── media.js
+├── uploads/
+│   └── (archivos subidos)
+```
+
+## 📡 Endpoints (Media)
+
+### Rutas Públicas
+
+- `GET /media/health` - Estado del servicio
+- `GET /media/file/:filename` - Obtener archivo por nombre
+- `GET /media/place/:placeId` - Obtener imágenes por lugar
+
+### Rutas de Gestión (Solo GAD)
+
+- `POST /media/upload` - Subir imágenes (requiere placeId y autenticación GAD)
+- `DELETE /media/:mediaId` - Eliminar imagen (requiere autenticación GAD)
+
+## 🧪 Pruebas (Media)
+
+Para probar todas las funcionalidades del microservicio, consulta el archivo:
+**[Postman_Collection_Media.md](./backend/Postman_Collection_Media.md)**
+
+---
+
 # 🗄️ Modelos de Base de Datos
 
 ## Auth - Colección: `users`
@@ -255,11 +349,30 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 ```javascript
 {
   _id: ObjectId,
-  name: String,         // Requerido
-  description: String,  // Requerido
-  location: String,     // Requerido
-  category: String,     // Ej: 'natural', 'histórico', etc.
-  images: [String],     // URLs de imágenes
+  name: String,         // Requerido, 2-100 caracteres
+  description: String,  // Requerido, 10-1000 caracteres
+  location: String,     // Requerido, 5-200 caracteres
+  category: String,     // Opcional, 2-50 caracteres
+  coverImage: ObjectId, // Referencia a Media (archivo local)
+  coverImageUrl: String, // URL directa de imagen de portada
+  images: [ObjectId],   // Referencias a Media (archivos locales)
+  imageUrls: [String],  // URLs directas de imágenes
+  active: Boolean,      // Default: true
+  createdAt: Date,      // Timestamp automático
+  updatedAt: Date       // Timestamp automático
+}
+```
+
+## Media - Colección: `media`
+
+```javascript
+{
+  _id: ObjectId,
+  filename: String,     // Nombre del archivo en el servidor
+  originalName: String, // Nombre original del archivo
+  url: String,          // URL para acceder al archivo
+  placeId: ObjectId,    // Referencia a Place (requerido)
+  type: String,         // 'cover' o 'gallery'
   active: Boolean,      // Default: true
   createdAt: Date,      // Timestamp automático
   updatedAt: Date       // Timestamp automático
@@ -304,31 +417,37 @@ Para probar todas las funcionalidades del microservicio, consulta el archivo:
 - **Validación de entrada**: Sanitización y validación de todos los datos
 - **CORS configurado**: Control de orígenes permitidos
 - **Rate limiting**: Implementar según necesidades
+- **Acceso restringido**: Solo GAD puede gestionar lugares e imágenes
 
 ---
 
 # 🤝 Integración con API Gateway
 
-- **Health Check**: Usar `/auth/health`, `/places/health` y `/reviews/health` para verificar disponibilidad
+- **Health Check**: Usar `/auth/health`, `/places/health`, `/reviews/health` y `/media/health` para verificar disponibilidad
 - **Autenticación**: Validar tokens en `/auth/validate` (Auth)
 - **CORS**: Configurar según el dominio del frontend
 - **Load Balancing**: Los servicios son stateless y pueden escalar horizontalmente
 
 ---
 
-# �� Notas Importantes
+# 📝 Notas Importantes
 
 - **Tokens JWT**: Duración de 24 horas por defecto (Auth)
 - **Contraseñas**: Mínimo 6 caracteres, mayúsculas, minúsculas y números (Auth)
 - **Correos**: Únicos en el sistema (Auth)
 - **Roles**: Solo 'usuario', 'propietario' y 'gad' (Auth)
-- **Campos obligatorios en places**: name, description, location
+- **Campos obligatorios en places**: name (2-100 chars), description (10-1000 chars), location (5-200 chars)
 - **active en places**: Por defecto es `true`, puedes desactivar un lugar sin eliminarlo
-- **category en places**: Puede ser cualquier string, se recomienda usar valores estándar
+- **category en places**: Opcional, 2-50 caracteres, se recomienda usar valores estándar
+- **Imágenes en places**: Soporta URLs directas (`coverImageUrl`, `imageUrls`) y archivos locales (`coverImage`, `images`)
+- **Validación de URLs**: Verifica automáticamente que las URLs de imágenes sean válidas y accesibles
+- **Acceso GAD**: Solo usuarios con rol GAD pueden gestionar lugares e imágenes
 - **Las reviews están aprobadas por defecto y solo pueden ser bloqueadas por el admin**
 - **El endpoint público de reviews muestra todas excepto las bloqueadas**
 - **Base de datos**: MongoDB en `mongodb://localhost:27017/turismoDB`
-- **Eliminación**: Soft delete en users, delete físico en places y reviews
+- **Eliminación**: Soft delete en users, delete físico en places, reviews y media
+- **Imágenes**: Almacenadas en `/backend/uploads/` con URLs accesibles via `/media/file/:filename`
+- **Relación Media-Places**: Cada imagen debe estar asociada a un lugar específico
 
 ---
 
@@ -340,3 +459,4 @@ Para soporte técnico o preguntas sobre los microservicios, contactar al equipo 
 
 - El frontend solo permite visualizar y eliminar usuarios. No es posible agregar ni actualizar usuarios desde la interfaz.
 - El backend maneja errores de correo duplicado (409) y usuario no encontrado (404) de forma clara.
+- Los scripts de migración y limpieza están disponibles en `/backend/scripts/` para mantener la integridad de los datos.

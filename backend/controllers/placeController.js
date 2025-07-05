@@ -33,6 +33,14 @@ export const createPlace = async (req, res, next) => {
     const place = await placeService.createPlace(req.body);
     res.status(201).json({ success: true, data: place });
   } catch (err) {
+    // Manejar errores específicos de validación
+    if (err.message.includes('URLs de imágenes inválidas') || err.message.includes('URL de imagen de portada inválida')) {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+        timestamp: new Date().toISOString()
+      });
+    }
     next(err);
   }
 };
@@ -43,6 +51,14 @@ export const updatePlace = async (req, res, next) => {
     if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
     res.json({ success: true, data: place });
   } catch (err) {
+    // Manejar errores específicos de validación
+    if (err.message.includes('URLs de imágenes inválidas') || err.message.includes('URL de imagen de portada inválida')) {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+        timestamp: new Date().toISOString()
+      });
+    }
     next(err);
   }
 };
