@@ -3,19 +3,13 @@ import { body, validationResult } from 'express-validator';
 // Validación para crear lugar (campos requeridos)
 export const validateCreatePlace = [
   body('name')
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('El nombre debe tener entre 2 y 100 caracteres'),
+    .trim(),
   
   body('description')
-    .trim()
-    .isLength({ min: 3, max: 1000 })
-    .withMessage('La descripción debe tener entre 3 y 1000 caracteres'),
+    .trim(),
   
   body('location')
-    .trim()
-    .isLength({ min: 3, max: 200 })
-    .withMessage('La ubicación debe tener entre 3 y 200 caracteres'),
+    .trim(),
   
   body('category')
     .optional()
@@ -25,8 +19,17 @@ export const validateCreatePlace = [
   
   body('coverImageUrl')
     .optional()
-    .isURL()
-    .withMessage('La URL de la imagen de portada debe ser válida'),
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) {
+        return true; // Permitir valores vacíos
+      }
+      // Si hay un valor, debe ser una URL válida
+      const urlRegex = /^https?:\/\/.+/;
+      if (!urlRegex.test(value)) {
+        throw new Error('La URL de la imagen de portada debe ser válida');
+      }
+      return true;
+    }),
   
   body('imageUrls')
     .optional()
@@ -35,8 +38,16 @@ export const validateCreatePlace = [
   
   body('imageUrls.*')
     .optional()
-    .isURL()
-    .withMessage('Cada URL de imagen debe ser válida'),
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) {
+        return true;
+      }
+      const urlRegex = /^https?:\/\/.+/;
+      if (!urlRegex.test(value)) {
+        throw new Error('Cada URL de imagen debe ser válida');
+      }
+      return true;
+    }),
   
   body('active')
     .optional()
@@ -48,21 +59,15 @@ export const validateCreatePlace = [
 export const validateUpdatePlace = [
   body('name')
     .optional()
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('El nombre debe tener entre 2 y 100 caracteres'),
+    .trim(),
   
   body('description')
     .optional()
-    .trim()
-    .isLength({ min: 3, max: 1000 })
-    .withMessage('La descripción debe tener entre 3 y 1000 caracteres'),
+    .trim(),
   
   body('location')
     .optional()
-    .trim()
-    .isLength({ min: 3, max: 200 })
-    .withMessage('La ubicación debe tener entre 3 y 200 caracteres'),
+    .trim(),
   
   body('category')
     .optional()
@@ -72,8 +77,17 @@ export const validateUpdatePlace = [
   
   body('coverImageUrl')
     .optional()
-    .isURL()
-    .withMessage('La URL de la imagen de portada debe ser válida'),
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) {
+        return true; // Permitir valores vacíos
+      }
+      // Si hay un valor, debe ser una URL válida
+      const urlRegex = /^https?:\/\/.+/;
+      if (!urlRegex.test(value)) {
+        throw new Error('La URL de la imagen de portada debe ser válida');
+      }
+      return true;
+    }),
   
   body('imageUrls')
     .optional()
@@ -82,8 +96,16 @@ export const validateUpdatePlace = [
   
   body('imageUrls.*')
     .optional()
-    .isURL()
-    .withMessage('Cada URL de imagen debe ser válida'),
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) {
+        return true;
+      }
+      const urlRegex = /^https?:\/\/.+/;
+      if (!urlRegex.test(value)) {
+        throw new Error('Cada URL de imagen debe ser válida');
+      }
+      return true;
+    }),
   
   body('active')
     .optional()
@@ -95,21 +117,15 @@ export const validateUpdatePlace = [
 export const validatePartialUpdate = [
   body('name')
     .optional()
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('El nombre debe tener entre 2 y 100 caracteres'),
+    .trim(),
   
   body('description')
     .optional()
-    .trim()
-    .isLength({ min: 3, max: 1000 })
-    .withMessage('La descripción debe tener entre 3 y 1000 caracteres'),
+    .trim(),
   
   body('location')
     .optional()
-    .trim()
-    .isLength({ min: 3, max: 200 })
-    .withMessage('La ubicación debe tener entre 3 y 200 caracteres'),
+    .trim(),
   
   body('category')
     .optional()
@@ -119,8 +135,17 @@ export const validatePartialUpdate = [
   
   body('coverImageUrl')
     .optional()
-    .isURL()
-    .withMessage('La URL de la imagen de portada debe ser válida'),
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) {
+        return true; // Permitir valores vacíos
+      }
+      // Si hay un valor, debe ser una URL válida
+      const urlRegex = /^https?:\/\/.+/;
+      if (!urlRegex.test(value)) {
+        throw new Error('La URL de la imagen de portada debe ser válida');
+      }
+      return true;
+    }),
   
   body('imageUrls')
     .optional()
@@ -129,8 +154,16 @@ export const validatePartialUpdate = [
   
   body('imageUrls.*')
     .optional()
-    .isURL()
-    .withMessage('Cada URL de imagen debe ser válida'),
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) {
+        return true;
+      }
+      const urlRegex = /^https?:\/\/.+/;
+      if (!urlRegex.test(value)) {
+        throw new Error('Cada URL de imagen debe ser válida');
+      }
+      return true;
+    }),
   
   body('active')
     .optional()
