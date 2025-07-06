@@ -152,7 +152,11 @@ export class PlaceComponent implements OnInit {
   }
 
   openAgregarLugar() {
-    const dialogRef = this.dialog.open(PlaceDialogComponent);
+    const dialogRef = this.dialog.open(PlaceDialogComponent, {
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      width: '500px'
+    });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log('Datos a enviar:', result);
@@ -193,7 +197,10 @@ export class PlaceComponent implements OnInit {
 
   openEditarLugar(lugar: any) {
     const dialogRef = this.dialog.open(PlaceDialogComponent, {
-      data: lugar
+      data: lugar,
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      width: '500px'
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {

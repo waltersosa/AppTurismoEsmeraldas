@@ -25,7 +25,8 @@ import { CommonModule } from '@angular/common';
   ],
   template: `
     <h2 mat-dialog-title>{{ isEditing ? 'Editar' : 'Agregar' }} Lugar Turístico</h2>
-    <form [formGroup]="lugarForm" (ngSubmit)="onSubmit()" class="user-form-modal">
+    <div class="dialog-content">
+      <form [formGroup]="lugarForm" (ngSubmit)="onSubmit()" class="user-form-modal">
       <mat-form-field appearance="outline" color="primary">
         <mat-label>Nombre</mat-label>
         <input matInput formControlName="name" required />
@@ -95,19 +96,44 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
       
-      <div class="modal-actions">
-        <button mat-raised-button color="primary" type="submit">{{ isEditing ? 'Actualizar' : 'Agregar' }}</button>
-        <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-      </div>
-    </form>
+              <div class="modal-actions">
+          <button mat-raised-button color="primary" type="submit">{{ isEditing ? 'Actualizar' : 'Agregar' }}</button>
+          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+        </div>
+      </form>
+    </div>
   `,
   styles: [`
+    .dialog-content {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    
+    .dialog-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .dialog-content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .dialog-content::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    .dialog-content::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
     .user-form-modal {
       display: flex;
       flex-direction: column;
       gap: 22px;
-      min-width: 340px;
-      max-width: 420px;
+      min-width: 400px;
+      max-width: 500px;
       margin: 0 auto;
       background: #f8f9fa;
       border-radius: 14px;

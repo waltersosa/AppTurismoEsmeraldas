@@ -9,13 +9,13 @@ export const validateCreatePlace = [
   
   body('description')
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('La descripción debe tener entre 10 y 1000 caracteres'),
+    .isLength({ min: 3, max: 1000 })
+    .withMessage('La descripción debe tener entre 3 y 1000 caracteres'),
   
   body('location')
     .trim()
-    .isLength({ min: 5, max: 200 })
-    .withMessage('La ubicación debe tener entre 5 y 200 caracteres'),
+    .isLength({ min: 3, max: 200 })
+    .withMessage('La ubicación debe tener entre 3 y 200 caracteres'),
   
   body('category')
     .optional()
@@ -55,14 +55,14 @@ export const validateUpdatePlace = [
   body('description')
     .optional()
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('La descripción debe tener entre 10 y 1000 caracteres'),
+    .isLength({ min: 3, max: 1000 })
+    .withMessage('La descripción debe tener entre 3 y 1000 caracteres'),
   
   body('location')
     .optional()
     .trim()
-    .isLength({ min: 5, max: 200 })
-    .withMessage('La ubicación debe tener entre 5 y 200 caracteres'),
+    .isLength({ min: 3, max: 200 })
+    .withMessage('La ubicación debe tener entre 3 y 200 caracteres'),
   
   body('category')
     .optional()
@@ -102,14 +102,14 @@ export const validatePartialUpdate = [
   body('description')
     .optional()
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('La descripción debe tener entre 10 y 1000 caracteres'),
+    .isLength({ min: 3, max: 1000 })
+    .withMessage('La descripción debe tener entre 3 y 1000 caracteres'),
   
   body('location')
     .optional()
     .trim()
-    .isLength({ min: 5, max: 200 })
-    .withMessage('La ubicación debe tener entre 5 y 200 caracteres'),
+    .isLength({ min: 3, max: 200 })
+    .withMessage('La ubicación debe tener entre 3 y 200 caracteres'),
   
   body('category')
     .optional()
