@@ -10,6 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService, User } from '../auth/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-dashboard',
@@ -56,7 +57,7 @@ import { AuthService, User } from '../auth/auth.service';
             <span>Reseñas</span>
           </a>
           
-          <a mat-list-item routerLink="/dashboard/reportes" routerLinkActive="active" class="nav-item">
+          <a mat-list-item routerLink="/dashboard/reportes" routerLinkActive="active" class="nav-item" (click)="mostrarMensajeProximamente()">
             <mat-icon>analytics</mat-icon>
             <span>Reportes</span>
           </a>
@@ -81,11 +82,11 @@ import { AuthService, User } from '../auth/auth.service';
             </button>
             
             <mat-menu #userMenu="matMenu">
-              <button mat-menu-item>
+              <button mat-menu-item (click)="mostrarMensajeProximamente()">
                 <mat-icon>person</mat-icon>
                 <span>Mi Perfil</span>
               </button>
-              <button mat-menu-item>
+              <button mat-menu-item (click)="mostrarMensajeProximamente()">
                 <mat-icon>settings</mat-icon>
                 <span>Configuración</span>
               </button>
@@ -188,7 +189,7 @@ import { AuthService, User } from '../auth/auth.service';
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
@@ -198,5 +199,11 @@ export class DashboardComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  mostrarMensajeProximamente() {
+    this.snackBar.open('Esta función estará disponible próximamente.', 'Cerrar', {
+      duration: 3000
+    });
   }
 } 

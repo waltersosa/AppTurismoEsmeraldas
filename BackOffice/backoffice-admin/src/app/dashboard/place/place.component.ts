@@ -34,11 +34,11 @@ import { getApiUrl } from '../../config/api.config';
     <div style="display: flex; gap: 18px; margin-bottom: 16px; align-items: flex-end;">
       <mat-form-field appearance="outline">
         <mat-label>Filtrar por nombre</mat-label>
-        <input matInput [formControl]="nombreControl" placeholder="Nombre del lugar" />
+        <input matInput [formControl]="nombreControl" />
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Filtrar por categoría</mat-label>
-        <input matInput [formControl]="categoriaControl" placeholder="Categoría" />
+        <input matInput [formControl]="categoriaControl" />
       </mat-form-field>
       <button mat-raised-button color="primary" (click)="openAgregarLugar()">
         <mat-icon>add_location_alt</mat-icon> Agregar Lugar Turístico

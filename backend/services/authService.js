@@ -1,5 +1,6 @@
 import userRepository from '../repositories/userRepository.js';
 import { generarToken, generarPayload } from '../utils/jwt.js';
+import Activity from '../models/Activity.js';
 
 export class AuthService {
   /**
@@ -189,21 +190,29 @@ export class AuthService {
   /**
    * Eliminar usuario (soft delete)
    * @param {string} id - ID del usuario a eliminar
+   * @param {Object} admin - Datos del admin que realiza la acción (opcional)
    * @returns {Promise<Object>} Confirmación de eliminación
    */
-  async eliminarUsuario(id) {
+  async eliminarUsuario(id, admin = null) {
     const usuario = await userRepository.desactivarUsuario(id);
     if (!usuario) {
       throw new Error('Usuario no encontrado');
     }
-
+    // Registrar actividad si la realiza un admin
+    if (admin && admin._id) {
+      await Activity.create({
+        usuario: admin._id,
+        nombreUsuario: admin.nombre || admin.correo || 'Admin',
+        accion: 'deshabilitó un usuario',
+        recurso: usuario.nombre || usuario.correo
+      });
+    }
     return {
       id: usuario._id,
       nombre: usuario.nombre,
       correo: usuario.correo,
       rol: usuario.rol,
-      activo: usuario.activo,
-      mensaje: 'Usuario eliminado exitosamente'
+      activo: usuario.activo
     };
   }
 }

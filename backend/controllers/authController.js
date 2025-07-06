@@ -1,6 +1,7 @@
 import authService from '../services/authService.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 import User from '../models/User.js';
+import Activity from '../models/Activity.js';
 
 export class AuthController {
   /**
@@ -194,11 +195,19 @@ export class AuthController {
 
   /**
    * Listar todos los usuarios (solo GAD)
-   * GET /auth/users
+   * GET /auth/users?search=nombre
    */
   async listarUsuarios(req, res) {
     try {
-      const usuarios = await User.find();
+      const { search } = req.query;
+      let query = {};
+      
+      // Filtrar por nombre si se proporciona
+      if (search) {
+        query.nombre = { $regex: search, $options: 'i' };
+      }
+      
+      const usuarios = await User.find(query).sort({ fechaCreacion: -1 });
       return successResponse(
         res,
         200,
@@ -207,6 +216,178 @@ export class AuthController {
       );
     } catch (error) {
       return errorResponse(res, 500, 'Error al obtener usuarios', error.message);
+    }
+  }
+
+  /**
+   * Deshabilitar usuario por admin (GAD)
+   * DELETE /auth/users/:id
+   */
+  async deshabilitarUsuarioPorAdmin(req, res) {
+    try {
+      // Solo admins pueden usar este endpoint
+      if (!req.usuario || req.usuario.rol.toLowerCase() !== 'gad') {
+        return errorResponse(res, 403, 'Solo los administradores pueden deshabilitar usuarios');
+      }
+      const userId = req.params.id;
+      if (!userId) {
+        return errorResponse(res, 400, 'ID de usuario requerido');
+      }
+      const resultado = await authService.eliminarUsuario(userId, req.usuario);
+      return successResponse(
+        res,
+        200,
+        'Usuario deshabilitado exitosamente',
+        resultado
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al deshabilitar usuario', error.message);
+    }
+  }
+
+  /**
+   * Consultar actividades recientes de administradores
+   * GET /admin/actividades?limit=10
+   */
+  async listarActividadesAdmin(req, res) {
+    try {
+      // Solo admins pueden ver actividades
+      if (!req.usuario || req.usuario.rol.toLowerCase() !== 'gad') {
+        return errorResponse(res, 403, 'Solo los administradores pueden ver actividades');
+      }
+      const limit = parseInt(req.query.limit) || 10;
+      const actividades = await Activity.find()
+        .sort({ fecha: -1 })
+        .limit(limit)
+        .populate('usuario', 'nombre correo');
+      return successResponse(res, 200, 'Actividades recientes obtenidas', { actividades });
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al obtener actividades', error.message);
+    }
+  }
+
+  /**
+   * Crear usuario por admin (GAD)
+   * POST /auth/users
+   */
+  async crearUsuarioPorAdmin(req, res) {
+    try {
+      // Solo admins pueden crear usuarios
+      if (!req.usuario || req.usuario.rol.toLowerCase() !== 'gad') {
+        return errorResponse(res, 403, 'Solo los administradores pueden crear usuarios');
+      }
+
+      const resultado = await authService.registrarUsuario(req.body);
+      
+      // Registrar actividad
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'creó un usuario',
+        recurso: resultado.usuario.nombre
+      });
+
+      return successResponse(
+        res,
+        201,
+        'Usuario creado exitosamente',
+        { usuario: resultado.usuario }
+      );
+    } catch (error) {
+      if (error.message.includes('ya está registrado')) {
+        return errorResponse(res, 400, error.message);
+      }
+      return errorResponse(res, 500, 'Error al crear usuario', error.message);
+    }
+  }
+
+  /**
+   * Habilitar usuario por admin (GAD)
+   * PATCH /auth/users/:id/enable
+   */
+  async habilitarUsuarioPorAdmin(req, res) {
+    try {
+      // Solo admins pueden habilitar usuarios
+      if (!req.usuario || req.usuario.rol.toLowerCase() !== 'gad') {
+        return errorResponse(res, 403, 'Solo los administradores pueden habilitar usuarios');
+      }
+
+      const userId = req.params.id;
+      if (!userId) {
+        return errorResponse(res, 400, 'ID de usuario requerido');
+      }
+
+      // Buscar y habilitar usuario
+      const usuario = await User.findByIdAndUpdate(
+        userId, 
+        { activo: true }, 
+        { new: true }
+      );
+
+      if (!usuario) {
+        return errorResponse(res, 404, 'Usuario no encontrado');
+      }
+
+      // Registrar actividad
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'habilitó un usuario',
+        recurso: usuario.nombre
+      });
+
+      return successResponse(
+        res,
+        200,
+        'Usuario habilitado exitosamente',
+        { usuario: usuario.nombre }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al habilitar usuario', error.message);
+    }
+  }
+
+  /**
+   * Eliminar usuario permanentemente por admin (GAD)
+   * DELETE /auth/users/:id/permanent
+   */
+  async eliminarUsuarioPorAdmin(req, res) {
+    try {
+      // Solo admins pueden eliminar usuarios
+      if (!req.usuario || req.usuario.rol.toLowerCase() !== 'gad') {
+        return errorResponse(res, 403, 'Solo los administradores pueden eliminar usuarios');
+      }
+
+      const userId = req.params.id;
+      if (!userId) {
+        return errorResponse(res, 400, 'ID de usuario requerido');
+      }
+
+      // Buscar usuario antes de eliminarlo para registrar la actividad
+      const usuarioAEliminar = await User.findById(userId);
+      if (!usuarioAEliminar) {
+        return errorResponse(res, 404, 'Usuario no encontrado');
+      }
+
+      // Eliminar usuario permanentemente
+      await User.findByIdAndDelete(userId);
+
+      // Registrar actividad
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'eliminó permanentemente un usuario',
+        recurso: usuarioAEliminar.nombre
+      });
+
+      return successResponse(
+        res,
+        200,
+        'Usuario eliminado permanentemente',
+        { usuarioEliminado: usuarioAEliminar.nombre }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al eliminar usuario', error.message);
     }
   }
 }

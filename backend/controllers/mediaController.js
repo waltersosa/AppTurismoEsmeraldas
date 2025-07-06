@@ -1,6 +1,7 @@
 import path from 'path';
 import Media from '../models/Media.js';
 import Place from '../models/Place.js';
+import Activity from '../models/Activity.js';
 
 // Subida de archivos
 export const uploadMedia = async (req, res) => {
@@ -56,6 +57,16 @@ export const uploadMedia = async (req, res) => {
         originalName: media.originalName,
         url: media.url,
         type: media.type
+      });
+    }
+
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'subió archivos multimedia',
+        recurso: `${uploadedFiles.length} archivos para ${place.name}`
       });
     }
 
@@ -126,6 +137,16 @@ export const deleteMedia = async (req, res) => {
 
     await Media.findByIdAndDelete(mediaId);
 
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'eliminó archivo multimedia',
+        recurso: media.originalName
+      });
+    }
+
     res.json({ 
       success: true, 
       message: 'Media deleted successfully' 
@@ -164,6 +185,16 @@ export const uploadImagesForForm = async (req, res) => {
         originalName: media.originalName,
         url: media.url,
         type: media.type
+      });
+    }
+
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'subió archivos para formulario',
+        recurso: `${uploadedFiles.length} archivos`
       });
     }
 

@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { UsuarioDialogComponent } from '../usuarios/usuario-dialog.component';
 import { Router } from '@angular/router';
 import { PlaceDialogComponent } from '../place/place-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-home',
@@ -119,42 +120,18 @@ import { PlaceDialogComponent } from '../place/place-dialog.component';
         <mat-card>
           <mat-card-content>
             <div class="activity-list">
-              <div class="activity-item">
+              <div *ngFor="let act of actividades" class="activity-item">
                 <div class="activity-icon">
-                  <mat-icon>person_add</mat-icon>
+                  <mat-icon>history</mat-icon>
                 </div>
                 <div class="activity-content">
-                  <h4>Nuevo usuario registrado</h4>
-                  <p>María González se registró en la plataforma</p>
-                  <span class="activity-time">Hace 2 horas</span>
+                  <h4>{{ act.nombreUsuario }} {{ act.accion }}</h4>
+                  <p *ngIf="act.recurso">{{ act.recurso }}</p>
+                  <span class="activity-time">{{ act.fecha | date:'short' }}</span>
                 </div>
               </div>
-              
-              <mat-divider></mat-divider>
-              
-              <div class="activity-item">
-                <div class="activity-icon">
-                  <mat-icon>book_online</mat-icon>
-                </div>
-                <div class="activity-content">
-                  <h4>Nueva reserva realizada</h4>
-                  <p>Reserva para "Playa de Atacames" - 3 días</p>
-                  <span class="activity-time">Hace 4 horas</span>
-                </div>
-              </div>
-              
-              <mat-divider></mat-divider>
-              
-              <div class="activity-item">
-                <div class="activity-icon">
-                  <mat-icon>place</mat-icon>
-                </div>
-                <div class="activity-content">
-                  <h4>Destino actualizado</h4>
-                  <p>Información de "Manglares de Muisne" actualizada</p>
-                  <span class="activity-time">Hace 6 horas</span>
-                </div>
-              </div>
+              <mat-divider *ngIf="!actividades.length"></mat-divider>
+              <div *ngIf="!actividades.length" style="text-align:center; color:#999; padding:16px;">No hay actividades recientes</div>
             </div>
           </mat-card-content>
         </mat-card>
@@ -360,11 +337,13 @@ export class HomeComponent implements OnInit {
   loading = true;
   error = '';
   private statsUrl = 'http://localhost:3001/stats'; // Cambia esto si usas variable de entorno
+  actividades: any[] = [];
 
-  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router) {}
+  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.getStats();
+    this.getActividades();
   }
 
   getStats() {
@@ -382,6 +361,21 @@ export class HomeComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.message || 'Error al obtener estadísticas';
         this.loading = false;
+      }
+    });
+  }
+
+  getActividades() {
+    this.http.get<any>('http://localhost:3001/auth/admin/actividades?limit=10').subscribe({
+      next: (res) => {
+        if (res.success && res.data && res.data.actividades) {
+          this.actividades = res.data.actividades;
+        } else {
+          this.actividades = [];
+        }
+      },
+      error: (err) => {
+        this.actividades = [];
       }
     });
   }
@@ -417,6 +411,8 @@ export class HomeComponent implements OnInit {
   }
 
   openConfiguracion() {
-    alert('Configuración próximamente');
+    this.snackBar.open('Esta función estará disponible próximamente.', 'Cerrar', {
+      duration: 3000
+    });
   }
 } 

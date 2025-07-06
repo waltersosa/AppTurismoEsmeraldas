@@ -1,4 +1,5 @@
 import * as reviewService from '../services/reviewService.js';
+import Activity from '../models/Activity.js';
 
 // ===== RUTAS PARA USUARIOS =====
 
@@ -88,6 +89,16 @@ export const updateReviewStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Review no encontrada' });
     }
 
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: `cambió estado de reseña a ${estado}`,
+        recurso: `Reseña de ${review.usuario?.nombre || 'usuario'}`
+      });
+    }
+
     res.json({ success: true, data: review });
   } catch (err) {
     next(err);
@@ -102,6 +113,16 @@ export const deleteReview = async (req, res, next) => {
     
     if (!review) {
       return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'eliminó una reseña',
+        recurso: `Reseña de ${review.usuario?.nombre || 'usuario'}`
+      });
     }
 
     res.json({ success: true, data: review });

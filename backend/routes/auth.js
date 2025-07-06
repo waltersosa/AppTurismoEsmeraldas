@@ -24,5 +24,10 @@ router.put('/change-password', autenticarToken, validarCambioContraseña, authCo
 
 // Rutas administrativas (solo GAD)
 router.get('/users', autenticarToken, autorizarRoles('gad'), authController.listarUsuarios);
+router.post('/users', autenticarToken, autorizarRoles('gad'), validarRegistro, authController.crearUsuarioPorAdmin);
+router.delete('/users/:id', autenticarToken, autorizarRoles('gad'), authController.deshabilitarUsuarioPorAdmin);
+router.patch('/users/:id/enable', autenticarToken, autorizarRoles('gad'), authController.habilitarUsuarioPorAdmin);
+router.delete('/users/:id/permanent', autenticarToken, autorizarRoles('gad'), authController.eliminarUsuarioPorAdmin);
+router.get('/admin/actividades', autenticarToken, autorizarRoles('gad'), authController.listarActividadesAdmin);
 
 export default router; 

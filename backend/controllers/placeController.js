@@ -1,4 +1,5 @@
 import * as placeService from '../services/placeService.js';
+import Activity from '../models/Activity.js';
 
 export const getPlaces = async (req, res, next) => {
   try {
@@ -31,6 +32,15 @@ export const getPlaceById = async (req, res, next) => {
 export const createPlace = async (req, res, next) => {
   try {
     const place = await placeService.createPlace(req.body);
+    // Registrar actividad
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'creó un lugar',
+        recurso: place.name
+      });
+    }
     res.status(201).json({ success: true, data: place });
   } catch (err) {
     // Manejar errores específicos de validación
@@ -49,6 +59,15 @@ export const updatePlace = async (req, res, next) => {
   try {
     const place = await placeService.updatePlace(req.params.id, req.body);
     if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
+    // Registrar actividad
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'editó un lugar',
+        recurso: place.name
+      });
+    }
     res.json({ success: true, data: place });
   } catch (err) {
     // Manejar errores específicos de validación
@@ -67,6 +86,15 @@ export const deletePlace = async (req, res, next) => {
   try {
     const place = await placeService.deletePlace(req.params.id);
     if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
+    // Registrar actividad
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'eliminó un lugar',
+        recurso: place.name
+      });
+    }
     res.json({ success: true, data: place });
   } catch (err) {
     next(err);
@@ -87,6 +115,17 @@ export const updatePlaceStatus = async (req, res, next) => {
     
     const place = await placeService.updatePlaceStatus(req.params.id, { active });
     if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
+    
+    // Registrar actividad
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario.id,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: `${active ? 'activó' : 'desactivó'} un lugar`,
+        recurso: place.name
+      });
+    }
+    
     res.json({ success: true, data: place });
   } catch (err) {
     next(err);
