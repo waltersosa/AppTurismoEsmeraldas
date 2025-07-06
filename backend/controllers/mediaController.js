@@ -135,4 +135,46 @@ export const deleteMedia = async (req, res) => {
     console.error('Error deleting media:', error);
     res.status(500).json({ success: false, message: 'Error deleting media' });
   }
+};
+
+// Subida de archivos sin asociar a lugar específico (para formularios)
+export const uploadImagesForForm = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: 'No files uploaded' });
+    }
+
+    const uploadedFiles = [];
+
+    for (const file of req.files) {
+      const mediaData = {
+        filename: file.filename,
+        originalName: file.originalname,
+        url: `/media/file/${file.filename}`,
+        placeId: null, // No asociado a lugar específico
+        type: 'gallery'
+      };
+
+      const media = new Media(mediaData);
+      await media.save();
+
+      uploadedFiles.push({
+        _id: media._id,
+        filename: media.filename,
+        originalName: media.originalName,
+        url: media.url,
+        type: media.type
+      });
+    }
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Files uploaded successfully',
+      files: uploadedFiles 
+    });
+
+  } catch (error) {
+    console.error('Error uploading media for form:', error);
+    res.status(500).json({ success: false, message: 'Error uploading files' });
+  }
 }; 

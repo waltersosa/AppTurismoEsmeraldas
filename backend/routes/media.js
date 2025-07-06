@@ -25,6 +25,7 @@ router.get('/file/:filename', mediaController.getMedia);
 
 // Rutas protegidas (solo GAD)
 router.post('/upload', autenticarToken, autorizarGAD, upload.array('files', 10), mediaController.uploadMedia);
+router.post('/upload-form', autenticarToken, autorizarGAD, upload.array('files', 10), mediaController.uploadImagesForForm);
 router.delete('/:mediaId', autenticarToken, autorizarGAD, mediaController.deleteMedia);
 
 export default router; 

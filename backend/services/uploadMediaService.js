@@ -3,9 +3,9 @@ import http from 'http';
 import { URL } from 'url';
 
 /**
- * Valida si una URL es válida y accesible
+ * Valida si una URL tiene un formato válido (sin hacer petición HTTP)
  * @param {string} imageUrl - URL de la imagen a validar
- * @returns {Promise<boolean>} - true si la URL es válida y accesible
+ * @returns {Promise<boolean>} - true si la URL tiene formato válido
  */
 export const validateImageUrl = async (imageUrl) => {
   try {
@@ -22,28 +22,32 @@ export const validateImageUrl = async (imageUrl) => {
       url.pathname.toLowerCase().includes(ext)
     );
 
+    // Si no tiene extensión de imagen, verificar que el hostname sea de un servicio de imágenes conocido
     if (!hasImageExtension) {
-      return false;
+      const imageHosts = [
+        'images.unsplash.com',
+        'picsum.photos',
+        'via.placeholder.com',
+        'placehold.it',
+        'lorempixel.com',
+        'loremflickr.com',
+        'media.elcomercio.com',
+        'imgur.com',
+        'i.imgur.com',
+        'cloudinary.com',
+        'res.cloudinary.com'
+      ];
+      
+      const isKnownImageHost = imageHosts.some(host => 
+        url.hostname.includes(host)
+      );
+      
+      if (!isKnownImageHost) {
+        return false;
+      }
     }
 
-    // Verificar que la URL sea accesible
-    return new Promise((resolve) => {
-      const protocol = url.protocol === 'https:' ? https : http;
-      
-      const req = protocol.get(url.href, { timeout: 5000 }, (res) => {
-        // Verificar que el status code sea 200 y el content-type sea imagen
-        const isImage = res.headers['content-type'] && 
-                       res.headers['content-type'].startsWith('image/');
-        
-        resolve(res.statusCode === 200 && isImage);
-      });
-
-      req.on('error', () => resolve(false));
-      req.on('timeout', () => {
-        req.destroy();
-        resolve(false);
-      });
-    });
+    return true;
 
   } catch (error) {
     return false;

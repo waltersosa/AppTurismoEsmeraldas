@@ -136,6 +136,7 @@ coverage/
 build/
 dist/
 out/
+uploads/
 
 # Package lock files (optional - descomenta si quieres ignorarlos)
 # package-lock.json
