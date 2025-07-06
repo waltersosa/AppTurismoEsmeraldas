@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
+
 html, body {
     margin: 0;
     padding: 0;
@@ -54,13 +55,27 @@ html, body {
     font-family: "Open Sans", sans-serif;
 }
 
-input {
+input{
     width: 90%;
     padding: 10px 15px;
     margin: 10px 0px;
     border: 2px solid #66ff61;
     border-radius: 30px;
 }
+
+.p-floatlabel {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.p-inputtext {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 30px !important;
+  border: 2px solid #66ff61 !important;
+  box-sizing: border-box;
+}
+
 
 button {
     width: 70%;

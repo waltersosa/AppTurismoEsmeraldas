@@ -9,3 +9,5 @@ con el Angular sabe que debe cargar los componentes en las URL actual.
 *- [(ngModel)] Permite unir un input con una variable del componente.
 Es decir que recoge el valor que se ingresa en el input y lo manda al componente.
 
+*- Primeng nos prevee de opciones avanzadas para integrarlas en el frontend
+Para usarlo hay que instlarlo con npm install primeng@20.0.0-rc.1 @primeuix/themes

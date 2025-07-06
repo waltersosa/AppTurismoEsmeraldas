@@ -37,6 +37,7 @@ La variable local loginForm contiene el estado del formulario (si es válido o n
         <div *ngIf="passwordInput.invalid && passwordInput.touched" style="color:red">
           La contraseña es obligatoria.
         </div>
+
       </div>
 
       <button type="submit" [disabled]="loginForm.invalid">Ingresar</button>
