@@ -57,6 +57,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             <span>Reseñas</span>
           </a>
           
+          <a mat-list-item routerLink="/dashboard/servicios" routerLinkActive="active" class="nav-item">
+            <mat-icon>dns</mat-icon>
+            <span>Servicios</span>
+          </a>
+          
           <a mat-list-item routerLink="/dashboard/reportes" routerLinkActive="active" class="nav-item" (click)="mostrarMensajeProximamente()">
             <mat-icon>analytics</mat-icon>
             <span>Reportes</span>

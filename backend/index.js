@@ -10,6 +10,7 @@ import { validatePlace } from './middlewares/placeValidation.js';
 import reviewRoutes from './routes/review.js';
 import mediaRoutes from './routes/media.js';
 import statsRoutes from './routes/stats.js';
+import serviceRoutes from './routes/services.js';
 
 // Crear aplicación Express
 const app = express();
@@ -42,6 +43,7 @@ app.use('/places', placeRoutes);
 app.use('/reviews', reviewRoutes);
 app.use('/media', mediaRoutes);
 app.use('/stats', statsRoutes);
+app.use('/services', serviceRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {
