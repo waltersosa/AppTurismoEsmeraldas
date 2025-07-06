@@ -1,10 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDividerModule } from '@angular/material/divider';
+import { HttpClient } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
+import { UsuarioDialogComponent } from '../usuarios/usuario-dialog.component';
+import { Router } from '@angular/router';
+import { PlaceDialogComponent } from '../place/place-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -24,7 +29,9 @@ import { MatDividerModule } from '@angular/material/divider';
         <p>Gestiona la plataforma de turismo de Esmeraldas desde el Gobierno Autónomo Descentralizado</p>
       </div>
 
-      <div class="stats-grid">
+      <div *ngIf="loading" class="stats-grid"><mat-card class="stat-card">Cargando estadísticas...</mat-card></div>
+      <div *ngIf="error" class="stats-grid"><mat-card class="stat-card error">{{ error }}</mat-card></div>
+      <div *ngIf="!loading && !error" class="stats-grid">
         <mat-card class="stat-card">
           <mat-card-content>
             <div class="stat-content">
@@ -32,9 +39,8 @@ import { MatDividerModule } from '@angular/material/divider';
                 <mat-icon>people</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>1,247</h3>
+                <h3>{{ stats.usuarios }}</h3>
                 <p>Usuarios Registrados</p>
-                <span class="stat-change positive">+12% este mes</span>
               </div>
             </div>
           </mat-card-content>
@@ -47,9 +53,8 @@ import { MatDividerModule } from '@angular/material/divider';
                 <mat-icon>place</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>45</h3>
+                <h3>{{ stats.lugares }}</h3>
                 <p>Destinos Activos</p>
-                <span class="stat-change positive">+3 nuevos</span>
               </div>
             </div>
           </mat-card-content>
@@ -59,12 +64,11 @@ import { MatDividerModule } from '@angular/material/divider';
           <mat-card-content>
             <div class="stat-content">
               <div class="stat-icon bookings">
-                <mat-icon>book_online</mat-icon>
+                <mat-icon>rate_review</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>892</h3>
-                <p>Reservas Este Mes</p>
-                <span class="stat-change positive">+8% vs mes anterior</span>
+                <h3>{{ stats.resenas }}</h3>
+                <p>Reseñas</p>
               </div>
             </div>
           </mat-card-content>
@@ -74,12 +78,11 @@ import { MatDividerModule } from '@angular/material/divider';
           <mat-card-content>
             <div class="stat-content">
               <div class="stat-icon revenue">
-                <mat-icon>attach_money</mat-icon>
+                <mat-icon>collections</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>$45,230</h3>
-                <p>Ingresos Este Mes</p>
-                <span class="stat-change positive">+15% vs mes anterior</span>
+                <h3>{{ stats.imagenes }}</h3>
+                <p>Imágenes</p>
               </div>
             </div>
           </mat-card-content>
@@ -89,22 +92,22 @@ import { MatDividerModule } from '@angular/material/divider';
       <div class="quick-actions">
         <h2>Acciones Rápidas</h2>
         <div class="actions-grid">
-          <button mat-raised-button color="primary" class="action-button">
-            <mat-icon>add</mat-icon>
-            <span>Agregar Destino</span>
+          <button mat-raised-button color="primary" class="action-button" (click)="openCrearLugarTuristico()">
+            <mat-icon>add_location_alt</mat-icon>
+            <span>Agregar Lugar Turístico</span>
           </button>
           
-          <button mat-raised-button color="accent" class="action-button">
+          <button mat-raised-button color="accent" class="action-button" (click)="openCrearUsuario()">
             <mat-icon>person_add</mat-icon>
             <span>Crear Usuario</span>
           </button>
           
-          <button mat-raised-button color="warn" class="action-button">
-            <mat-icon>analytics</mat-icon>
-            <span>Ver Reportes</span>
+          <button mat-raised-button color="warn" class="action-button" (click)="verResenas()">
+            <mat-icon>rate_review</mat-icon>
+            <span>Ver Reseñas</span>
           </button>
           
-          <button mat-raised-button class="action-button">
+          <button mat-raised-button class="action-button" (click)="openConfiguracion()">
             <mat-icon>settings</mat-icon>
             <span>Configuración</span>
           </button>
@@ -352,4 +355,68 @@ import { MatDividerModule } from '@angular/material/divider';
     }
   `]
 })
-export class HomeComponent {} 
+export class HomeComponent implements OnInit {
+  stats = { usuarios: 0, lugares: 0, resenas: 0, imagenes: 0 };
+  loading = true;
+  error = '';
+  private statsUrl = 'http://localhost:3001/stats'; // Cambia esto si usas variable de entorno
+
+  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router) {}
+
+  ngOnInit(): void {
+    this.getStats();
+  }
+
+  getStats() {
+    this.loading = true;
+    this.error = '';
+    this.http.get<any>(this.statsUrl).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.stats = res.data;
+        } else {
+          this.error = 'No se pudieron obtener las estadísticas';
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Error al obtener estadísticas';
+        this.loading = false;
+      }
+    });
+  }
+
+  openCrearUsuario() {
+    const dialogRef = this.dialog.open(UsuarioDialogComponent, {
+      data: { editMode: false },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.http.post('http://localhost:3001/auth/register', result).subscribe({
+          next: () => alert('Usuario creado correctamente'),
+          error: err => alert('Error al crear usuario: ' + (err.error?.message || err.message))
+        });
+      }
+    });
+  }
+
+  openCrearLugarTuristico() {
+    const dialogRef = this.dialog.open(PlaceDialogComponent);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.http.post('http://localhost:3001/places', result).subscribe({
+          next: () => alert('Lugar turístico creado correctamente'),
+          error: err => alert('Error al crear lugar turístico: ' + (err.error?.message || err.message))
+        });
+      }
+    });
+  }
+
+  verResenas() {
+    this.router.navigate(['/dashboard/resenas']);
+  }
+
+  openConfiguracion() {
+    alert('Configuración próximamente');
+  }
+} 

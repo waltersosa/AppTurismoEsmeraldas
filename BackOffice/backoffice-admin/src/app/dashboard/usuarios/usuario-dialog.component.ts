@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface UsuarioDialogData {
   user?: any;
@@ -20,7 +21,8 @@ export interface UsuarioDialogData {
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatSelectModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data.editMode ? 'Editar Usuario' : 'Agregar Usuario' }}</h2>
@@ -41,7 +43,11 @@ export interface UsuarioDialogData {
       </ng-container>
       <mat-form-field appearance="outline" color="primary">
         <mat-label>Rol</mat-label>
-        <input matInput formControlName="rol" required />
+        <mat-select formControlName="rol" required>
+          <mat-option value="usuario">Usuario</mat-option>
+          <mat-option value="propietario">Propietario</mat-option>
+          <mat-option value="gad">GAD</mat-option>
+        </mat-select>
       </mat-form-field>
       <div class="modal-actions">
         <button mat-raised-button color="primary" type="submit">{{ data.editMode ? 'Actualizar' : 'Agregar' }}</button>
@@ -50,24 +56,53 @@ export interface UsuarioDialogData {
     </form>
   `,
   styles: [`
-    .user-form-modal { display: flex; flex-direction: column; gap: 18px; min-width: 320px; max-width: 400px; margin: 0 auto; }
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px; }
+    .user-form-modal {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      min-width: 340px;
+      max-width: 420px;
+      margin: 0 auto;
+      background: #f8f9fa;
+      border-radius: 14px;
+      padding: 28px 24px 18px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+    h2[mat-dialog-title] {
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #1e3c72;
+    }
+    mat-form-field {
+      width: 100%;
+    }
     ::ng-deep .user-form-modal .mat-form-field-label {
-      color: #111 !important;
+      color: #222 !important;
     }
     ::ng-deep .user-form-modal .mat-input-element {
-      color: #111 !important;
-      background: #fff !important;
-    }
-    ::ng-deep .user-form-modal input {
-      color: #111 !important;
+      color: #222 !important;
       background: #fff !important;
     }
     ::ng-deep .user-form-modal .mat-form-field-underline {
-      background-color: #111 !important;
+      background-color: #1e3c72 !important;
     }
     ::ng-deep .user-form-modal .mat-form-field-flex {
       background: #fff !important;
+    }
+    button[mat-raised-button] {
+      min-width: 110px;
+      font-weight: 500;
+    }
+    button[mat-button] {
+      font-weight: 400;
     }
   `]
 })

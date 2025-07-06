@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { getApiUrl } from '../config/api.config';
 
 export interface User {
   _id: string;
@@ -24,7 +25,6 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:3001/auth'; // Cambia esto si tu backend está en otra URL
 
   private http = inject(HttpClient);
   private router = inject(Router);
@@ -37,7 +37,7 @@ export class AuthService {
   }
 
   login(credentials: { correo: string; contraseña: string }): Observable<LoginResponse> {
-    return this.http.post<any>(`${this.apiUrl}/login`, credentials)
+    return this.http.post<any>(getApiUrl('/auth/login'), credentials)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -54,7 +54,7 @@ export class AuthService {
   }
 
   register(userData: { nombre: string; correo: string; contraseña: string; rol?: string }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/register`, userData);
+    return this.http.post<any>(getApiUrl('/auth/register'), userData);
   }
 
   logout(): void {
@@ -117,7 +117,7 @@ export class AuthService {
   }
 
   validateToken(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/validate`);
+    return this.http.get<any>(getApiUrl('/auth/validate'));
   }
 
   // Puedes agregar más métodos aquí, como logout, register, etc.

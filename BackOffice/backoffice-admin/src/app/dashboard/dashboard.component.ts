@@ -46,14 +46,14 @@ import { AuthService, User } from '../auth/auth.service';
             <span>Usuarios</span>
           </a>
           
-          <a mat-list-item routerLink="/dashboard/destinos" routerLinkActive="active" class="nav-item">
-            <mat-icon>place</mat-icon>
-            <span>Destinos</span>
+          <a mat-list-item routerLink="/dashboard/place" routerLinkActive="active" class="nav-item">
+            <mat-icon>add_location_alt</mat-icon>
+            <span>Lugares Turísticos</span>
           </a>
           
-          <a mat-list-item routerLink="/dashboard/reservas" routerLinkActive="active" class="nav-item">
-            <mat-icon>book_online</mat-icon>
-            <span>Reservas</span>
+          <a mat-list-item routerLink="/dashboard/review" routerLinkActive="active" class="nav-item">
+            <mat-icon>rate_review</mat-icon>
+            <span>Reseñas</span>
           </a>
           
           <a mat-list-item routerLink="/dashboard/reportes" routerLinkActive="active" class="nav-item">

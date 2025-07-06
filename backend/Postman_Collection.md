@@ -1,6 +1,6 @@
-# 🧪 Pruebas en Postman - Auth Service Esmeraldas Turismo
+# 🧪 Pruebas en Postman - Esmeraldas Turismo (Todos los Servicios)
 
-Esta guía te ayudará a probar todas las funcionalidades del microservicio de autenticación usando Postman.
+Esta guía te ayudará a probar todas las funcionalidades de los microservicios de Esmeraldas Turismo usando Postman.
 
 ## 📋 Configuración Inicial
 
@@ -8,11 +8,15 @@ Esta guía te ayudará a probar todas las funcionalidades del microservicio de a
 
 Crea un nuevo environment en Postman con las siguientes variables:
 
-| Variable | Valor Inicial | Descripción |
-|----------|---------------|-------------|
-| `base_url` | `http://localhost:3001` | URL base del microservicio |
-| `auth_token` | (vacío) | Token JWT para autenticación |
-| `user_id` | (vacío) | ID del usuario creado |
+| Variable     | Valor Inicial           | Descripción                          |
+| ------------ | ----------------------- | ------------------------------------ |
+| `base_url`   | `http://localhost:3001` | URL base del microservicio           |
+| `auth_token` | (vacío)                 | Token JWT para autenticación general |
+| `gad_token`  | (vacío)                 | Token JWT para usuario GAD           |
+| `user_id`    | (vacío)                 | ID del usuario creado                |
+| `place_id`   | (vacío)                 | ID del lugar creado                  |
+| `review_id`  | (vacío)                 | ID de la reseña creada               |
+| `media_id`   | (vacío)                 | ID del archivo multimedia            |
 
 ### 2. Headers Globales
 
@@ -29,12 +33,14 @@ Antes de probar, asegúrate de:
 
 1. **Tener MongoDB ejecutándose**
 2. **Instalar dependencias:**
+
    ```bash
    cd backend
    npm install
    ```
 
 3. **Crear archivo .env:**
+
    ```env
    PORT=3001
    NODE_ENV=development
@@ -49,7 +55,93 @@ Antes de probar, asegúrate de:
    npm run dev
    ```
 
-## 🧪 Colección de Pruebas
+## 🧪 Servicios Disponibles
+
+### 1. 🔐 Auth Service
+
+**Descripción:** Autenticación y gestión de usuarios
+**Base URL:** `{{base_url}}/auth`
+**Documentación:** [Postman_Collection.md](./Postman_Collection.md)
+
+**Endpoints principales:**
+
+- `POST /auth/register` - Registro de usuario
+- `POST /auth/login` - Autenticación
+- `GET /auth/validate` - Validación de token
+- `GET /auth/profile` - Obtener perfil (protegido)
+- `GET /auth/users` - Listar usuarios (solo GAD)
+
+### 2. 📍 Places Service
+
+**Descripción:** Gestión de lugares turísticos
+**Base URL:** `{{base_url}}/places`
+**Documentación:** [Postman_Collection_Places.md](./Postman_Collection_Places.md)
+
+**Endpoints principales:**
+
+- `GET /places` - Listar lugares (público)
+- `GET /places/:id` - Obtener lugar por ID (público)
+- `POST /places` - Crear lugar (solo GAD)
+- `PUT /places/:id` - Actualizar lugar (solo GAD)
+- `DELETE /places/:id` - Eliminar lugar (solo GAD)
+
+### 3. 📝 Reviews Service
+
+**Descripción:** Gestión de reseñas de lugares
+**Base URL:** `{{base_url}}/reviews`
+**Documentación:** [Postman_Collection_Reviews.md](./Postman_Collection_Reviews.md)
+
+**Endpoints principales:**
+
+- `GET /reviews/lugar/:lugarId` - Reseñas de un lugar (público)
+- `POST /reviews` - Crear reseña (autenticado)
+- `GET /reviews/admin` - Listar todas las reseñas (solo GAD)
+- `PUT /reviews/admin/:id` - Cambiar estado (solo GAD)
+
+### 4. 📸 Media Service
+
+**Descripción:** Gestión de archivos multimedia
+**Base URL:** `{{base_url}}/media`
+**Documentación:** [Postman_Collection_Media.md](./Postman_Collection_Media.md)
+
+**Endpoints principales:**
+
+- `GET /media/file/:filename` - Obtener archivo (público)
+- `GET /media/place/:placeId` - Imágenes de un lugar (público)
+- `POST /media/upload` - Subir imágenes (solo GAD)
+- `DELETE /media/:mediaId` - Eliminar imagen (solo GAD)
+
+## 🔐 Flujo de Autenticación
+
+### 1. Crear Usuario GAD (si no existe)
+
+```bash
+POST {{base_url}}/auth/register
+{
+  "nombre": "Admin GAD",
+  "correo": "admin@gad.esmeraldas.ec",
+  "contraseña": "Admin123!",
+  "rol": "gad"
+}
+```
+
+### 2. Obtener Token GAD
+
+```bash
+POST {{base_url}}/auth/login
+{
+  "correo": "admin@gad.esmeraldas.ec",
+  "contraseña": "Admin123!"
+}
+```
+
+### 3. Usar Token en Rutas Protegidas
+
+```
+Authorization: Bearer {{gad_token}}
+```
+
+## 🧪 Colección de Pruebas - Auth Service
 
 ### 1. Health Check - Verificar Estado del Servicio
 
@@ -57,6 +149,7 @@ Antes de probar, asegúrate de:
 **URL:** `{{base_url}}/auth/health`
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
@@ -79,6 +172,7 @@ Antes de probar, asegúrate de:
 **Headers:** `Content-Type: application/json`
 
 **Body (JSON):**
+
 ```json
 {
   "nombre": "Juan Pérez",
@@ -89,6 +183,7 @@ Antes de probar, asegúrate de:
 ```
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
@@ -107,13 +202,14 @@ Antes de probar, asegúrate de:
 ```
 
 **Script de Postman (Tests):**
+
 ```javascript
 // Extraer y guardar el token
 if (pm.response.code === 201) {
-    const response = pm.response.json();
-    pm.environment.set("auth_token", response.data.token);
-    pm.environment.set("user_id", response.data.usuario.id);
-    console.log("Usuario registrado y token guardado");
+  const response = pm.response.json();
+  pm.environment.set("auth_token", response.data.token);
+  pm.environment.set("user_id", response.data.usuario.id);
+  console.log("Usuario registrado y token guardado");
 }
 ```
 
@@ -126,6 +222,7 @@ if (pm.response.code === 201) {
 **Headers:** `Content-Type: application/json`
 
 **Body (JSON):**
+
 ```json
 {
   "correo": "juan.perez@example.com",
@@ -134,6 +231,7 @@ if (pm.response.code === 201) {
 ```
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
@@ -152,13 +250,14 @@ if (pm.response.code === 201) {
 ```
 
 **Script de Postman (Tests):**
+
 ```javascript
 // Extraer y guardar el token
 if (pm.response.code === 200) {
-    const response = pm.response.json();
-    pm.environment.set("auth_token", response.data.token);
-    pm.environment.set("user_id", response.data.usuario.id);
-    console.log("Login exitoso y token guardado");
+  const response = pm.response.json();
+  pm.environment.set("auth_token", response.data.token);
+  pm.environment.set("user_id", response.data.usuario.id);
+  console.log("Login exitoso y token guardado");
 }
 ```
 
@@ -168,12 +267,14 @@ if (pm.response.code === 200) {
 
 **Método:** `GET`  
 **URL:** `{{base_url}}/auth/validate`  
-**Headers:** 
+**Headers:**
+
 ```
 Authorization: Bearer {{auth_token}}
 ```
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
@@ -197,12 +298,14 @@ Authorization: Bearer {{auth_token}}
 
 **Método:** `GET`  
 **URL:** `{{base_url}}/auth/profile`  
-**Headers:** 
+**Headers:**
+
 ```
 Authorization: Bearer {{auth_token}}
 ```
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
@@ -213,6 +316,7 @@ Authorization: Bearer {{auth_token}}
       "nombre": "Juan Pérez",
       "correo": "juan.perez@example.com",
       "rol": "usuario",
+      "activo": true,
       "ultimoAcceso": "2024-01-01T00:00:00.000Z",
       "fechaCreacion": "2024-01-01T00:00:00.000Z"
     }
@@ -222,26 +326,27 @@ Authorization: Bearer {{auth_token}}
 
 ---
 
-### 6. Actualizar Perfil - Modificar Datos
+### 6. Actualizar Perfil
 
 **Método:** `PUT`  
 **URL:** `{{base_url}}/auth/profile`  
-**Headers:** 
+**Headers:**
+
 ```
-Authorization: Bearer {{auth_token}}
 Content-Type: application/json
+Authorization: Bearer {{auth_token}}
 ```
 
 **Body (JSON):**
+
 ```json
 {
-  "nombre": "Juan Carlos Pérez",
-  "correo": "juancarlos.perez@example.com",
-  "rol": "propietario"
+  "nombre": "Juan Carlos Pérez"
 }
 ```
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
@@ -250,8 +355,9 @@ Content-Type: application/json
     "usuario": {
       "id": "64f8a1b2c3d4e5f6a7b8c9d0",
       "nombre": "Juan Carlos Pérez",
-      "correo": "juancarlos.perez@example.com",
-      "rol": "propietario",
+      "correo": "juan.perez@example.com",
+      "rol": "usuario",
+      "activo": true,
       "ultimoAcceso": "2024-01-01T00:00:00.000Z",
       "fechaCreacion": "2024-01-01T00:00:00.000Z"
     }
@@ -265,13 +371,15 @@ Content-Type: application/json
 
 **Método:** `PUT`  
 **URL:** `{{base_url}}/auth/change-password`  
-**Headers:** 
+**Headers:**
+
 ```
-Authorization: Bearer {{auth_token}}
 Content-Type: application/json
+Authorization: Bearer {{auth_token}}
 ```
 
 **Body (JSON):**
+
 ```json
 {
   "contraseñaActual": "Password123",
@@ -280,16 +388,73 @@ Content-Type: application/json
 ```
 
 **Respuesta esperada:**
+
 ```json
 {
   "success": true,
-  "message": "Contraseña cambiada exitosamente",
+  "message": "Contraseña cambiada exitosamente"
+}
+```
+
+---
+
+### 8. Listar Usuarios (Solo GAD)
+
+**Método:** `GET`  
+**URL:** `{{base_url}}/auth/users`  
+**Headers:**
+
+```
+Authorization: Bearer {{gad_token}}
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "success": true,
+  "message": "Usuarios obtenidos exitosamente",
+  "data": {
+    "usuarios": [
+      {
+        "id": "64f8a1b2c3d4e5f6a7b8c9d0",
+        "nombre": "Juan Carlos Pérez",
+        "correo": "juan.perez@example.com",
+        "rol": "usuario",
+        "activo": true,
+        "ultimoAcceso": "2024-01-01T00:00:00.000Z",
+        "fechaCreacion": "2024-01-01T00:00:00.000Z"
+      }
+    ],
+    "total": 1
+  }
+}
+```
+
+---
+
+### 9. Eliminar Usuario (Solo GAD)
+
+**Método:** `DELETE`  
+**URL:** `{{base_url}}/auth/users/{{user_id}}`  
+**Headers:**
+
+```
+Authorization: Bearer {{gad_token}}
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "success": true,
+  "message": "Usuario eliminado exitosamente",
   "data": {
     "usuario": {
       "id": "64f8a1b2c3d4e5f6a7b8c9d0",
       "nombre": "Juan Carlos Pérez",
-      "correo": "juancarlos.perez@example.com",
-      "rol": "propietario"
+      "correo": "juan.perez@example.com",
+      "rol": "usuario"
     }
   }
 }
@@ -297,172 +462,61 @@ Content-Type: application/json
 
 ---
 
-### 8. Eliminar Usuario - Soft Delete
+## 📝 Notas Importantes
 
-**Método:** `DELETE`  
-**URL:** `{{base_url}}/auth/profile`  
-**Headers:** 
-```
-Authorization: Bearer {{auth_token}}
-```
+### Roles de Usuario
 
-**Respuesta esperada:**
-```json
-{
-  "success": true,
-  "message": "Usuario eliminado exitosamente",
-  "data": {
-    "id": "64f8a1b2c3d4e5f6a7b8c9d0",
-    "nombre": "Juan Carlos Pérez",
-    "correo": "juancarlos.perez@example.com",
-    "rol": "propietario",
-    "activo": false,
-    "mensaje": "Usuario eliminado exitosamente"
-  }
-}
-```
+- **`usuario`**: Usuario regular, puede crear reseñas
+- **`propietario`**: Propietario de lugares, permisos extendidos
+- **`gad`**: Administrador, acceso completo a todos los servicios
 
-**Script de Postman (Tests):**
-```javascript
-// Limpiar token después de eliminar usuario
-if (pm.response.code === 200) {
-    pm.environment.unset("auth_token");
-    pm.environment.unset("user_id");
-    console.log("Usuario eliminado y variables limpiadas");
-}
-```
+### Seguridad
+
+- **Tokens JWT**: Duración de 24 horas por defecto
+- **Contraseñas**: Mínimo 6 caracteres, mayúsculas, minúsculas y números
+- **Correos**: Únicos en el sistema
+- **Acceso GAD**: Solo usuarios con rol GAD pueden gestionar lugares e imágenes
+
+### Validaciones
+
+- **Nombre**: 2-50 caracteres
+- **Correo**: Formato de email válido
+- **Contraseña**: Mínimo 6 caracteres, mayúsculas, minúsculas y números
+- **Rol**: Solo 'usuario', 'propietario' y 'gad'
+
+### Manejo de Errores
+
+- **400**: Error de validación
+- **401**: No autenticado
+- **403**: No autorizado
+- **404**: Recurso no encontrado
+- **409**: Conflicto (ej: correo duplicado)
+- **500**: Error interno del servidor
 
 ---
 
-## 🔄 Flujo Completo de Pruebas
+## 🔗 Enlaces a Documentación Detallada
 
-### Secuencia Recomendada:
+- **[Auth Service](./Postman_Collection.md)** - Documentación completa del Auth Service
+- **[Places Service](./Postman_Collection_Places.md)** - Documentación completa del Places Service
+- **[Reviews Service](./Postman_Collection_Reviews.md)** - Documentación completa del Reviews Service
+- **[Media Service](./Postman_Collection_Media.md)** - Documentación completa del Media Service
 
-1. **Health Check** - Verificar que el servicio esté funcionando
-2. **Registro** - Crear un nuevo usuario
-3. **Login** - Autenticarse con el usuario creado
-4. **Validar Token** - Verificar que el token funcione
-5. **Obtener Perfil** - Ver datos del usuario
-6. **Actualizar Perfil** - Modificar información
-7. **Cambiar Contraseña** - Actualizar contraseña
-8. **Login con Nueva Contraseña** - Verificar cambio de contraseña
-9. **Eliminar Usuario** - Desactivar la cuenta (soft delete)
-10. **Intentar Login con Usuario Eliminado** - Verificar que no pueda acceder
+---
 
-## 🧪 Casos de Prueba Adicionales
+## 🚀 Flujo de Trabajo Recomendado
 
-### Pruebas de Validación
+1. **Configurar variables de entorno** en Postman
+2. **Crear usuario GAD** para acceso administrativo
+3. **Obtener token GAD** para rutas protegidas
+4. **Probar Auth Service** (registro, login, validación)
+5. **Probar Places Service** (crear, listar, actualizar lugares)
+6. **Probar Media Service** (subir imágenes a lugares)
+7. **Probar Reviews Service** (crear reseñas, moderación)
+8. **Probar integración** entre servicios
 
-#### Registro con Datos Inválidos:
-```json
-{
-  "nombre": "J",
-  "correo": "correo-invalido",
-  "contraseña": "123",
-  "rol": "rol-invalido"
-}
-```
+---
 
-#### Login con Credenciales Incorrectas:
-```json
-{
-  "correo": "juan.perez@example.com",
-  "contraseña": "ContraseñaIncorrecta"
-}
-```
+## 📞 Soporte
 
-#### Token Inválido:
-```
-Authorization: Bearer token_invalido_aqui
-```
-
-### Pruebas de Roles
-
-#### Crear Usuario Propietario:
-```json
-{
-  "nombre": "María García",
-  "correo": "maria.garcia@example.com",
-  "contraseña": "Password123",
-  "rol": "propietario"
-}
-```
-
-#### Crear Usuario GAD:
-```json
-{
-  "nombre": "Admin GAD",
-  "correo": "admin@gad.esmeraldas.gob.ec",
-  "contraseña": "AdminPassword123",
-  "rol": "gad"
-}
-```
-
-## 📊 Scripts de Automatización
-
-### Script para Limpiar Variables (Pre-request):
-```javascript
-// Limpiar token al inicio de cada prueba
-pm.environment.unset("auth_token");
-pm.environment.unset("user_id");
-```
-
-### Script para Verificar Respuestas (Tests):
-```javascript
-// Verificar estructura de respuesta
-pm.test("Respuesta tiene estructura correcta", function () {
-    const response = pm.response.json();
-    pm.expect(response).to.have.property('success');
-    pm.expect(response).to.have.property('message');
-    pm.expect(response).to.have.property('timestamp');
-});
-
-// Verificar código de estado
-pm.test("Código de estado es 200", function () {
-    pm.response.to.have.status(200);
-});
-
-// Verificar que success sea true
-pm.test("Operación exitosa", function () {
-    const response = pm.response.json();
-    pm.expect(response.success).to.be.true;
-});
-```
-
-## 🚨 Manejo de Errores
-
-### Errores Comunes y Soluciones:
-
-1. **Error 500 - Servidor no responde**
-   - Verificar que MongoDB esté ejecutándose
-   - Verificar que el servidor esté iniciado
-   - Revisar logs del servidor
-
-2. **Error 401 - No autorizado**
-   - Verificar que el token sea válido
-   - Verificar formato del header Authorization
-   - Verificar que el token no haya expirado
-
-3. **Error 400 - Datos inválidos**
-   - Verificar formato del JSON
-   - Verificar validaciones de campos
-   - Revisar mensajes de error específicos
-
-4. **Error 409 - Conflicto**
-   - Usuario ya existe (correo duplicado)
-   - Usar un correo diferente para pruebas
-
-## 📝 Notas Importantes
-
-- **Tokens JWT**: Tienen una duración de 24 horas por defecto
-- **Contraseñas**: Deben tener al menos 6 caracteres con mayúsculas, minúsculas y números
-- **Correos**: Deben ser únicos en el sistema
-- **Roles**: Solo se permiten 'usuario', 'propietario' y 'gad'
-- **Base de datos**: Se conecta a MongoDB en `mongodb://localhost:27017/turismoDB`
-- **Eliminación**: Es un soft delete (desactiva el usuario, no lo elimina físicamente)
-
-## 🔗 Importar Colección
-
-Para facilitar las pruebas, puedes crear una colección en Postman con todas estas requests y usar las variables de entorno para automatizar el flujo de pruebas.
-
-¡Con esta guía podrás probar completamente todas las funcionalidades del microservicio de autenticación! 
+Para soporte técnico o preguntas sobre los microservicios, contactar al equipo de desarrollo de Esmeraldas Turismo.
