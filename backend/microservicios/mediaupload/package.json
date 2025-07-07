@@ -1,0 +1,19 @@
+{
+  "name": "mediaupload",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "stop": "echo 'Stopping mediaupload...'",
+    "restart": "echo 'Restarting mediaupload...' && node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mongoose": "^8.16.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}

@@ -1,0 +1,88 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Estilos globales para inputs con texto blanco */
+.mat-mdc-form-field input,
+.mat-mdc-input-element,
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  color: #000000 !important;
+}
+
+/* Estilos para autocomplete del navegador */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 30px #181a1b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input,
+input::placeholder,
+select,
+select option,
+textarea,
+textarea::placeholder {
+  color: #000 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+/* Para compatibilidad con navegadores */
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+input::-ms-input-placeholder,
+textarea::-ms-input-placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+input,
+select,
+textarea,
+.mat-input-element,
+.mat-select-value,
+.mat-select-placeholder {
+  color: #000 !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.mat-input-element::placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+input,
+textarea,
+.mat-input-element {
+  color: #000 !important;
+  caret-color: #000 !important;
+}

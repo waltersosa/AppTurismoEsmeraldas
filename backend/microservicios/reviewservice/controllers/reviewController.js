@@ -1,0 +1,175 @@
+import * as reviewService from '../services/reviewService.js';
+import Activity from '../models/Activity.js';
+
+// ===== RUTAS PARA USUARIOS =====
+
+// Crear una reseña
+export const createReview = async (req, res, next) => {
+  try {
+    const { lugarId, comentario, calificacion } = req.body;
+    const usuarioId = req.usuario.id || req.usuario._id;
+
+    // Verificar si el usuario ya ha reseñado este lugar
+    const existingReview = await reviewService.checkUserReviewExists(lugarId, usuarioId);
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya has reseñado este lugar'
+      });
+    }
+
+    const review = await reviewService.createReview({
+      lugarId,
+      usuarioId,
+      comentario,
+      calificacion
+    });
+
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario._id || req.usuario.id || req.usuario.userId,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'creó una reseña',
+        recurso: `Lugar: ${lugarId}`
+      });
+    }
+
+    res.status(201).json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Obtener reseñas públicas aprobadas de un lugar
+export const getReviewsByPlace = async (req, res, next) => {
+  try {
+    const { lugarId } = req.params;
+    const { page, limit, sortBy, order } = req.query;
+    
+    const { data, total } = await reviewService.getReviewsByPlace(lugarId, { 
+      page, limit, sortBy, order 
+    });
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        page: Number(page) || 1,
+        limit: Number(limit) || 10
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ===== RUTAS PARA ADMINISTRADORES =====
+
+// Listado filtrable y paginado para administradores
+export const getReviewsAdmin = async (req, res, next) => {
+  try {
+    const { page, limit, estado, search, lugarId, usuarioId, sortBy, order } = req.query;
+    
+    const { data, total } = await reviewService.getReviewsAdmin({ 
+      page, limit, estado, search, lugarId, usuarioId, sortBy, order 
+    });
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        page: Number(page) || 1,
+        limit: Number(limit) || 10
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Aprobar o bloquear una reseña
+export const updateReviewStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    if (!['aprobada', 'bloqueada'].includes(estado)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Estado inválido. Debe ser: aprobada o bloqueada' 
+      });
+    }
+
+    const review = await reviewService.updateReview(id, { estado });
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario._id || req.usuario.id || req.usuario.userId,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: `cambió estado de reseña a ${estado}`,
+        recurso: `Reseña de ${review.usuario?.nombre || 'usuario'}`
+      });
+    }
+
+    res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Eliminar una reseña
+export const deleteReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const review = await reviewService.deleteReview(id);
+    
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario._id || req.usuario.id || req.usuario.userId,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'eliminó una reseña',
+        recurso: `Reseña de ${review.usuario?.nombre || 'usuario'}`
+      });
+    }
+
+    res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Obtener una reseña específica por ID (admin)
+export const getReviewByIdAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const review = await reviewService.getReviewById(id);
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+    res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Obtener conteo de reseñas
+export const getReviewsCount = async (req, res, next) => {
+  try {
+    const count = await reviewService.getReviewsCount();
+    res.json({ count });
+  } catch (err) {
+    next(err);
+  }
+}; 
