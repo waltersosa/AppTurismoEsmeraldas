@@ -169,6 +169,87 @@ npm start
 - [ ] **Gestión de roles**: Roles más granulares
 - [ ] **API de terceros**: Integración con servicios externos
 
+## ⚙️ Panel de Monitoreo y Control de Microservicios (BackOffice)
+
+### Funcionalidades avanzadas:
+- **Visualización en tiempo real** del estado de todos los microservicios (online, detenido, error, etc.).
+- **Control individual**: Puedes iniciar, detener o reiniciar cada microservicio desde el dashboard.
+- **Control masivo**:
+  - **Activar todos**: Inicia todos los microservicios (excepto autenticación y estadísticas) con un solo clic.
+  - **Detener todos**: Detiene todos los microservicios (excepto autenticación y estadísticas) con un solo clic.
+- **Protección de servicios críticos**: El servicio de autenticación (`auth`) y el de estadísticas (`statservice`) nunca se detienen desde el panel para evitar dejar el sistema sin acceso.
+- **Feedback visual**: El dashboard muestra el estado real tras cada acción (detenidos, online, error, etc.).
+- **Auto-refresh**: El estado de los servicios se actualiza automáticamente cada 30 segundos.
+
+### ¿Cómo funciona el control de servicios?
+- El BackOffice se comunica con el microservicio de estadísticas (`statservice`) mediante endpoints REST.
+- El backend usa **PM2** para controlar los procesos Node.js de cada microservicio.
+- Los comandos ejecutados son:
+  - `pm2 start <servicio>` para iniciar
+  - `pm2 stop <servicio>` para detener
+  - `pm2 restart <servicio>` para reiniciar
+- El backend expone endpoints como:
+  - `POST /service/<servicio>/start` (inicia un servicio)
+  - `POST /service/<servicio>/stop` (detiene un servicio)
+  - `POST /service/<servicio>/restart` (reinicia un servicio)
+  - `POST /service/stopAll` (detiene todos menos auth y stats)
+  - `POST /service/startAll` (inicia todos menos auth y stats)
+
+### Ejecución y administración de microservicios con PM2
+
+#### **Iniciar statservice con PM2**
+```bash
+cd backend/microservicios/statservice
+pm2 start index.js --name statservice
+```
+
+#### **Iniciar todos los microservicios con PM2**
+Ejecuta cada uno en su carpeta:
+```bash
+pm2 start index.js --name authservice      # Autenticación
+pm2 start index.js --name placeservice     # Lugares
+pm2 start index.js --name reviewservice    # Reseñas
+pm2 start index.js --name mediaupload      # Multimedia
+pm2 start index.js --name notificationsservice # Notificaciones
+pm2 start index.js --name statservice      # Estadísticas
+```
+
+#### **Ver el estado de todos los servicios**
+```bash
+pm2 list
+```
+
+#### **Ver logs de un servicio**
+```bash
+pm2 logs <nombre_del_servicio>
+```
+
+#### **Detener un servicio**
+```bash
+pm2 stop <nombre_del_servicio>
+```
+
+#### **Reiniciar un servicio**
+```bash
+pm2 restart <nombre_del_servicio>
+```
+
+#### **Detener todos los servicios (excepto auth y stats) desde el dashboard**
+- Usa el botón "Detener todos" en la sección de servicios del BackOffice.
+- El backend ejecuta `pm2 stop` para todos los servicios menos `authservice` y `statservice`.
+- El estado real se refleja en la tabla tras la operación.
+
+#### **Activar todos los servicios (excepto auth y stats) desde el dashboard**
+- Usa el botón "Activar todos" en la sección de servicios del BackOffice.
+- El backend ejecuta `pm2 start` para todos los servicios menos `authservice` y `statservice`.
+- El estado real se refleja en la tabla tras la operación.
+
+### ⚠️ Advertencias importantes
+- **No detengas el servicio de autenticación ni el de estadísticas** si quieres mantener el acceso al sistema y el monitoreo.
+- Si un servicio no inicia o se detiene, revisa los logs con `pm2 logs <servicio>` para ver el error.
+- Si cambias el código de un microservicio, reinícialo con `pm2 restart <servicio>`.
+- Puedes eliminar un proceso de PM2 con `pm2 delete <servicio>`, pero tendrás que volver a iniciarlo manualmente.
+
 ---
 
 **Desarrollado para Esmeraldas Turismo** 🏖️ 

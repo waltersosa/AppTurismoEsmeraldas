@@ -12,6 +12,7 @@ import { HttpClient } from '@angular/common/http';
 import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { getPlacesServiceUrl, getReviewsServiceUrl } from '../../config/api.config';
+import { StatsService } from '../../services/stats.service';
 
 interface Service {
   _id: string;
@@ -189,6 +190,9 @@ interface ServiceStats {
                 <div class="action-buttons">
                   <button mat-icon-button color="primary" matTooltip="Verificar" (click)="verificarServicio(service)">
                     <mat-icon>refresh</mat-icon>
+                  </button>
+                  <button mat-icon-button color="accent" matTooltip="Reiniciar" (click)="reiniciarServicio(service)">
+                    <mat-icon>restart_alt</mat-icon>
                   </button>
                   <button mat-icon-button [color]="service.activo ? 'warn' : 'accent'" 
                           [matTooltip]="service.activo ? 'Desactivar' : 'Activar'"
@@ -436,20 +440,17 @@ interface ServiceStats {
   `]
 })
 export class ServiciosComponent implements OnInit {
-  servicios: Service[] = [];
-  stats: ServiceStats | null = null;
+  servicios: any[] = [];
+  stats: any = null;
   displayedColumns = ['nombre', 'tipo', 'estado', 'estadoReal', 'tiempoRespuesta', 'activo', 'acciones'];
   verificando = false;
   procesando = false;
-  private autoRefreshSubscription?: Subscription;
-
-  private apiUrl = 'http://localhost:3001/services';
-  private http = inject(HttpClient);
+  private statsService = inject(StatsService);
   private snackBar = inject(MatSnackBar);
+  private autoRefreshSubscription?: Subscription;
 
   ngOnInit(): void {
     this.cargarServicios();
-    this.cargarEstadisticas();
     this.iniciarAutoRefresh();
   }
 
@@ -460,145 +461,26 @@ export class ServiciosComponent implements OnInit {
   }
 
   cargarServicios() {
-    // Servicios hardcodeados para mostrar como activos
-    this.servicios = [
-      {
-        _id: '1',
-        nombre: 'API Principal',
-        descripcion: 'Servicio principal de la API de Turismo Esmeraldas',
-        endpoint: 'http://localhost:3001/auth/health',
-        activo: true,
-        tipo: 'api',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 45,
-        puerto: 3001,
-        procesoId: 'proc_api_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
+    this.statsService.getHealthOverview().subscribe({
+      next: (res) => {
+        this.servicios = (res.data || []).map((svc: any) => ({
+          nombre: svc.name,
+          descripcion: svc.name,
+          tipo: svc.type ? svc.type.toLowerCase() : '',
+          estado: svc.status,
+          estadoReal: svc.status === 'online' ? 'running' : 'stopped',
+          tiempoRespuesta: svc.responseTime || 0,
+          activo: svc.status === 'online',
+          puerto: svc.port,
+          procesoId: null
+        }));
+        this.cargarEstadisticas();
       },
-      {
-        _id: '2',
-        nombre: 'Base de Datos MongoDB',
-        descripcion: 'Servicio de base de datos MongoDB',
-        endpoint: 'mongodb://localhost:27017',
-        activo: true,
-        tipo: 'database',
-        version: '6.0+',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 12,
-        puerto: 27017,
-        procesoId: 'proc_mongo_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      },
-      {
-        _id: '3',
-        nombre: 'Servicio de Autenticación',
-        descripcion: 'Microservicio de autenticación y gestión de usuarios',
-        endpoint: 'http://localhost:3001/auth/health',
-        activo: true,
-        tipo: 'api',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 28,
-        puerto: 3001,
-        procesoId: 'proc_auth_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      },
-      {
-        _id: '4',
-        nombre: 'Servicio de Lugares',
-        descripcion: 'Microservicio de gestión de lugares turísticos',
-        endpoint: getPlacesServiceUrl('/places'),
-        activo: true,
-        tipo: 'api',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 67,
-        puerto: 3001,
-        procesoId: 'proc_places_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      },
-      {
-        _id: '5',
-        nombre: 'Servicio de Reseñas',
-        descripcion: 'Microservicio de gestión de reseñas y calificaciones',
-        endpoint: getReviewsServiceUrl('/reviews'),
-        activo: true,
-        tipo: 'api',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 89,
-        puerto: 3001,
-        procesoId: 'proc_reviews_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      },
-      {
-        _id: '6',
-        nombre: 'Servicio de Multimedia',
-        descripcion: 'Microservicio de gestión de archivos multimedia',
-        endpoint: 'http://localhost:3001/media',
-        activo: true,
-        tipo: 'api',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 156,
-        puerto: 3001,
-        procesoId: 'proc_media_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      },
-      {
-        _id: '7',
-        nombre: 'Servicio de Estadísticas',
-        descripcion: 'Microservicio de estadísticas y métricas',
-        endpoint: 'http://localhost:3001/stats',
-        activo: true,
-        tipo: 'api',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 34,
-        puerto: 3001,
-        procesoId: 'proc_stats_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      },
-      {
-        _id: '8',
-        nombre: 'Frontend Angular',
-        descripcion: 'Aplicación frontend desarrollada en Angular',
-        endpoint: 'http://localhost:4200',
-        activo: true,
-        tipo: 'external',
-        version: '1.0.0',
-        ultimaVerificacion: new Date().toISOString(),
-        estado: 'online',
-        estadoReal: 'running',
-        tiempoRespuesta: 23,
-        puerto: 4200,
-        procesoId: 'proc_frontend_001',
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
+      error: () => {
+        this.servicios = [];
+        this.cargarEstadisticas();
       }
-    ];
+    });
   }
 
   cargarEstadisticas() {
@@ -630,7 +512,7 @@ export class ServiciosComponent implements OnInit {
     });
   }
 
-  verificarServicio(service: Service) {
+  verificarServicio(service: any) {
     // Simular verificación
     service.ultimaVerificacion = new Date().toISOString();
     service.tiempoRespuesta = Math.floor(Math.random() * 200) + 10; // 10-210ms
@@ -651,84 +533,103 @@ export class ServiciosComponent implements OnInit {
     }, 1000);
   }
 
-  alternarEstado(service: Service) {
-    const accion = service.activo ? 'desactivar' : 'activar';
-    
-    // Verificar si es el servicio de autenticación
-    if (service.activo && (service.nombre.toLowerCase().includes('auth') || service.nombre.toLowerCase().includes('autenticacion'))) {
-      this.snackBar.open('No se puede desactivar el servicio de autenticación', 'Cerrar', { duration: 3000 });
-      return;
+  alternarEstado(service: any) {
+    if (service.nombre.toLowerCase().includes('autenticación')) {
+      if (!confirm('¡Advertencia! Si detienes el servicio de autenticación perderás la sesión y deberás volver a iniciar sesión cuando el servicio esté disponible. ¿Deseas continuar?')) {
+        return;
+      }
+    }
+    this.procesando = true;
+    const action = service.activo ? this.statsService.stopService : this.statsService.startService;
+    const key = this.obtenerKeyServicio(service.nombre);
+    action.call(this.statsService, key).subscribe({
+      next: (response) => {
+        this.snackBar.open(`Servicio ${service.nombre} ${service.activo ? 'detenido' : 'iniciado'} correctamente`, 'Cerrar', { duration: 2000 });
+        setTimeout(() => this.cargarServicios(), 2000);
+        this.procesando = false;
+      },
+      error: (error) => {
+        console.error('Error al cambiar estado del servicio:', error);
+        this.snackBar.open(`Error al ${service.activo ? 'detener' : 'iniciar'} el servicio ${service.nombre}`, 'Cerrar', { duration: 3000 });
+        this.procesando = false;
+      }
+    });
+  }
+
+  reiniciarServicio(service: any) {
+    if (service.nombre.toLowerCase().includes('autenticación')) {
+      if (!confirm('¡Advertencia! Si reinicias el servicio de autenticación perderás la sesión temporalmente. ¿Deseas continuar?')) {
+        return;
+      }
     }
     
-    if (confirm(`¿Seguro que deseas ${accion} el servicio "${service.nombre}"?`)) {
-      // Simular cambio de estado
-      if (service.activo) {
-        service.estadoReal = 'stopping';
-        setTimeout(() => {
-          service.activo = false;
-          service.estadoReal = 'stopped';
-          service.estado = 'offline';
-          service.procesoId = null;
-          service.tiempoRespuesta = 0;
-          this.cargarEstadisticas();
-          this.snackBar.open(`Servicio ${service.nombre} desactivado`, 'Cerrar', { duration: 2000 });
-        }, 1000);
-      } else {
-        service.estadoReal = 'starting';
-        setTimeout(() => {
-          service.activo = true;
-          service.estadoReal = 'running';
-          service.estado = 'online';
-          service.procesoId = `proc_${service.nombre.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-          service.tiempoRespuesta = Math.floor(Math.random() * 200) + 10;
-          this.cargarEstadisticas();
-          this.snackBar.open(`Servicio ${service.nombre} activado`, 'Cerrar', { duration: 2000 });
-        }, 2000);
-      }
+    if (confirm(`¿Seguro que deseas reiniciar el servicio ${service.nombre}?`)) {
+      this.procesando = true;
+      const key = this.obtenerKeyServicio(service.nombre);
+      
+      this.statsService.restartService(key).subscribe({
+        next: (response) => {
+          this.snackBar.open(`Servicio ${service.nombre} reiniciado correctamente`, 'Cerrar', { duration: 2000 });
+          setTimeout(() => this.cargarServicios(), 3000); // Esperar un poco más para el reinicio
+          this.procesando = false;
+        },
+        error: (error) => {
+          console.error('Error al reiniciar servicio:', error);
+          this.snackBar.open(`Error al reiniciar el servicio ${service.nombre}`, 'Cerrar', { duration: 3000 });
+          this.procesando = false;
+        }
+      });
     }
   }
 
+  obtenerKeyServicio(nombre: string): string {
+    if (nombre.toLowerCase().includes('autenticación')) return 'auth';
+    if (nombre.toLowerCase().includes('lugares')) return 'places';
+    if (nombre.toLowerCase().includes('media')) return 'media';
+    if (nombre.toLowerCase().includes('reseñas')) return 'reviews';
+    if (nombre.toLowerCase().includes('estadísticas')) return 'stats';
+    if (nombre.toLowerCase().includes('notificaciones')) return 'notifications';
+    if (nombre.toLowerCase().includes('mongo')) return 'db';
+    return '';
+  }
+
   activarTodos() {
-    if (confirm('¿Seguro que deseas activar todos los servicios?')) {
+    if (confirm('¿Seguro que deseas activar todos los servicios? (El servicio de autenticación y estadísticas permanecerán activos)')) {
       this.procesando = true;
-      // Simular activación de todos los servicios
-      setTimeout(() => {
-        this.servicios.forEach(service => {
-          if (!service.activo) {
-            service.activo = true;
-            service.estadoReal = 'running';
-            service.estado = 'online';
-            service.procesoId = `proc_${service.nombre.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-            service.tiempoRespuesta = Math.floor(Math.random() * 200) + 10;
-          }
-        });
-        this.cargarEstadisticas();
-        const activados = this.servicios.filter(s => s.activo).length;
-        this.snackBar.open(`Servicios activados: ${activados}`, 'Cerrar', { duration: 3000 });
-        this.procesando = false;
-      }, 2000);
+      this.statsService.startAllServices().subscribe({
+        next: (response) => {
+          const iniciados = (response.finalStates || []).filter((s: any) => s.status === 'online').length;
+          const total = (response.finalStates || []).length;
+          this.snackBar.open(`Servicios activados: ${iniciados} de ${total} (excepto auth y stats)`, 'Cerrar', { duration: 4000 });
+          this.cargarServicios();
+          this.procesando = false;
+        },
+        error: (error) => {
+          console.error('Error al activar todos los servicios:', error);
+          this.snackBar.open('Error al activar todos los servicios', 'Cerrar', { duration: 4000 });
+          this.procesando = false;
+        }
+      });
     }
   }
 
   desactivarTodos() {
-    if (confirm('¿Seguro que deseas desactivar todos los servicios? (El servicio de autenticación permanecerá activo)')) {
+    if (confirm('¿Seguro que deseas desactivar todos los servicios? (El servicio de autenticación y estadísticas permanecerán activos)')) {
       this.procesando = true;
-      // Simular desactivación de todos los servicios (excepto auth)
-      setTimeout(() => {
-        this.servicios.forEach(service => {
-          if (service.activo && !service.nombre.toLowerCase().includes('auth') && !service.nombre.toLowerCase().includes('autenticacion')) {
-            service.activo = false;
-            service.estadoReal = 'stopped';
-            service.estado = 'offline';
-            service.procesoId = null;
-            service.tiempoRespuesta = 0;
-          }
-        });
-        this.cargarEstadisticas();
-        const desactivados = this.servicios.filter(s => !s.activo).length;
-        this.snackBar.open(`Servicios desactivados: ${desactivados}`, 'Cerrar', { duration: 3000 });
-        this.procesando = false;
-      }, 1000);
+      this.statsService.stopAllServices().subscribe({
+        next: (response) => {
+          const detenidos = (response.finalStates || []).filter((s: any) => s.status === 'stopped').length;
+          const total = (response.finalStates || []).length;
+          this.snackBar.open(`Servicios detenidos: ${detenidos} de ${total} (excepto auth y stats)`, 'Cerrar', { duration: 4000 });
+          this.cargarServicios();
+          this.procesando = false;
+        },
+        error: (error) => {
+          console.error('Error al detener todos los servicios:', error);
+          this.snackBar.open('Error al detener todos los servicios', 'Cerrar', { duration: 4000 });
+          this.procesando = false;
+        }
+      });
     }
   }
 

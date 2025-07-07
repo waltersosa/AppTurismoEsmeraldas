@@ -129,4 +129,44 @@ export class StatsService {
       });
     });
   }
+
+  // Obtener health check real de todos los servicios
+  getHealthOverview(): Observable<any> {
+    return this.http.get<any>(getStatsServiceUrl('/health/overview'));
+  }
+
+  // Detener un servicio
+  stopService(name: string): Observable<any> {
+    return this.http.post(getStatsServiceUrl(`/service/${name}/stop`), {});
+  }
+
+  // Iniciar un servicio
+  startService(name: string): Observable<any> {
+    return this.http.post(getStatsServiceUrl(`/service/${name}/start`), {});
+  }
+
+  // Reiniciar un servicio
+  restartService(name: string): Observable<any> {
+    return this.http.post(getStatsServiceUrl(`/service/${name}/restart`), {});
+  }
+
+  // Obtener información de todos los servicios
+  getServicesInfo(): Observable<any> {
+    return this.http.get<any>(getStatsServiceUrl('/service'));
+  }
+
+  // Obtener estado de un servicio específico
+  getServiceStatus(name: string): Observable<any> {
+    return this.http.get<any>(getStatsServiceUrl(`/service/${name}/status`));
+  }
+
+  // Detener todos los servicios excepto auth y stats
+  stopAllServices(): Observable<any> {
+    return this.http.post(getStatsServiceUrl('/service/stopAll'), {});
+  }
+
+  // Iniciar todos los servicios excepto auth y stats
+  startAllServices(): Observable<any> {
+    return this.http.post(getStatsServiceUrl('/service/startAll'), {});
+  }
 } 
