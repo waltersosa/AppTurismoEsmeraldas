@@ -123,7 +123,7 @@ export const updatePlace = async (id, body) => {
   return place;
 };
 
-export const deletePlace = (id) => Place.findByIdAndDelete(id);
+export const deletePlace = (id) => Place.findByIdAndDelete(id); 
 
 export const updatePlaceStatus = async (id, { active }) => {
   const place = await Place.findByIdAndUpdate(id, { active }, { new: true })

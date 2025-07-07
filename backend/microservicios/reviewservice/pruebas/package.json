@@ -1,0 +1,14 @@
+{
+  "name": "reviewservice-tests",
+  "version": "1.0.0",
+  "description": "Pruebas para el microservicio de Reviews",
+  "type": "module",
+  "scripts": {
+    "test": "node test-review.js",
+    "test-auth": "node test-auth.js",
+    "check-services": "node check-services.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  }
+} 

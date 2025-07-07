@@ -30,7 +30,7 @@ import { getApiUrl } from '../../config/api.config';
   template: `
     <h2 mat-dialog-title>{{ isEditing ? 'Editar' : 'Agregar' }} Lugar Turístico</h2>
     <div class="dialog-content">
-      <form [formGroup]="lugarForm" (ngSubmit)="onSubmit()" class="user-form-modal">
+    <form [formGroup]="lugarForm" (ngSubmit)="onSubmit()" class="user-form-modal">
       <mat-form-field appearance="outline" color="primary">
         <mat-label>Nombre</mat-label>
         <input matInput formControlName="name" required />
@@ -149,11 +149,11 @@ import { getApiUrl } from '../../config/api.config';
         </div>
       </div>
       
-              <div class="modal-actions">
+      <div class="modal-actions">
           <button mat-raised-button color="primary" type="submit">{{ isEditing ? 'Actualizar' : 'Agregar' }}</button>
-          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-        </div>
-      </form>
+        <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      </div>
+    </form>
     </div>
   `,
   styles: [`

@@ -178,7 +178,7 @@ export class UsuariosComponent implements OnInit {
     const url = this.searchTerm ? `${this.apiUrl}?search=${encodeURIComponent(this.searchTerm)}` : this.apiUrl;
     this.http.get<any>(url).subscribe({
       next: (res) => {
-        this.usuarios = res.data?.usuarios || res.usuarios || [];
+      this.usuarios = res.data?.usuarios || res.usuarios || [];
       },
       error: (error) => {
         console.error('Error al obtener usuarios:', error);
