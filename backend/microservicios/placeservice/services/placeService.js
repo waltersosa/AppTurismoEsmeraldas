@@ -24,8 +24,8 @@ const placeService = {
   },
   createPlace: async (data) => {
     // Validaciones básicas
-    if (!data.name || !data.description || !data.category || !data.location) {
-      throw new Error('Faltan campos obligatorios');
+    if (!data.name || !data.description || !data.category || !data.location || !data.ownerId) {
+      throw new Error('Faltan campos obligatorios: name, description, category, location, ownerId');
     }
     // Limpiar imágenes
     if (data.images && Array.isArray(data.images)) {

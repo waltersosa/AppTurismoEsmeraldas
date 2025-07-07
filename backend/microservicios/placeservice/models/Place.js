@@ -8,6 +8,7 @@ const placeSchema = new mongoose.Schema({
   images: [{ type: String }],
   coverImage: { type: String },
   active: { type: Boolean, default: true },
+  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

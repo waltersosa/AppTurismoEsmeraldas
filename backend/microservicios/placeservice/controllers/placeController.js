@@ -21,7 +21,12 @@ const placeController = {
   },
   createPlace: async (req, res) => {
     try {
-      const place = await placeService.createPlace(req.body);
+      const placeData = {
+        ...req.body,
+        ownerId: req.usuario.userId || req.usuario._id
+      };
+      
+      const place = await placeService.createPlace(placeData);
       if (req.usuario && req.usuario.rol === 'gad') {
         await Activity.create({
           usuario: req.usuario.userId || req.usuario._id,

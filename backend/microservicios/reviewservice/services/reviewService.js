@@ -54,19 +54,44 @@ export const getReviewsAdmin = async ({
   return { data, total };
 };
 
-// Crear reseña con validación de lugar existente
+// Crear reseña con validación de lugar existente y notificación al propietario
 export const createReview = async (body) => {
   // Verificar que el lugar existe consultando al microservicio de lugares
+  let ownerId = null;
   try {
     const response = await axios.get(`${config.placesServiceUrl}/places/${body.lugarId}`);
     if (!response.data.success) {
       throw new Error('Lugar no encontrado');
     }
+    // Suponiendo que el ownerId viene en el lugar
+    ownerId = response.data.data.ownerId;
   } catch (error) {
     throw new Error('Lugar no encontrado o error de comunicación');
   }
 
-  return Review.create(body);
+  // Crear la reseña
+  const review = await Review.create(body);
+
+  // Enviar notificación al propietario si existe ownerId
+  if (ownerId) {
+    try {
+      await axios.post('http://localhost:3006/notifications', {
+        userId: ownerId,
+        type: 'review',
+        title: 'Nueva reseña recibida',
+        message: `Tu lugar ha recibido una nueva reseña.`,
+        data: {
+          lugarId: body.lugarId,
+          reviewId: review._id
+        }
+      });
+    } catch (err) {
+      // No interrumpe el flujo si falla la notificación
+      console.error('Error enviando notificación al propietario:', err.message);
+    }
+  }
+
+  return review;
 };
 
 // Funciones CRUD básicas
