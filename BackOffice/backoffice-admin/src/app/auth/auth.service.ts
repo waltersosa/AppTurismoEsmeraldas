@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { getApiUrl } from '../config/api.config';
+import { getAuthServiceUrl } from '../config/api.config';
 
 export interface User {
   _id: string;
@@ -37,12 +37,12 @@ export class AuthService {
   }
 
   login(credentials: { correo: string; contraseña: string }): Observable<LoginResponse> {
-    return this.http.post<any>(getApiUrl('/auth/login'), credentials)
+    return this.http.post<any>(getAuthServiceUrl('/auth/login'), credentials)
       .pipe(
         tap(response => {
-          if (response.success) {
-            const user = response.data?.usuario || response.user;
-            const token = response.data?.token || response.token;
+          if (response.success || response.message === 'Login exitoso') {
+            const user = response.user || response.data?.usuario || response.user;
+            const token = response.token || response.data?.token || response.token;
             if (user && token) {
               localStorage.setItem('token', token);
               localStorage.setItem('user', JSON.stringify(user));
@@ -54,7 +54,7 @@ export class AuthService {
   }
 
   register(userData: { nombre: string; correo: string; contraseña: string; rol?: string }): Observable<any> {
-    return this.http.post<any>(getApiUrl('/auth/register'), userData);
+    return this.http.post<any>(getAuthServiceUrl('/auth/register'), userData);
   }
 
   logout(): void {
@@ -91,7 +91,8 @@ export class AuthService {
   }
 
   canAccessBackOffice(): boolean {
-    return this.hasRole('gad');
+    const user = this.getCurrentUser();
+    return user?.rol === 'gad' || user?.rol === 'admin';
   }
 
   private loadUserFromStorage(): void {
@@ -117,8 +118,27 @@ export class AuthService {
   }
 
   validateToken(): Observable<any> {
-    return this.http.get<any>(getApiUrl('/auth/validate'));
+    return this.http.get<any>(getAuthServiceUrl('/auth/validate'));
   }
 
-  // Puedes agregar más métodos aquí, como logout, register, etc.
+  // Métodos para gestión de usuarios (solo para GAD)
+  getUsers(): Observable<any> {
+    return this.http.get<any>(getAuthServiceUrl('/auth/users'));
+  }
+
+  createUser(userData: any): Observable<any> {
+    return this.http.post<any>(getAuthServiceUrl('/auth/register'), userData);
+  }
+
+  updateUser(userId: string, userData: any): Observable<any> {
+    return this.http.put<any>(getAuthServiceUrl(`/auth/users/${userId}`), userData);
+  }
+
+  deleteUser(userId: string): Observable<any> {
+    return this.http.delete<any>(getAuthServiceUrl(`/auth/users/${userId}`));
+  }
+
+  getUsersCount(): Observable<any> {
+    return this.http.get<any>(getAuthServiceUrl('/auth/users/count'));
+  }
 } 

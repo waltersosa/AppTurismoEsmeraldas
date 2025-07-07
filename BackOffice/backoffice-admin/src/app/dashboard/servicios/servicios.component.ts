@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
 import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { getPlacesServiceUrl, getReviewsServiceUrl } from '../../config/api.config';
 
 interface Service {
   _id: string;
@@ -516,7 +517,7 @@ export class ServiciosComponent implements OnInit {
         _id: '4',
         nombre: 'Servicio de Lugares',
         descripcion: 'Microservicio de gestión de lugares turísticos',
-        endpoint: 'http://localhost:3001/places',
+        endpoint: getPlacesServiceUrl('/places'),
         activo: true,
         tipo: 'api',
         version: '1.0.0',
@@ -533,7 +534,7 @@ export class ServiciosComponent implements OnInit {
         _id: '5',
         nombre: 'Servicio de Reseñas',
         descripcion: 'Microservicio de gestión de reseñas y calificaciones',
-        endpoint: 'http://localhost:3001/reviews',
+        endpoint: getReviewsServiceUrl('/reviews'),
         activo: true,
         tipo: 'api',
         version: '1.0.0',
@@ -730,8 +731,6 @@ export class ServiciosComponent implements OnInit {
       }, 1000);
     }
   }
-
-
 
   getResponseTimeClass(tiempo: number): string {
     if (tiempo < 100) return 'fast';

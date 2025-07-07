@@ -25,6 +25,16 @@ export const createReview = async (req, res, next) => {
       calificacion
     });
 
+    // Registrar actividad si es admin
+    if (req.usuario && req.usuario.rol === 'gad') {
+      await Activity.create({
+        usuario: req.usuario._id || req.usuario.id || req.usuario.userId,
+        nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+        accion: 'creó una reseña',
+        recurso: `Lugar: ${lugarId}`
+      });
+    }
+
     res.status(201).json({ success: true, data: review });
   } catch (err) {
     next(err);
@@ -101,7 +111,7 @@ export const updateReviewStatus = async (req, res, next) => {
     // Registrar actividad si es admin
     if (req.usuario && req.usuario.rol === 'gad') {
       await Activity.create({
-        usuario: req.usuario.id,
+        usuario: req.usuario._id || req.usuario.id || req.usuario.userId,
         nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
         accion: `cambió estado de reseña a ${estado}`,
         recurso: `Reseña de ${review.usuario?.nombre || 'usuario'}`
@@ -127,7 +137,7 @@ export const deleteReview = async (req, res, next) => {
     // Registrar actividad si es admin
     if (req.usuario && req.usuario.rol === 'gad') {
       await Activity.create({
-        usuario: req.usuario.id,
+        usuario: req.usuario._id || req.usuario.id || req.usuario.userId,
         nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
         accion: 'eliminó una reseña',
         recurso: `Reseña de ${review.usuario?.nombre || 'usuario'}`

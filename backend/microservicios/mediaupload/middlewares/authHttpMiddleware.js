@@ -7,6 +7,8 @@ export const autenticarTokenPorHttp = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
+    console.log('--- [MediaUpload] Token recibido:', token);
+
     if (!token) {
       return res.status(401).json({ 
         success: false, 
@@ -21,6 +23,8 @@ export const autenticarTokenPorHttp = async (req, res, next) => {
       }
     });
 
+    console.log('--- [MediaUpload] Respuesta de /auth/validate:', response.data);
+
     if (response.data.message === 'Token válido') {
       req.usuario = response.data.usuario;
       next();
@@ -31,7 +35,7 @@ export const autenticarTokenPorHttp = async (req, res, next) => {
       });
     }
   } catch (error) {
-    console.error('Error validando token:', error.message);
+    console.error('Error validando token:', error);
     return res.status(401).json({ 
       success: false, 
       message: 'Token inválido o error de autenticación' 

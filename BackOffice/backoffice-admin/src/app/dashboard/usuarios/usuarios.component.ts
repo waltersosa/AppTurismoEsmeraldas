@@ -48,9 +48,11 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
       <!-- Filtro de búsqueda -->
       <div class="search-section">
         <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Buscar por nombre</mat-label>
-          <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Escribe para filtrar...">
-          <mat-icon matSuffix>search</mat-icon>
+          <mat-label>Escribe para filtrar...</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()">
+          <button mat-icon-button matSuffix (click)="onSearchChange()">
+            <mat-icon>search</mat-icon>
+          </button>
         </mat-form-field>
       </div>
 
@@ -178,7 +180,10 @@ export class UsuariosComponent implements OnInit {
     const url = this.searchTerm ? `${this.apiUrl}?search=${encodeURIComponent(this.searchTerm)}` : this.apiUrl;
     this.http.get<any>(url).subscribe({
       next: (res) => {
-      this.usuarios = res.data?.usuarios || res.usuarios || [];
+        this.usuarios = (res.data?.usuarios || res.usuarios || res.users || []).map((u: any) => ({
+          ...u,
+          correo: u.correo || u.email
+        }));
       },
       error: (error) => {
         console.error('Error al obtener usuarios:', error);

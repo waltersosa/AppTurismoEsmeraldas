@@ -1,6 +1,7 @@
 import path from 'path';
 import Media from '../models/Media.js';
 import fs from 'fs';
+import Activity from '../models/Activity.js';
 
 // Subida de archivos
 export const uploadMedia = async (req, res) => {
@@ -30,6 +31,15 @@ export const uploadMedia = async (req, res) => {
         type: media.type
       });
     }
+
+    // Registrar actividad administrativa
+    await Activity.create({
+      usuario: req.usuario?._id || 'desconocido',
+      nombreUsuario: req.usuario?.nombre || req.usuario?.nombreUsuario || 'desconocido',
+      accion: 'Subió imágenes',
+      recurso: uploadedFiles.map(f => f.filename).join(', '),
+      fecha: new Date()
+    });
 
     res.status(201).json({ 
       success: true, 
@@ -78,6 +88,16 @@ export const deleteMedia = async (req, res) => {
       fs.unlinkSync(path.join(process.cwd(), 'uploads', media.filename));
     } catch (e) {}
     await Media.findByIdAndDelete(mediaId);
+
+    // Registrar actividad administrativa
+    await Activity.create({
+      usuario: req.usuario?._id || 'desconocido',
+      nombreUsuario: req.usuario?.nombre || req.usuario?.nombreUsuario || 'desconocido',
+      accion: 'Eliminó imagen',
+      recurso: media.filename,
+      fecha: new Date()
+    });
+
     res.json({ success: true, message: 'Media deleted successfully' });
   } catch (error) {
     console.error('Error deleting media:', error);

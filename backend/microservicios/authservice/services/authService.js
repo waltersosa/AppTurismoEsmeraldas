@@ -117,6 +117,11 @@ const authService = {
   },
   getUsersCount: async () => {
     return await User.countDocuments({ activo: true });
+  },
+  getUserById: async (userId) => {
+    const user = await User.findById(userId).select('-password');
+    if (!user) throw new Error('Usuario no encontrado');
+    return { _id: user._id, nombre: user.nombre, email: user.email, rol: user.rol, activo: user.activo };
   }
 };
 

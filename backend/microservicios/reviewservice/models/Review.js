@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import './Place.js';
+import './User.js';
 
 const reviewSchema = new mongoose.Schema({
   lugarId: { 

@@ -2,6 +2,7 @@ import express from 'express';
 import upload from '../middlewares/upload.js';
 import * as mediaController from '../controllers/mediaController.js';
 import { autenticarTokenPorHttp } from '../middlewares/authHttpMiddleware.js';
+import Activity from '../models/Activity.js';
 
 const router = express.Router();
 
@@ -47,5 +48,15 @@ router.get('/media/count', mediaController.getMediaCount);
 
 // Eliminar imagen
 router.delete('/media/:mediaId', mediaController.deleteMedia);
+
+// Endpoint para actividades (para el endpoint unificado)
+router.get('/admin/actividades', async (req, res) => {
+  try {
+    const actividades = await Activity.find().sort({ fecha: -1 }).limit(50);
+    res.json({ actividades });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener actividades' });
+  }
+});
 
 export default router; 

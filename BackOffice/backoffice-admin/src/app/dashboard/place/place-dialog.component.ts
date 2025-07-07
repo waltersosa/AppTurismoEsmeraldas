@@ -9,8 +9,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { getApiUrl } from '../../config/api.config';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { getApiUrl, getMediaServiceUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-place-dialog',
@@ -63,8 +63,8 @@ import { getApiUrl } from '../../config/api.config';
       
       <mat-form-field appearance="outline" color="primary">
         <mat-label>URL de Imagen de Portada</mat-label>
-        <input matInput formControlName="coverImageUrl" placeholder="https://ejemplo.com/imagen.jpg" />
-        <mat-hint>URL de la imagen principal del lugar</mat-hint>
+        <input matInput formControlName="coverImageUrl" placeholder="https://ejemplo.com/imagen.jpg" autocomplete="off" />
+        <mat-hint *ngIf="!lugarForm.get('coverImageUrl')?.value">URL de la imagen principal del lugar</mat-hint>
       </mat-form-field>
       
       <div class="image-urls-section">
@@ -402,10 +402,18 @@ export class PlaceDialogComponent {
     try {
       const formData = new FormData();
       for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
+        formData.append('imagenes', files[i]);
       }
 
-      const response: any = await this.http.post(getApiUrl('/media/upload-form'), formData).toPromise();
+      // Forzar el envío del token JWT en la cabecera Authorization
+      const token = localStorage.getItem('token');
+      const httpHeaders = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+
+      const response: any = await this.http.post(
+        getMediaServiceUrl('/media/upload'),
+        formData,
+        { headers: httpHeaders }
+      ).toPromise();
       
       if (response.success) {
         this.uploadedImages.push(...response.files);

@@ -194,7 +194,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
 
-  constructor(private authService: AuthService, private snackBar: MatSnackBar) {}
+  constructor(
+    private authService: AuthService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {

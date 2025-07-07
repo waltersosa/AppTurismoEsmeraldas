@@ -9,6 +9,7 @@ export class AuthGuard {
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(): boolean {
+    console.log('Guard: usuario actual', this.authService.getCurrentUser());
     if (this.authService.isAuthenticated()) {
       // Verificar si el usuario tiene acceso al BackOffice
       if (this.authService.canAccessBackOffice()) {

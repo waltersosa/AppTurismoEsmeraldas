@@ -46,9 +46,11 @@ export class Login {
     this.authService.login(this.loginForm.value)
       .subscribe({
         next: (response) => {
+          console.log('Respuesta login:', response);
+          console.log('Usuario actual:', this.authService.getCurrentUser());
           if (response.success) {
-            // Verificar si el usuario tiene acceso al BackOffice
-            if (this.authService.canAccessBackOffice()) {
+            const user = response.user || response.data?.usuario;
+            if (user && (user.rol === 'gad' || user.rol === 'admin')) {
               this.router.navigate(['/dashboard']);
             } else {
               this.errorMsg = 'No tienes permisos para acceder al BackOffice. Solo usuarios GAD pueden acceder.';

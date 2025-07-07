@@ -5,12 +5,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { UsuarioDialogComponent } from '../usuarios/usuario-dialog.component';
 import { Router } from '@angular/router';
 import { PlaceDialogComponent } from '../place/place-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { StatsService, StatsOverview, SimpleHealth } from '../../services/stats.service';
+import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-home',
@@ -21,7 +25,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatIconModule,
     MatButtonModule,
     MatGridListModule,
-    MatDividerModule
+    MatDividerModule,
+    MatChipsModule,
+    MatProgressSpinnerModule
   ],
   template: `
     <div class="home-container">
@@ -30,8 +36,54 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         <p>Gestiona la plataforma de turismo de Esmeraldas desde el Gobierno Autónomo Descentralizado</p>
       </div>
 
-      <div *ngIf="loading" class="stats-grid"><mat-card class="stat-card">Cargando estadísticas...</mat-card></div>
-      <div *ngIf="error" class="stats-grid"><mat-card class="stat-card error">{{ error }}</mat-card></div>
+      <!-- Health Check Status -->
+      <div class="health-status-section">
+        <h2>Estado del Sistema</h2>
+        <div class="health-grid">
+          <mat-card class="health-card">
+            <mat-card-content>
+              <div class="health-content">
+                <div class="health-icon" [ngClass]="healthStatus.status">
+                  <mat-icon>{{ getHealthIcon(healthStatus.status) }}</mat-icon>
+                </div>
+                <div class="health-info">
+                  <h3>{{ healthStatus.status.toUpperCase() }}</h3>
+                  <p>{{ healthStatus.online }}/{{ healthStatus.total }} servicios online</p>
+                  <mat-chip-set>
+                    <mat-chip [color]="healthStatus.status === 'healthy' ? 'primary' : 'warn'" selected>
+                      {{ healthStatus.status === 'healthy' ? 'Sistema Operativo' : 'Problemas Detectados' }}
+                    </mat-chip>
+                  </mat-chip-set>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div *ngIf="loading" class="stats-grid">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div style="text-align: center; padding: 20px;">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p style="margin-top: 10px;">Cargando estadísticas...</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      
+      <div *ngIf="error" class="stats-grid">
+        <mat-card class="stat-card error">
+          <mat-card-content>
+            <div style="text-align: center; padding: 20px; color: #f44336;">
+              <mat-icon style="font-size: 48px; margin-bottom: 10px;">error</mat-icon>
+              <p>{{ error }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      
       <div *ngIf="!loading && !error" class="stats-grid">
         <mat-card class="stat-card">
           <mat-card-content>
@@ -126,7 +178,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
                 </div>
                 <div class="activity-content">
                   <h4>{{ act.nombreUsuario }} {{ act.accion }}</h4>
-                  <p *ngIf="act.recurso">{{ act.recurso }}</p>
+                  <p *ngIf="act.recurso && act.recurso !== ''" class="activity-resource">{{ act.recurso }}</p>
                   <span class="activity-time">{{ act.fecha | date:'short' }}</span>
                 </div>
               </div>
@@ -161,6 +213,65 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       color: #666;
       font-size: 1.1rem;
       margin: 0;
+    }
+
+    .health-status-section {
+      margin-bottom: 30px;
+    }
+
+    .health-status-section h2 {
+      color: #1e3c72;
+      margin-bottom: 15px;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .health-card {
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .health-content {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .health-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .health-icon.healthy {
+      background: linear-gradient(135deg, #4caf50, #45a049);
+    }
+
+    .health-icon.degraded {
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+    }
+
+    .health-icon.unhealthy {
+      background: linear-gradient(135deg, #f44336, #d32f2f);
+    }
+
+    .health-info h3 {
+      margin: 0 0 5px 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .health-info p {
+      margin: 0 0 10px 0;
+      color: #666;
     }
 
     .stats-grid {
@@ -198,51 +309,32 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     }
 
     .stat-icon.users {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #2196f3, #1976d2);
     }
 
     .stat-icon.destinations {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      background: linear-gradient(135deg, #4caf50, #388e3c);
     }
 
     .stat-icon.bookings {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      background: linear-gradient(135deg, #ff9800, #f57c00);
     }
 
     .stat-icon.revenue {
-      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-
-    .stat-icon mat-icon {
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
+      background: linear-gradient(135deg, #9c27b0, #7b1fa2);
     }
 
     .stat-info h3 {
-      margin: 0 0 5px 0;
-      font-size: 1.8rem;
-      font-weight: 600;
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
       color: #333;
     }
 
     .stat-info p {
-      margin: 0 0 5px 0;
+      margin: 5px 0 0 0;
       color: #666;
       font-size: 0.9rem;
-    }
-
-    .stat-change {
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .stat-change.positive {
-      color: #4caf50;
-    }
-
-    .stat-change.negative {
-      color: #f44336;
     }
 
     .quick-actions {
@@ -251,8 +343,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
     .quick-actions h2 {
       color: #1e3c72;
-      margin-bottom: 20px;
-      font-size: 1.5rem;
+      margin-bottom: 15px;
     }
 
     .actions-grid {
@@ -262,23 +353,29 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     }
 
     .action-button {
-      height: 60px;
+      padding: 15px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 10px;
-      font-size: 1rem;
-      border-radius: 8px;
+      height: auto;
+      min-height: 80px;
+    }
+
+    .action-button mat-icon {
+      font-size: 2rem;
+      width: 2rem;
+      height: 2rem;
     }
 
     .recent-activity h2 {
       color: #1e3c72;
-      margin-bottom: 20px;
-      font-size: 1.5rem;
+      margin-bottom: 15px;
     }
 
     .activity-list {
-      padding: 10px 0;
+      max-height: 400px;
+      overflow-y: auto;
     }
 
     .activity-item {
@@ -286,24 +383,28 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       align-items: flex-start;
       gap: 15px;
       padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
     }
 
     .activity-icon {
       width: 40px;
       height: 40px;
+      background: #f5f5f5;
       border-radius: 50%;
-      background: #e3f2fd;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #1976d2;
-      flex-shrink: 0;
+      color: #666;
     }
 
     .activity-content h4 {
       margin: 0 0 5px 0;
-      color: #333;
       font-size: 1rem;
+      color: #333;
     }
 
     .activity-content p {
@@ -312,107 +413,152 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       font-size: 0.9rem;
     }
 
+    .activity-resource {
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: #555;
+      display: inline-block;
+      margin: 2px 0;
+    }
+
     .activity-time {
       color: #999;
       font-size: 0.8rem;
     }
 
-    @media (max-width: 768px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .actions-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .welcome-section h1 {
-        font-size: 2rem;
-      }
+    .error {
+      border-left: 4px solid #f44336;
     }
   `]
 })
 export class HomeComponent implements OnInit {
-  stats = { usuarios: 0, lugares: 0, resenas: 0, imagenes: 0 };
+  stats: StatsOverview = { usuarios: 0, lugares: 0, resenas: 0, imagenes: 0 };
+  healthStatus: SimpleHealth = { status: 'unhealthy', online: 0, total: 0, timestamp: '', services: [] };
   loading = true;
   error = '';
-  private statsUrl = 'http://localhost:3001/stats'; // Cambia esto si usas variable de entorno
   actividades: any[] = [];
 
-  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router, private snackBar: MatSnackBar) {}
+  constructor(
+    private http: HttpClient, 
+    private dialog: MatDialog, 
+    private router: Router, 
+    private snackBar: MatSnackBar,
+    private statsService: StatsService
+  ) {}
 
   ngOnInit(): void {
-    this.getStats();
-    this.getActividades();
+    this.loadData();
   }
 
-  getStats() {
+  loadData() {
     this.loading = true;
     this.error = '';
-    this.http.get<any>(this.statsUrl).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.stats = res.data;
-        } else {
-          this.error = 'No se pudieron obtener las estadísticas';
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Error al obtener estadísticas';
-        this.loading = false;
-      }
+
+    // Cargar health check y estadísticas en paralelo
+    Promise.all([
+      this.loadHealthStatus(),
+      this.loadStats(),
+      this.loadActivities()
+    ]).finally(() => {
+      this.loading = false;
     });
   }
 
-  getActividades() {
-    this.http.get<any>('http://localhost:3001/auth/admin/actividades?limit=10').subscribe({
-      next: (res) => {
-        if (res.success && res.data && res.data.actividades) {
-          this.actividades = res.data.actividades;
-        } else {
-          this.actividades = [];
+  loadHealthStatus() {
+    return new Promise<void>((resolve) => {
+      this.statsService.getSimpleHealth().subscribe({
+        next: (health) => {
+          this.healthStatus = health;
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error loading health status:', err);
+          this.healthStatus = { status: 'unhealthy', online: 0, total: 0, timestamp: '', services: [] };
+          resolve();
         }
-      },
-      error: (err) => {
-        this.actividades = [];
-      }
+      });
     });
+  }
+
+  loadStats() {
+    return new Promise<void>((resolve) => {
+      this.statsService.getStatsOverview().subscribe({
+        next: (stats) => {
+          this.stats = stats;
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error loading stats:', err);
+          this.error = 'Error al cargar estadísticas: ' + (err.error?.message || err.message);
+          resolve();
+        }
+      });
+    });
+  }
+
+  loadActivities() {
+    return new Promise<void>((resolve) => {
+      // Cargar actividades unificadas desde todos los microservicios
+      this.http.get<any>('http://localhost:3002/places/admin/actividades-unificadas').subscribe({
+        next: (res) => {
+          if (res.actividades) {
+            this.actividades = res.actividades.slice(0, 10); // Solo las últimas 10
+          } else {
+            this.actividades = [];
+          }
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error loading unified activities:', err);
+          this.actividades = [];
+          resolve();
+        }
+      });
+    });
+  }
+
+  getHealthIcon(status: string): string {
+    switch (status) {
+      case 'healthy': return 'check_circle';
+      case 'degraded': return 'warning';
+      case 'unhealthy': return 'error';
+      default: return 'help';
+    }
   }
 
   openCrearUsuario() {
     const dialogRef = this.dialog.open(UsuarioDialogComponent, {
-      data: { editMode: false },
+      width: '500px',
+      data: {}
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.post('http://localhost:3001/auth/register', result).subscribe({
-          next: () => alert('Usuario creado correctamente'),
-          error: err => alert('Error al crear usuario: ' + (err.error?.message || err.message))
-        });
+        this.snackBar.open('Usuario creado correctamente', 'Cerrar', { duration: 2000 });
       }
     });
   }
 
   openCrearLugarTuristico() {
-    const dialogRef = this.dialog.open(PlaceDialogComponent);
+    const dialogRef = this.dialog.open(PlaceDialogComponent, {
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      width: '500px'
+    });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.post('http://localhost:3001/places', result).subscribe({
-          next: () => alert('Lugar turístico creado correctamente'),
-          error: err => alert('Error al crear lugar turístico: ' + (err.error?.message || err.message))
-        });
+        this.snackBar.open('Lugar turístico creado correctamente', 'Cerrar', { duration: 2000 });
+        this.loadStats(); // Recargar estadísticas
       }
     });
   }
 
   verResenas() {
-    this.router.navigate(['/dashboard/resenas']);
+    this.router.navigate(['/dashboard/review']);
   }
 
   openConfiguracion() {
-    this.snackBar.open('Esta función estará disponible próximamente.', 'Cerrar', {
-      duration: 3000
-    });
+    this.snackBar.open('Configuración próximamente disponible', 'Cerrar', { duration: 2000 });
   }
 } 

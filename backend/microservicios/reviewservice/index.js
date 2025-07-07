@@ -13,7 +13,26 @@ connectDB();
 
 // Middlewares de seguridad
 app.use(helmet());
-app.use(cors());
+
+// Configuración CORS mejorada
+app.use(cors({
+  origin: [
+    'http://localhost:4200', // BackOffice Angular
+    'http://localhost:3000', // Frontend principal (si existe)
+    'http://127.0.0.1:4200',
+    'http://127.0.0.1:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'Cache-Control'
+  ]
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -36,7 +55,11 @@ app.get('/', (req, res) => {
       version: '1.0.0',
       timestamp: new Date().toISOString(),
       status: 'running',
-      port: config.port
+      port: config.port,
+      endpoints: {
+        reviews: '/reviews',
+        reviewsCount: '/reviews/count'
+      }
     }
   });
 });
@@ -69,6 +92,7 @@ const start = async () => {
       console.log(`🚀 Reviews Microservice corriendo en puerto ${config.port}`);
       console.log(`📊 Health check: http://localhost:${config.port}/`);
       console.log(`📝 API Reviews: http://localhost:${config.port}/reviews`);
+      console.log(`📊 Reviews Count: http://localhost:${config.port}/reviews/count`);
     });
   } catch (error) {
     console.error('❌ Error iniciando el servidor:', error);

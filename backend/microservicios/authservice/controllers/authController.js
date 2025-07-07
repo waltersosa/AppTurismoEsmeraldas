@@ -1,11 +1,21 @@
 // Controlador de autenticación (base)
 
 import authService from '../services/authService.js';
+import Activity from '../models/Activity.js';
 
 const authController = {
   register: async (req, res) => {
     try {
       const result = await authService.register(req.body);
+      // Registrar actividad
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'registró un usuario',
+          recurso: result?.user?.correo || '',
+        });
+      }
       res.status(201).json({ message: 'Usuario registrado correctamente', ...result });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -52,6 +62,15 @@ const authController = {
   updateProfile: async (req, res) => {
     try {
       const usuario = await authService.updateProfile(req.usuario._id, req.body);
+      // Registrar actividad
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'actualizó su perfil',
+          recurso: usuario.correo || '',
+        });
+      }
       res.json({ message: 'Perfil actualizado', usuario });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -60,6 +79,15 @@ const authController = {
   deleteProfile: async (req, res) => {
     try {
       await authService.deleteProfile(req.usuario._id);
+      // Registrar actividad
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'eliminó su perfil',
+          recurso: req.usuario.correo || '',
+        });
+      }
       res.json({ message: 'Usuario eliminado correctamente' });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -85,6 +113,15 @@ const authController = {
   createUserByAdmin: async (req, res) => {
     try {
       const user = await authService.createUserByAdmin(req.body);
+      // Registrar actividad
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'creó un usuario',
+          recurso: user.correo || '',
+        });
+      }
       res.status(201).json({ message: 'Usuario creado por admin', user });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -92,7 +129,16 @@ const authController = {
   },
   disableUserByAdmin: async (req, res) => {
     try {
+      const userToDisable = await authService.getUserById(req.params.id);
       await authService.disableUserByAdmin(req.params.id);
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'deshabilitó un usuario',
+          recurso: userToDisable ? `${userToDisable.nombre} (${userToDisable.email})` : 'Usuario desconocido',
+        });
+      }
       res.json({ message: 'Usuario deshabilitado' });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -100,7 +146,16 @@ const authController = {
   },
   enableUserByAdmin: async (req, res) => {
     try {
+      const userToEnable = await authService.getUserById(req.params.id);
       await authService.enableUserByAdmin(req.params.id);
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'habilitó un usuario',
+          recurso: userToEnable ? `${userToEnable.nombre} (${userToEnable.email})` : 'Usuario desconocido',
+        });
+      }
       res.json({ message: 'Usuario habilitado' });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -108,7 +163,16 @@ const authController = {
   },
   deleteUserByAdmin: async (req, res) => {
     try {
+      const userToDelete = await authService.getUserById(req.params.id);
       await authService.deleteUserByAdmin(req.params.id);
+      if (req.usuario && req.usuario.rol === 'gad') {
+        await Activity.create({
+          usuario: req.usuario._id,
+          nombreUsuario: req.usuario.nombre || req.usuario.correo || 'Admin',
+          accion: 'eliminó un usuario',
+          recurso: userToDelete ? `${userToDelete.nombre} (${userToDelete.email})` : 'Usuario desconocido',
+        });
+      }
       res.json({ message: 'Usuario eliminado permanentemente' });
     } catch (error) {
       res.status(400).json({ error: error.message });

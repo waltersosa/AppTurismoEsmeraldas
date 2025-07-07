@@ -8,6 +8,7 @@ import {
   validarActualizacionPerfil,
   validarCrearUsuario 
 } from '../middlewares/validation.js';
+import Activity from '../models/Activity.js';
 
 const router = express.Router();
 
@@ -31,5 +32,14 @@ router.delete('/auth/users/:id', autenticarToken, autorizarRoles('gad'), authCon
 router.patch('/auth/users/:id/enable', autenticarToken, autorizarRoles('gad'), authController.enableUserByAdmin);
 router.delete('/auth/users/:id/permanent', autenticarToken, autorizarRoles('gad'), authController.deleteUserByAdmin);
 router.get('/auth/admin/actividades', autenticarToken, autorizarRoles('gad'), authController.listAdminActivities);
+
+router.get('/admin/actividades', async (req, res) => {
+  try {
+    const actividades = await Activity.find().sort({ fecha: -1 }).limit(50);
+    res.json({ actividades });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener actividades' });
+  }
+});
 
 export default router; 

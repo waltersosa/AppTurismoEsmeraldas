@@ -12,7 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { getApiUrl } from '../../config/api.config';
+import { getPlacesServiceUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-lugares',
@@ -122,7 +122,7 @@ export class PlaceComponent implements OnInit {
 
   cargarLugares() {
     this.isLoading = true;
-    this.http.get<any>(getApiUrl('/places')).subscribe({
+    this.http.get<any>(getPlacesServiceUrl('/places')).subscribe({
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.data) {
@@ -160,7 +160,7 @@ export class PlaceComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log('Datos a enviar:', result);
-        this.http.post(getApiUrl('/places'), result).subscribe({
+        this.http.post(getPlacesServiceUrl('/places'), result).subscribe({
           next: (res: any) => {
             console.log('Respuesta exitosa:', res);
             if (res.success) {
@@ -204,7 +204,7 @@ export class PlaceComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.put(getApiUrl(`/places/${lugar._id}`), result).subscribe({
+        this.http.put(getPlacesServiceUrl(`/places/${lugar._id}`), result).subscribe({
           next: (res: any) => {
             if (res.success) {
               this.snackBar.open('Lugar actualizado correctamente', 'Cerrar', { duration: 2000 });
@@ -215,17 +215,7 @@ export class PlaceComponent implements OnInit {
           },
           error: err => {
             console.error('Error al actualizar lugar:', err);
-            let errorMessage = 'Error al actualizar lugar';
-            if (err.status === 401) {
-              errorMessage = 'No tienes permisos para editar lugares. Debes ser usuario GAD.';
-            } else if (err.status === 400) {
-              errorMessage = 'Datos inválidos: ' + (err.error?.message || 'Verifica los campos requeridos');
-            } else if (err.status === 404) {
-              errorMessage = 'Lugar no encontrado';
-            } else if (err.error?.message) {
-              errorMessage = err.error.message;
-            }
-            this.snackBar.open(errorMessage, 'Cerrar', { duration: 4000 });
+            this.snackBar.open('Error al actualizar lugar: ' + (err.error?.message || err.message), 'Cerrar', { duration: 3000 });
           }
         });
       }
@@ -233,40 +223,19 @@ export class PlaceComponent implements OnInit {
   }
 
   toggleActivo(lugar: any) {
-    const newActiveState = !lugar.active;
-    console.log('Cambiando estado de lugar:', lugar._id, 'de', lugar.active, 'a', newActiveState);
-    
-    this.http.patch(getApiUrl(`/places/${lugar._id}/status`), { active: newActiveState }).subscribe({
+    const newStatus = !lugar.active;
+    this.http.patch(getPlacesServiceUrl(`/places/${lugar._id}/status`), { active: newStatus }).subscribe({
       next: (res: any) => {
-        console.log('Respuesta exitosa al actualizar estado:', res);
         if (res.success) {
-          this.snackBar.open('Estado actualizado correctamente', 'Cerrar', { duration: 2000 });
+          this.snackBar.open(`Lugar ${newStatus ? 'activado' : 'desactivado'} correctamente`, 'Cerrar', { duration: 2000 });
           this.cargarLugares();
         } else {
-          this.snackBar.open('Error al actualizar estado: ' + (res.message || 'Error desconocido'), 'Cerrar', { duration: 3000 });
+          this.snackBar.open('Error al cambiar estado: ' + (res.message || 'Error desconocido'), 'Cerrar', { duration: 3000 });
         }
       },
       error: err => {
-        console.error('Error al actualizar estado:', err);
-        console.error('Datos enviados:', { active: newActiveState });
-        console.error('Respuesta del servidor:', err.error);
-        
-        let errorMessage = 'Error al actualizar estado';
-        if (err.status === 401) {
-          errorMessage = 'No tienes permisos para modificar lugares. Debes ser usuario GAD.';
-        } else if (err.status === 400) {
-          if (err.error?.errors && Array.isArray(err.error.errors)) {
-            const validationErrors = err.error.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
-            errorMessage = 'Errores de validación: ' + validationErrors;
-          } else {
-            errorMessage = 'Datos inválidos: ' + (err.error?.message || 'Verifica los campos requeridos');
-          }
-        } else if (err.status === 404) {
-          errorMessage = 'Lugar no encontrado';
-        } else if (err.error?.message) {
-          errorMessage = err.error.message;
-        }
-        this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
+        console.error('Error al cambiar estado:', err);
+        this.snackBar.open('Error al cambiar estado: ' + (err.error?.message || err.message), 'Cerrar', { duration: 3000 });
       }
     });
   }

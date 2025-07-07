@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { getPlacesServiceUrl, getReviewsServiceUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-resenas',
@@ -97,7 +98,7 @@ export class ReviewComponent implements OnInit {
   }
 
   cargarLugares() {
-    this.http.get<any>('http://localhost:3001/places').subscribe(res => {
+    this.http.get<any>(getPlacesServiceUrl('/places')).subscribe(res => {
       this.lugares = res.data?.places || res.places || [];
     });
   }
@@ -106,7 +107,7 @@ export class ReviewComponent implements OnInit {
     const params: any = {};
     if (this.lugarControl.value) params.lugarId = this.lugarControl.value;
     if (this.estadoControl.value) params.estado = this.estadoControl.value === 'rechazada' ? 'rechazada' : 'aprobada';
-    this.http.get<any>('http://localhost:3001/reviews/admin', { params }).subscribe(res => {
+    this.http.get<any>(getReviewsServiceUrl('/reviews/admin'), { params }).subscribe(res => {
       this.resenas = (res.data || []).map((r: any) => ({
         ...r,
         lugar: r.lugarId,
@@ -117,13 +118,13 @@ export class ReviewComponent implements OnInit {
   }
 
   cambiarEstado(resena: any, estado: string) {
-    const estadoBackend = estado === 'rechazada' ? 'rechazada' : estado;
-    this.http.put(`http://localhost:3001/reviews/admin/${resena._id}`, { estado: estadoBackend }).subscribe({
+    const estadoBackend = estado === 'aprobada' ? 'aprobada' : 'bloqueada';
+    this.http.put(getReviewsServiceUrl(`/reviews/admin/${resena._id}`), { estado: estadoBackend }).subscribe({
       next: () => {
         this.snackBar.open('Estado actualizado', 'Cerrar', { duration: 2000 });
         this.cargarResenas();
       },
-      error: err => {
+      error: () => {
         this.snackBar.open('Error al actualizar estado', 'Cerrar', { duration: 2000 });
       }
     });
