@@ -16,6 +16,14 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
 - **Diseño moderno y responsivo**
 - **Integración con microservicios REST** para lugares y reseñas
 
+## Nueva funcionalidad: Reportar Incidencia
+
+- Se ha añadido una nueva página llamada **Reportar Incidencia** en el frontend móvil.
+- Puedes acceder a esta página desde el botón 'Reportar Incidencia' en la pantalla de Emergencias.
+- Actualmente, todos los campos y botones de la página muestran el mensaje **'Próximamente'** y están deshabilitados, indicando que la funcionalidad estará disponible en el futuro.
+- El diseño de la página es moderno y está completamente en español.
+- El botón de regresar en la página de reporte te lleva de vuelta a la pantalla de Emergencias.
+
 ## Scripts de carga masiva
 
 - **Crear usuarios de ejemplo (authservice):**
@@ -44,6 +52,8 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
 - `src/app/pages/login` — Inicio de sesión
 - `src/app/pages/register` — Registro de usuario
 - `src/app/pages/profile` — Perfil de usuario
+- `src/app/pages/emergencias` — Emergencias y acceso a reporte de incidencia
+- `src/app/pages/reportar-incidencia` — Página de reporte de incidencia (Próximamente)
 - `src/app/services/places.service.ts` — Consumo de microservicio de lugares
 - `src/app/services/reviews.service.ts` — Consumo de microservicio de reseñas
 
@@ -62,6 +72,7 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
 ## Notas
 - La app requiere que los microservicios de backend estén corriendo y configurados en el archivo de entorno correspondiente.
 - El diseño y las funcionalidades pueden ampliarse según nuevas necesidades.
+- Si ves el mensaje de error relacionado con la importación de la página de reporte, asegúrate de reiniciar el servidor de desarrollo para que Angular detecte los nuevos archivos.
 
 ---
-Desarrollado para la materia de Arquitectura de Software — 2024.
+Desarrollado para Esmeraldas Turismo 🏖️
