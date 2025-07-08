@@ -84,42 +84,6 @@
     </div>
   </div>
   
-  <div>
-    <div class="flex gap-2 border-t border-[#f1f3f2] bg-white px-4 pb-3 pt-2">
-      <button class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#6b8075]" [routerLink]="'/home'">
-        <div class="text-[#6b8075] flex h-8 items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77ZM208,208H160V160a16,16,0,0,0-16-16H112a16,16,0,0,0-16,16v48H48V115.55l.11-.1L128,40l79.9,75.43.11.1Z"></path>
-          </svg>
-        </div>
-        <p class="text-[#6b8075] text-xs font-medium leading-normal tracking-[0.015em]">Inicio</p>
-      </button>
-      <button class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-[#131614]">
-        <div class="text-[#131614] flex h-8 items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M168,112a56,56,0,1,1-56-56A56,56,0,0,1,168,112Zm61.66,117.66a8,8,0,0,1-11.32,0l-50.06-50.07a88,88,0,1,1,11.32-11.31l50.06,50.06A8,8,0,0,1,229.66,229.66ZM112,184a72,72,0,1,0-72-72A72.08,72.08,0,0,0,112,184Z"></path>
-          </svg>
-        </div>
-        <p class="text-[#131614] text-xs font-medium leading-normal tracking-[0.015em]">Explorar</p>
-      </button>
-      <button class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#6b8075]" (click)="showComingSoonMsg()">
-        <div class="text-[#6b8075] flex h-8 items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,16V161.57l-51.77-32.35a8,8,0,0,0-8.48,0L72,161.56V48ZM132.23,177.22a8,8,0,0,0-8.48,0L72,209.57V180.43l56-35,56,35v29.14Z"></path>
-          </svg>
-        </div>
-        <p class="text-[#6b8075] text-xs font-medium leading-normal tracking-[0.015em]">Guardados</p>
-      </button>
-      <button class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#6b8075]" [routerLink]="'/profile'">
-        <div class="text-[#6b8075] flex h-8 items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,0,1,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
-          </svg>
-        </div>
-        <p class="text-[#6b8075] text-xs font-medium leading-normal tracking-[0.015em]">Perfil</p>
-      </button>
-    </div>
-    <div class="h-5 bg-white"></div>
-  </div>
+  <app-menu-inferior></app-menu-inferior>
   <div *ngIf="showComingSoon" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#ceeddd] text-[#131614] px-6 py-3 rounded-full shadow-lg font-bold text-base transition">Esta función estará lista próximamente</div>
 </div>

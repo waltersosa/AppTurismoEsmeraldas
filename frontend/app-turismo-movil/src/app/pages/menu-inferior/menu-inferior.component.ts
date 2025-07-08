@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-menu-inferior',
@@ -9,4 +9,6 @@ import { RouterModule } from '@angular/router';
   templateUrl: './menu-inferior.component.html',
   styleUrls: ['./menu-inferior.component.scss']
 })
-export class MenuInferiorComponent {} 
+export class MenuInferiorComponent {
+  constructor(public router: Router) {}
+} 

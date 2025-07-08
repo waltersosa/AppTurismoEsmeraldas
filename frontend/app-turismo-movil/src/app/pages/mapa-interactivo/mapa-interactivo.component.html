@@ -2,6 +2,14 @@
   class="relative flex size-full min-h-screen flex-col bg-white justify-between group/design-root overflow-x-hidden"
   style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'
 >
+  <div class="flex items-center bg-white p-4 pb-2 justify-between">
+    <button class="text-[#131614] flex size-12 shrink-0 items-center" [routerLink]="'/home'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+        <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
+      </svg>
+    </button>
+    <h2 class="text-[#131614] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Mapa Interactivo</h2>
+  </div>
   <div>
     <div class="@container flex flex-col h-full flex-1">
       <div class="flex flex-1 flex-col @[480px]:px-4 @[480px]:py-3">
@@ -71,8 +79,6 @@
         <p class="text-[#111816] text-sm font-medium leading-normal">Bares</p>
       </div>
     </div>
-  </div>
-  <div>
     <div class="p-4">
       <div class="flex items-stretch justify-between gap-4 rounded-xl">
         <div class="flex flex-col gap-1 flex-[2_2_0px]">
@@ -81,65 +87,10 @@
         </div>
         <div
           class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-          style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDG6KP_zR-2vzs0tjK4eeOpkT41K6Unfnk_jLj-aeRgUXveVBcO0ExRFkZ-iI4HxXpSi0tC-TOwr_MNDu0fx8CO575u0gpEnsloXR9Cu-vrVjsUa4giERDhtMLJtBa8b2YPTaHoZVxHwT35_6tRLqybbw73PrSwBV4AvwhoJUfIMEAjh9jxk1n8VwJCGW4Vuep8Af5pdMmJsTiLP5xv6AqBgNZDfKLBxsL34rhE3Iyn1vss7HwAbbB2by9KgtlXQhryhK0HZ-ACsQPn");'
+          style='background-image: url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80");'
         ></div>
       </div>
     </div>
-    <div class="flex justify-end overflow-hidden px-7 pb-5">
-      <button
-        class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#12e7a3] text-[#111816] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2"
-      >
-        <div class="text-[#111816]">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-          </svg>
-        </div>
-      </button>
-    </div>
-    <div class="flex gap-2 border-t border-[#f0f4f3] bg-white px-4 pb-3 pt-2">
-      <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#61897d]" [routerLink]="'/home'">
-        <div class="text-[#61897d] flex h-8 items-center justify-center">
-          <!-- Icono de casa -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path
-              d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77ZM208,208H160V160a16,16,0,0,0-16-16H112a16,16,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55l.11-.1L128,40l79.9,75.43.11.1Z"
-            ></path>
-          </svg>
-        </div>
-        <p class="text-[#61897d] text-xs font-medium leading-normal tracking-[0.015em]">Inicio</p>
-      </a>
-      <a class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-[#111816]" [routerLink]="'/mapa-interactivo'">
-        <div class="text-[#111816] flex h-8 items-center justify-center">
-          <!-- Icono de mapa -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path
-              d="M228.92,49.69a8,8,0,0,0-6.86-1.45L160.93,63.52,99.58,32.84a8,8,0,0,0-5.52-.6l-64,16A8,8,0,0,0,24,56V200a8,8,0,0,0,9.94,7.76l61.13-15.28,61.35,30.68A8.15,8.15,0,0,0,160,224a8,8,0,0,0,1.94-.24l64-16A8,8,0,0,0,232,200V56A8,8,0,0,0,228.92,49.69ZM96,176a8,8,0,0,0-1.94.24L40,189.75V62.25L95.07,48.48l.93.46Zm120,17.75-55.07,13.77-.93-.46V80a8,8,0,0,0,1.94-.23L216,66.25Z"
-            ></path>
-          </svg>
-        </div>
-        <p class="text-[#111816] text-xs font-medium leading-normal tracking-[0.015em]">Mapa</p>
-      </a>
-      <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#61897d]" [routerLink]="'/eventos-noticias'">
-        <div class="text-[#61897d] flex h-8 items-center justify-center">
-          <!-- Icono de calendario -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-96-88v64a8,8,0,0,1-16,0V132.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,112,120Zm59.16,30.45L152,176h16a8,8,0,0,1,0,16H136a8,8,0,0,1-6.4-12.8l28.78-38.37A8,8,0,1,0,145.07,132a8,8,0,1,1-13.85-8A24,24,0,0,1,176,136,23.76,23.76,0,0,1,171.16,150.45Z"/>
-          </svg>
-        </div>
-        <p class="text-[#61897d] text-xs font-medium leading-normal tracking-[0.015em]">Eventos</p>
-      </a>
-      <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#61897d]" [routerLink]="'/profile'">
-        <div class="text-[#61897d] flex h-8 items-center justify-center">
-          <!-- Icono de usuario -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path
-              d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"
-            ></path>
-          </svg>
-        </div>
-        <p class="text-[#61897d] text-xs font-medium leading-normal tracking-[0.015em]">Perfil</p>
-      </a>
-    </div>
-    <div class="h-5 bg-white"></div>
   </div>
+  <app-menu-inferior></app-menu-inferior>
 </div> 

@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PlacesService, Place } from '../../services/places.service';
+import { MenuInferiorComponent } from '../menu-inferior/menu-inferior.component';
 
 @Component({
   selector: 'app-places',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MenuInferiorComponent],
   templateUrl: './places.component.html',
   styleUrl: './places.component.scss'
 })
