@@ -24,6 +24,14 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
 - El diseño de la página es moderno y está completamente en español.
 - El botón de regresar en la página de reporte te lleva de vuelta a la pantalla de Emergencias.
 
+## Nueva funcionalidad: Portada de Bienvenida
+
+- Ahora la app muestra una **pantalla de portada** al inicio, antes del login.
+- La portada utiliza la imagen `src/assets/Portada.jpg` y cubre toda la pantalla.
+- En la parte inferior hay un botón grande que dice **'Bienvenidos a Esmeraldas'**.
+- Al pulsar el botón, se navega directamente a la pantalla de login.
+- Esta portada es la ruta inicial (`'/'`) de la app móvil y ofrece una experiencia visual atractiva para los usuarios.
+
 ## Scripts de carga masiva
 
 - **Crear usuarios de ejemplo (authservice):**
