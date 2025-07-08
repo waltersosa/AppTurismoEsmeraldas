@@ -51,9 +51,10 @@ export const getReviewsByPlace = async (req, res, next) => {
       page, limit, sortBy, order 
     });
 
+    // Siempre devolver success true y un array (aunque esté vacío)
     res.json({
       success: true,
-      data,
+      data: data || [],
       pagination: {
         total,
         page: Number(page) || 1,
@@ -61,7 +62,8 @@ export const getReviewsByPlace = async (req, res, next) => {
       }
     });
   } catch (err) {
-    next(err);
+    // Si el error es que no hay reseñas, devolver array vacío
+    res.json({ success: true, data: [], pagination: { total: 0, page: 1, limit: 10 } });
   }
 };
 
