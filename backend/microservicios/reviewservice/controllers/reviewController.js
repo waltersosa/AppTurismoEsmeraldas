@@ -1,5 +1,8 @@
 import * as reviewService from '../services/reviewService.js';
 import Activity from '../models/Activity.js';
+import User from '../models/User.js';
+import mongoose from 'mongoose';
+import Review from '../models/Review.js';
 
 // ===== RUTAS PARA USUARIOS =====
 
@@ -7,23 +10,20 @@ import Activity from '../models/Activity.js';
 export const createReview = async (req, res, next) => {
   try {
     const { lugarId, comentario, calificacion } = req.body;
-    const usuarioId = req.usuario.id || req.usuario._id;
-
-    // Verificar si el usuario ya ha reseñado este lugar
-    const existingReview = await reviewService.checkUserReviewExists(lugarId, usuarioId);
-    if (existingReview) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ya has reseñado este lugar'
-      });
+    if (!req.usuario || !(req.usuario._id || req.usuario.id)) {
+      return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
     }
+    const usuarioId = req.usuario._id || req.usuario.id;
+    const reviewData = {
+      lugarId: new mongoose.Types.ObjectId(String(lugarId)),
+      usuarioId: new mongoose.Types.ObjectId(String(usuarioId)),
+      comentario: String(comentario),
+      calificacion: Number(calificacion)
+    };
+    console.log('Objeto que se va a guardar en Review:', reviewData);
 
-    const review = await reviewService.createReview({
-      lugarId,
-      usuarioId,
-      comentario,
-      calificacion
-    });
+    // Usar el modelo importado directamente
+    const review = await Review.create(reviewData);
 
     // Registrar actividad si es admin
     if (req.usuario && req.usuario.rol === 'gad') {
@@ -51,10 +51,29 @@ export const getReviewsByPlace = async (req, res, next) => {
       page, limit, sortBy, order 
     });
 
-    // Siempre devolver success true y un array (aunque esté vacío)
+    // Asegurar que cada reseña tenga el nombre del usuario
+    const dataWithUserName = await Promise.all(
+      (data || []).map(async (review) => {
+        let userName = '';
+        if (review.usuarioId && typeof review.usuarioId === 'object' && review.usuarioId.nombre) {
+          userName = review.usuarioId.nombre;
+        } else if (review.usuarioId) {
+          // Buscar el usuario manualmente si no está populado
+          const user = await User.findById(review.usuarioId).lean();
+          userName = user?.nombre || '';
+        }
+        return {
+          ...review.toObject(),
+          userName
+        };
+      })
+    );
+
+    console.log('RESEÑAS ENVIADAS AL FRONT:', dataWithUserName);
+
     res.json({
       success: true,
-      data: data || [],
+      data: dataWithUserName,
       pagination: {
         total,
         page: Number(page) || 1,
@@ -62,7 +81,6 @@ export const getReviewsByPlace = async (req, res, next) => {
       }
     });
   } catch (err) {
-    // Si el error es que no hay reseñas, devolver array vacío
     res.json({ success: true, data: [], pagination: { total: 0, page: 1, limit: 10 } });
   }
 };
@@ -171,6 +189,45 @@ export const getReviewsCount = async (req, res, next) => {
   try {
     const count = await reviewService.getReviewsCount();
     res.json({ count });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Editar una reseña (solo dueño)
+export const updateReviewByUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario.id || req.usuario._id;
+    const review = await reviewService.getReviewById(id);
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+    if (review.usuarioId.toString() !== usuarioId.toString()) {
+      return res.status(403).json({ success: false, message: 'No autorizado para editar esta reseña' });
+    }
+    const { comentario, calificacion } = req.body;
+    const updated = await reviewService.updateReview(id, { comentario, calificacion });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Eliminar una reseña (solo dueño)
+export const deleteReviewByUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario.id || req.usuario._id;
+    const review = await reviewService.getReviewById(id);
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+    if (review.usuarioId.toString() !== usuarioId.toString()) {
+      return res.status(403).json({ success: false, message: 'No autorizado para eliminar esta reseña' });
+    }
+    await reviewService.deleteReview(id);
+    res.json({ success: true, message: 'Reseña eliminada' });
   } catch (err) {
     next(err);
   }

@@ -24,6 +24,8 @@ router.get('/health', (req, res) => {
 router.post('/', autenticarToken, validateReview, reviewController.createReview);
 router.get('/lugar/:lugarId', reviewController.getReviewsByPlace);
 router.get('/count', reviewController.getReviewsCount);
+router.put('/:id', autenticarToken, reviewController.updateReviewByUser);
+router.delete('/:id', autenticarToken, reviewController.deleteReviewByUser);
 
 // Endpoint para actividades (para el endpoint unificado) - SIN AUTENTICACIÓN
 router.get('/admin/actividades', async (req, res) => {

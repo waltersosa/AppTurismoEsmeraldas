@@ -28,6 +28,9 @@ export class PlaceDetailComponent implements OnInit {
   averageRating: number = 0;
   starCounts: { [key: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
+  user: any = null;
+  editReviewId: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private placesService: PlacesService,
@@ -35,13 +38,15 @@ export class PlaceDetailComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.reviewForm = this.fb.group({
-      userName: ['', [Validators.required, Validators.maxLength(40)]],
-      comment: ['', [Validators.required, Validators.maxLength(300)]],
+      comment: ['', [Validators.required, this.maxWordsValidator(50)]],
       rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]]
     });
   }
 
   ngOnInit() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      this.user = JSON.parse(localStorage.getItem('user') || '{}');
+    }
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loading = true;
@@ -88,16 +93,54 @@ export class PlaceDetailComponent implements OnInit {
     }
     let total = 0;
     this.starCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let count = 0;
     for (const review of this.reviews) {
-      total += review.rating;
-      this.starCounts[review.rating] = (this.starCounts[review.rating] || 0) + 1;
+      if (typeof review.calificacion === 'number') {
+        total += review.calificacion;
+        this.starCounts[review.calificacion] = (this.starCounts[review.calificacion] || 0) + 1;
+        count++;
+      }
     }
-    this.averageRating = total / this.reviews.length;
+    this.averageRating = count ? total / count : 0;
   }
 
   getStarPercent(star: number): number {
     if (!this.reviews.length) return 0;
     return (this.starCounts[star] / this.reviews.length) * 100;
+  }
+
+  isMyReview(review: Review): boolean {
+    const myId = this.user?._id || this.user?.id;
+    if (!myId) return false;
+    if (typeof review.usuarioId === 'object' && review.usuarioId?._id) {
+      return review.usuarioId._id === myId;
+    }
+    return review.usuarioId === myId;
+  }
+
+  startEditReview(review: Review) {
+    this.editReviewId = review._id || null;
+    this.reviewForm.setValue({
+      comment: review.comment || review.comentario,
+      rating: review.rating || review.calificacion || 5
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  deleteReview(review: Review) {
+    if (!review._id) return;
+    if (!confirm('¿Seguro que deseas eliminar esta reseña?')) return;
+    this.reviewSubmitting = true;
+    this.reviewsService.deleteReview(review._id).subscribe({
+      next: () => {
+        this.reviewSubmitting = false;
+        this.loadReviews();
+      },
+      error: () => {
+        this.reviewSubmitError = 'No se pudo eliminar la reseña.';
+        this.reviewSubmitting = false;
+      }
+    });
   }
 
   submitReview() {
@@ -107,22 +150,54 @@ export class PlaceDetailComponent implements OnInit {
     const review = {
       lugarId: this.place._id,
       comentario: this.reviewForm.value.comment,
-      calificacion: this.reviewForm.value.rating
+      calificacion: this.reviewForm.value.rating,
+      userName: this.user?.nombre || this.user?.name || ''
     };
-    this.reviewsService.addReview(review).subscribe({
-      next: () => {
-        this.reviewForm.reset({ userName: '', comment: '', rating: 5 });
-        this.reviewSubmitting = false;
-        this.loadReviews();
-      },
-      error: (err) => {
-        this.reviewSubmitError = 'No se pudo enviar la reseña. Intenta nuevamente.';
-        this.reviewSubmitting = false;
-      }
-    });
+    if (this.editReviewId) {
+      this.reviewsService.updateReview(this.editReviewId, review).subscribe({
+        next: () => {
+          this.reviewForm.reset({ comment: '', rating: 5 });
+          this.editReviewId = null;
+          this.reviewSubmitting = false;
+          this.loadReviews();
+        },
+        error: (err) => {
+          this.reviewSubmitError = err?.error?.message || 'No se pudo actualizar la reseña.';
+          this.reviewSubmitting = false;
+        }
+      });
+    } else {
+      this.reviewsService.addReview(review).subscribe({
+        next: () => {
+          this.reviewForm.reset({ comment: '', rating: 5 });
+          this.reviewSubmitting = false;
+          this.loadReviews();
+        },
+        error: (err) => {
+          this.reviewSubmitError = err?.error?.message || 'No se pudo enviar la reseña. Intenta nuevamente.';
+          this.reviewSubmitting = false;
+        }
+      });
+    }
   }
 
   showAlert(msg: string) {
     window.alert(msg);
+  }
+
+  maxWordsValidator(max: number) {
+    return (control: any) => {
+      if (!control.value) return null;
+      const words = control.value.trim().split(/\s+/);
+      return words.length > max ? { maxwords: { max, actual: words.length } } : null;
+    };
+  }
+
+  getReviewUserName(review: Review): string {
+    if (review.userName) return review.userName;
+    if (review.usuarioId && typeof review.usuarioId === 'object' && 'nombre' in review.usuarioId) {
+      return (review.usuarioId as any).nombre || '';
+    }
+    return typeof review.usuarioId === 'string' ? review.usuarioId : '';
   }
 }

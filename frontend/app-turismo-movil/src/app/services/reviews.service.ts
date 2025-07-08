@@ -4,11 +4,16 @@ import { Observable } from 'rxjs';
 
 export interface Review {
   _id?: string;
-  placeId: string;
-  userName: string;
-  comment: string;
-  rating: number;
+  placeId?: string;
+  lugarId?: string;
+  userName?: string;
+  usuarioId?: string | { _id: string; nombre?: string };
+  comment?: string;
+  comentario?: string;
+  rating?: number;
+  calificacion?: number;
   createdAt?: string;
+  fecha?: string;
 }
 
 export interface ReviewsResponse {
@@ -37,7 +42,7 @@ export class ReviewsService {
 
   // Obtener reseñas de un lugar
   getReviewsByPlace(placeId: string): Observable<ReviewsResponse> {
-    return this.http.get<ReviewsResponse>(`${this.apiUrl}/place/${placeId}`);
+    return this.http.get<ReviewsResponse>(`${this.apiUrl}/lugar/${placeId}`);
   }
 
   // Agregar una nueva reseña
@@ -48,5 +53,25 @@ export class ReviewsService {
       'Content-Type': 'application/json'
     });
     return this.http.post<ReviewResponse>(this.apiUrl, review, { headers });
+  }
+
+  // Editar reseña
+  updateReview(id: string, review: ReviewPayload): Observable<ReviewResponse> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.put<ReviewResponse>(`${this.apiUrl}/${id}`, review, { headers });
+  }
+
+  // Eliminar reseña
+  deleteReview(id: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.delete<any>(`${this.apiUrl}/${id}`, { headers });
   }
 }

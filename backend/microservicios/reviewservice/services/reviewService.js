@@ -1,6 +1,7 @@
 import Review from '../models/Review.js';
 import axios from 'axios';
 import config from '../config/config.js';
+import mongoose from 'mongoose';
 
 // Para usuarios: obtener reseñas públicas (todas menos bloqueadas)
 export const getReviewsByPlace = async (lugarId, { page = 1, limit = 10, sortBy = 'fecha', order = 'desc' }) => {
@@ -70,6 +71,7 @@ export const createReview = async (body) => {
   }
 
   // Crear la reseña
+  console.log('Objeto que se va a guardar en Review:', body);
   const review = await Review.create(body);
 
   // Enviar notificación al propietario si existe ownerId

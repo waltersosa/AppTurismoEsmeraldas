@@ -23,6 +23,7 @@ export const autenticarToken = async (req, res, next) => {
 
     if (response.data.message === 'Token válido') {
       req.usuario = response.data.usuario;
+      console.log('USUARIO AUTENTICADO EN REVIEWSERVICE:', req.usuario);
       next();
     } else {
       return res.status(401).json({ 

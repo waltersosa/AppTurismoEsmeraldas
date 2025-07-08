@@ -16,13 +16,6 @@ export const validateReview = (req, res, next) => {
     });
   }
 
-  if (comentario.trim().length < 10) {
-    return res.status(400).json({
-      success: false,
-      message: 'El comentario debe tener al menos 10 caracteres'
-    });
-  }
-
   if (!calificacion || calificacion < 1 || calificacion > 5) {
     return res.status(400).json({
       success: false,

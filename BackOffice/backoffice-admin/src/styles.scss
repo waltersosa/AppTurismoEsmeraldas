@@ -86,3 +86,9 @@ textarea,
   color: #000 !important;
   caret-color: #000 !important;
 }
+
+/* Quitar scroll de tablas en la sección de reseñas */
+app-resenas .mat-table {
+  overflow: visible !important;
+  max-height: none !important;
+}

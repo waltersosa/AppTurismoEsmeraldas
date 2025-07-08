@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { PlacesService, Place } from '../../services/places.service';
 
 @Component({
@@ -33,7 +33,7 @@ export class PlacesComponent implements OnInit {
     { id: 'gastronomía', name: 'Gastronomía', icon: '🍽️' }
   ];
 
-  constructor(private placesService: PlacesService) {}
+  constructor(private placesService: PlacesService, private router: Router) {}
 
   ngOnInit() {
     this.loadPlaces();
@@ -159,7 +159,7 @@ export class PlacesComponent implements OnInit {
   }
 
   goBack() {
-    window.history.back();
+    this.router.navigate(['/home']);
   }
 
   showComingSoonMsg() {

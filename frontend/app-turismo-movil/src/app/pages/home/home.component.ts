@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +14,7 @@ export class HomeComponent {
   userName: string = '';
   showComingSoon = false;
 
-  constructor() {
+  constructor(private router: Router) {
     if (typeof window !== 'undefined' && window.localStorage) {
       const userStr = localStorage.getItem('user');
       if (userStr) {
@@ -25,6 +26,10 @@ export class HomeComponent {
         }
       }
     }
+  }
+
+  goToEmergencias() {
+    this.router.navigate(['/emergencias']);
   }
 
   showComingSoonMsg() {
