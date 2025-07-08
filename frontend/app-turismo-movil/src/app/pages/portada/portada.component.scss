@@ -1,0 +1,33 @@
+.portada-bg {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100dvh;
+  background-image: url('/assets/Portada.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.portada-boton {
+  width: 90vw;
+  max-width: 400px;
+  margin-bottom: 40px;
+  padding: 18px 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #fff;
+  background: rgba(18, 231, 163, 0.95);
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.2s;
+}
+.portada-boton:hover {
+  background: rgba(18, 231, 163, 1);
+} 
