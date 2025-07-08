@@ -21,6 +21,12 @@ export interface ReviewResponse {
   data: Review;
 }
 
+export interface ReviewPayload {
+  lugarId: string;
+  comentario: string;
+  calificacion: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,7 +41,7 @@ export class ReviewsService {
   }
 
   // Agregar una nueva reseña
-  addReview(review: Partial<Review>): Observable<ReviewResponse> {
+  addReview(review: ReviewPayload): Observable<ReviewResponse> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,

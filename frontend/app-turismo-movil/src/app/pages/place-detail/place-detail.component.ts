@@ -104,11 +104,10 @@ export class PlaceDetailComponent implements OnInit {
     if (!this.place || this.reviewForm.invalid) return;
     this.reviewSubmitting = true;
     this.reviewSubmitError = '';
-    const review: Partial<Review> = {
-      placeId: this.place._id,
-      userName: this.reviewForm.value.userName,
-      comment: this.reviewForm.value.comment,
-      rating: this.reviewForm.value.rating
+    const review = {
+      lugarId: this.place._id,
+      comentario: this.reviewForm.value.comment,
+      calificacion: this.reviewForm.value.rating
     };
     this.reviewsService.addReview(review).subscribe({
       next: () => {
@@ -121,5 +120,9 @@ export class PlaceDetailComponent implements OnInit {
         this.reviewSubmitting = false;
       }
     });
+  }
+
+  showAlert(msg: string) {
+    window.alert(msg);
   }
 }
