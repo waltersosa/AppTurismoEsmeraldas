@@ -32,6 +32,14 @@ export class HomeComponent {
     this.router.navigate(['/emergencias']);
   }
 
+  goToEventosNoticias() {
+    this.router.navigate(['/eventos-noticias']);
+  }
+
+  goToCulturaGastronomia() {
+    this.router.navigate(['/cultura-gastronomia']);
+  }
+
   showComingSoonMsg() {
     this.showComingSoon = true;
     setTimeout(() => {

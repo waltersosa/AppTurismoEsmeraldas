@@ -17,5 +17,17 @@ export const routes: Routes = [
     path: 'reportar-incidencia',
     loadComponent: () => import('./pages/reportar-incidencia/reportar-incidencia.component').then(m => m.ReportarIncidenciaComponent)
   },
+  {
+    path: 'eventos-noticias',
+    loadComponent: () => import('./pages/eventos-noticias/eventos-noticias.component').then(m => m.EventosNoticiasComponent)
+  },
+  {
+    path: 'cultura-gastronomia',
+    loadComponent: () => import('./pages/cultura-gastronomia/cultura-gastronomia.component').then(m => m.CulturaGastronomiaComponent)
+  },
+  {
+    path: 'mapa-interactivo',
+    loadComponent: () => import('./pages/mapa-interactivo/mapa-interactivo.component').then(m => m.MapaInteractivoComponent)
+  },
   // ... otras rutas ...
 ];
