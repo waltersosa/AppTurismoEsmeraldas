@@ -59,4 +59,8 @@ Este proyecto está bajo una licencia educativa. Su uso está destinado al forta
 ## Backend 
 > cd backend
 
+> npm install
+
+> npm install express
+
 > npm start
