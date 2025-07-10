@@ -7,10 +7,9 @@ export class AuthController {
    * POST /auth/register
    */
   async registrarUsuario(req, res) {
-
     try {
       const { nombre, correo, contraseña, rol } = req.body;
-
+      
       const resultado = await authService.registrarUsuario({
         nombre,
         correo,

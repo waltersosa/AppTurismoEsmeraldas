@@ -8,7 +8,6 @@ import authService from '../services/authService.js';
 export const autenticarToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    console.log('Auth Header:', authHeader);
     const token = extraerToken(authHeader);
 
     if (!token) {

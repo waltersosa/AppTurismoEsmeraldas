@@ -55,3 +55,8 @@ Este proyecto está bajo una licencia educativa. Su uso está destinado al forta
 > npm install
 
 > ng serve 
+
+## Backend 
+> cd backend
+
+> npm start
