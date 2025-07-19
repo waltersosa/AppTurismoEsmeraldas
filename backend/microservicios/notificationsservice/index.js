@@ -7,6 +7,7 @@ import config from './config/config.js';
 import notificationRoutes from './routes/notifications.js';
 import dotenv from 'dotenv';
 
+
 dotenv.config();
 
 const app = express();
