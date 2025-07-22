@@ -1,5 +1,5 @@
 import Notification from '../models/Notification.js';
-import { connectSocketServer, notifyAll, notifyUser } from '../socketClient.js';
+import { connectSocketServer, notifyAll, enviarNotificacion } from '../socketClient.js';
 
 export const createNotification = (data) => Notification.create(data);
 
@@ -18,17 +18,31 @@ export const deleteNotification = (id) =>
 export const getNotificationsCount = () =>
   Notification.countDocuments();
 
-export const sendNotification = async (id, message) => {
-  const notificationSelected = getNotificationById(id);
+export const sendNotification = async (id) => {
+  console.log('Enviando notificación:', id);
+
+  const notificationSelected = await getNotificationById(id).lean().exec();
+
   if (!notificationSelected) {
     throw new Error('Notificación no encontrada');
   }
 
-  connectSocketServer('notifier-system');
+  try {
 
-  notifyAll({
-    type: 'notification',
-    message: message,
-    notification: notificationSelected
-  });
+    //await connectSocketServer('notifier-system');
+    //console.log("NOtificación a enviar:", notificationSelected);
+    /*  notifyAll({
+        type: 'notification',
+        message: notificationSelected.message,
+        notification: notificationSelected
+      })
+      console.log('Payload de notificación enviada:', {
+        type: 'notification',
+        message: notificationSelected.message,
+        notification: notificationSelected
+      });*/
+    enviarNotificacion(notificationSelected.title, notificationSelected.message);
+  } catch (error) {
+    console.error('No se pudo establecerla conexión al servidor:', error);
+  }
 }

@@ -59,10 +59,8 @@ export const getNotificationsCount = async (req, res) => {
 
 export const sendNotification = async (req, res) => {
   try {
-    const { message } = req.body;
-    if (!message) return res.status(400).json({ success: false, message: 'Mensaje es requerido' });
-    
-    const notification = await notificationService.sendNotification(id, message);
+
+    const notification = await notificationService.sendNotification(req.params.id, req.body);
     res.status(201).json({ success: true, data: notification });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -102,6 +102,7 @@ const start = async () => {
       console.log(`📊 Health check: http://localhost:${config.port}/`);
       console.log(`📝 API Notifications: http://localhost:${config.port}/notifications`);
       console.log(`📊 Notifications Count: http://localhost:${config.port}/notifications/count`);
+      console.log(`📲 Envio de notificaciones: http://localhost:${config.port}/notifications/send/:id`);
     });
   } catch (error) {
     console.error('❌ Error iniciando el servidor:', error);

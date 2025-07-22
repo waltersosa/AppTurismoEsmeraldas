@@ -22,6 +22,6 @@ router.delete('/:id', notificationController.deleteNotification);
 router.get('/count', notificationController.getNotificationsCount);
 
 // Envio de notificación (usado por otros microservicios)
-router.post('/send:id', notificationController.sendNotification);
+router.post('/send/:id', notificationController.sendNotification);
 
 export default router; 
