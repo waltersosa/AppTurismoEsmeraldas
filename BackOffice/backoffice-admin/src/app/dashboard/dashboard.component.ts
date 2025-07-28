@@ -66,6 +66,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             <mat-icon>analytics</mat-icon>
             <span>Reportes</span>
           </a>
+
+          <a mat-list-item routerLink="/dashboard/notificaciones" routerLinkActive="active" class="nav-item">
+            <mat-icon>notifications_active</mat-icon>
+            <span>Notificaciones</span>
+          </a>
+
         </mat-nav-list>
       </mat-sidenav>
 
@@ -197,7 +203,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {

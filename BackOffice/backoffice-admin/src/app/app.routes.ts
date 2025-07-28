@@ -7,11 +7,12 @@ import { UsuariosComponent } from './dashboard/usuarios/usuarios.component';
 import { ReviewComponent } from './dashboard/review/review.component';
 import { PlaceComponent } from './dashboard/place/place.component';
 import { ServiciosComponent } from './dashboard/servicios/servicios.component';
+import { NotificationsComponent } from './dashboard/notifications/notifications';
 
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
-  { 
-    path: 'dashboard', 
+  {
+    path: 'dashboard',
     component: DashboardComponent,
     canActivate: [authGuard],
     children: [
@@ -21,6 +22,7 @@ export const routes: Routes = [
       { path: 'review', component: ReviewComponent },
       { path: 'place', component: PlaceComponent },
       { path: 'servicios', component: ServiciosComponent },
+      { path: 'notificaciones', component: NotificationsComponent},
       // Aquí puedes agregar más rutas del dashboard como:
       // { path: 'usuarios', component: UsuariosComponent },
       // { path: 'destinos', component: DestinosComponent },

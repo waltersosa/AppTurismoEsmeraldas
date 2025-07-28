@@ -5,9 +5,12 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const browserDistFolder = join(import.meta.dirname, '../browser');
+const browserDistFolder = join(process.cwd(), 'dist/backoffice-admin/browser');
+console.log('📁 Looking for index.html in:', browserDistFolder);
+
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
@@ -38,13 +41,32 @@ app.use(
 /**
  * Handle all other requests by rendering the Angular application.
  */
-app.use((req, res, next) => {
-  angularApp
+app.use(async(req, res, next) => {
+ 
+  try {
+  
+    const response = await angularApp.handle(req);
+
+    if(response) {
+      writeResponseToNodeResponse(response, res);
+    } else {
+      const indexHtmlPath = join(browserDistFolder, 'index.html');
+      const html = await readFile(indexHtmlPath, 'utf-8');
+      res.status(200).send(html);
+    }
+
+
+  } catch (error) {
+    next(error);
+  }
+  
+ 
+ /* angularApp
     .handle(req)
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
-    .catch(next);
+    .catch(next);*/
 });
 
 /**

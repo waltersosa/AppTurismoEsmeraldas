@@ -51,7 +51,10 @@ export class Login {
           if (response.success) {
             const user = response.user || response.data?.usuario;
             if (user && (user.rol === 'gad' || user.rol === 'admin')) {
-              this.router.navigate(['/dashboard']);
+            setTimeout(() => { this.router.navigate(['/dashboard']);
+              
+            },0)
+              
             } else {
               this.errorMsg = 'No tienes permisos para acceder al BackOffice. Solo usuarios GAD pueden acceder.';
               this.authService.logout();
