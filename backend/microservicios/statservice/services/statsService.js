@@ -43,13 +43,6 @@ const services = [
     url: `http://localhost:3006/health`,
     type: 'API',
     port: 3006
-  },
-  {
-    key: 'db',
-    name: 'Base de Datos MongoDB',
-    url: `http://localhost:27017`, // Solo para ejemplo, normalmente no hay health HTTP
-    type: 'DATABASE',
-    port: 27017
   }
 ];
 

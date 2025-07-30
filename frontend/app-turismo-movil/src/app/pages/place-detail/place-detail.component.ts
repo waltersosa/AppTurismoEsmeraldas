@@ -121,8 +121,8 @@ export class PlaceDetailComponent implements OnInit {
   startEditReview(review: Review) {
     this.editReviewId = review._id || null;
     this.reviewForm.setValue({
-      comment: review.comment || review.comentario,
-      rating: review.rating || review.calificacion || 5
+      comment: review.comentario,
+      rating: review.calificacion || 5
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -194,7 +194,11 @@ export class PlaceDetailComponent implements OnInit {
   }
 
   getReviewUserName(review: Review): string {
+    console.log('REVIEW RECIBIDA:', review);
     if (review.userName) return review.userName;
+    if (review.usuario && typeof review.usuario === 'object' && 'nombre' in review.usuario) {
+      return review.usuario.nombre || '';
+    }
     if (review.usuarioId && typeof review.usuarioId === 'object' && 'nombre' in review.usuarioId) {
       return (review.usuarioId as any).nombre || '';
     }

@@ -122,7 +122,7 @@ export class PlaceComponent implements OnInit {
 
   cargarLugares() {
     this.isLoading = true;
-    this.http.get<any>(getPlacesServiceUrl('/places')).subscribe({
+    this.http.get<any>(getPlacesServiceUrl('/places?limit=100')).subscribe({
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.data) {

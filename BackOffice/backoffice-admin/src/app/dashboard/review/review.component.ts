@@ -104,14 +104,14 @@ export class ReviewComponent implements OnInit {
   }
 
   cargarResenas() {
-    const params: any = {};
+    const params: any = { limit: 100 };
     if (this.lugarControl.value) params.lugarId = this.lugarControl.value;
     if (this.estadoControl.value) params.estado = this.estadoControl.value === 'rechazada' ? 'rechazada' : 'aprobada';
     this.http.get<any>(getReviewsServiceUrl('/reviews/admin'), { params }).subscribe(res => {
       this.resenas = (res.data || []).map((r: any) => ({
         ...r,
-        lugar: r.lugarId,
-        usuario: r.usuarioId
+        usuario: r.usuario, // Ahora viene del backend con nombre y email
+        lugar: r.lugar     // Ahora viene del backend con name
       }));
       this.filteredResenas = this.resenas;
     });

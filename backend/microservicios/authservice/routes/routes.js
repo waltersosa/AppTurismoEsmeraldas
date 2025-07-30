@@ -19,6 +19,9 @@ router.get('/auth/validate', authController.validateToken);
 router.get('/auth/health', authController.healthCheck);
 router.get('/auth/users/count', authController.getUsersCount);
 
+// Ruta pública para obtener usuario por ID (solo para uso interno entre microservicios)
+router.get('/auth/users/:id', authController.getUserById);
+
 // Rutas protegidas
 router.get('/auth/profile', autenticarToken, authController.getProfile);
 router.put('/auth/profile', autenticarToken, validarActualizacionPerfil, authController.updateProfile);

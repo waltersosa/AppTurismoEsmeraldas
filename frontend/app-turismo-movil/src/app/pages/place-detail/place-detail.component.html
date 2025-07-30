@@ -110,7 +110,7 @@
             <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style="background-image: url('https://ui-avatars.com/api/?name=' + review.userName + '&background=ceeddd&color=131614');"></div>
             <div class="flex-1">
               <p class="text-[#131614] text-base font-medium leading-normal">
-                {{ review.userName }}
+                {{ getReviewUserName(review) }}
               </p>
               <p class="text-[#6b8075] text-sm font-normal leading-normal">{{ review.createdAt | date:'short' }}</p>
             </div>
@@ -130,7 +130,7 @@
             </ng-container>
           </div>
           <p class="text-[#131614] text-base font-normal leading-normal">
-            {{ review.comment || review.comentario }}
+            {{ review.comentario }}
           </p>
           <div class="flex gap-9 text-[#6b8075]">
             <button class="flex items-center gap-2" type="button" (click)="$event.preventDefault(); showAlert('Próximamente: función de Me gusta');">

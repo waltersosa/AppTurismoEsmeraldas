@@ -28,11 +28,11 @@ Este BackOffice es la plataforma administrativa del sistema "Esmeraldas Turismo"
 
 2. **Inicia el servidor de desarrollo:**
    ```bash
-   ng serve --port 4200
+   ng serve --port 4300
    ```
 
 3. **Accede a la aplicación:**
-   - Abre tu navegador en [http://localhost:4200](http://localhost:4200)
+   - Abre tu navegador en [http://localhost:4300](http://localhost:4300)
 
 ## ⚙️ Integración y monitoreo de servicios
 

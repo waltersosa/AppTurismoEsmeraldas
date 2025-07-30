@@ -193,6 +193,15 @@ const authController = {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
+  },
+  getUserById: async (req, res) => {
+    try {
+      const user = await authService.getUserById(req.params.id);
+      if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+      res.json({ _id: user._id, nombre: user.nombre, email: user.email });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   }
 };
 

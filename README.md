@@ -75,7 +75,7 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
    ```bash
    ng serve
    ```
-3. Abre [http://localhost:4200](http://localhost:4200) en tu navegador.
+3. Abre [http://localhost:4300](http://localhost:4300) en tu navegador.
 
 ## Notas
 - La app requiere que los microservicios de backend estén corriendo y configurados en el archivo de entorno correspondiente.

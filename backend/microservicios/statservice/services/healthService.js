@@ -29,7 +29,7 @@ export const checkAllServicesHealth = async () => {
     },
     {
       name: 'Notifications Service',
-      url: process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:3006',
+      url: config.notificationsServiceUrl,
       endpoint: '/',
       port: 3006
     }
@@ -134,7 +134,7 @@ export const checkServiceHealth = async (serviceName) => {
     },
     'notifications': {
       name: 'Notifications Service',
-      url: process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:3006',
+      url: config.notificationsServiceUrl,
       endpoint: '/',
       port: 3006
     }

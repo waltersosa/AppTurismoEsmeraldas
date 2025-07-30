@@ -46,8 +46,7 @@ export const getReviewsAdmin = async ({
 
   const total = await Review.countDocuments(query);
   const data = await Review.find(query)
-    .populate('lugarId', 'name')
-    .populate('usuarioId', 'nombre')
+    // .populate('lugarId', 'name') // Eliminado para evitar que lugarId sea null
     .sort(sort)
     .skip((page - 1) * limit)
     .limit(Number(limit));

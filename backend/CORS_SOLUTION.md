@@ -5,10 +5,10 @@
 El error que estás viendo es un problema de **CORS (Cross-Origin Resource Sharing)**:
 
 ```
-Access to XMLHttpRequest at 'http://localhost:3001/auth/users' from origin 'http://localhost:4200' has been blocked by CORS policy
+Access to XMLHttpRequest at 'http://localhost:3001/auth/users' from origin 'http://localhost:4300' has been blocked by CORS policy
 ```
 
-Esto significa que el BackOffice (puerto 4200) no puede comunicarse con los microservicios porque no están configurados para permitir peticiones desde otros dominios.
+Esto significa que el BackOffice (puerto 4300) no puede comunicarse con los microservicios porque no están configurados para permitir peticiones desde otros dominios.
 
 ## Solución Implementada
 
@@ -19,10 +19,10 @@ Se ha agregado configuración CORS a todos los microservicios:
 ```javascript
 app.use(cors({
   origin: [
-    'http://localhost:4200', // BackOffice Angular
-    'http://localhost:3000', // Frontend principal (si existe)
-    'http://127.0.0.1:4200',
-    'http://127.0.0.1:3000'
+    'http://localhost:4300', // BackOffice Angular
+    'http://localhost:4200', // Frontend principal (app móvil)
+    'http://127.0.0.1:4300',
+    'http://127.0.0.1:4200'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -108,10 +108,10 @@ curl http://localhost:3002/
 ## Configuración CORS Detallada
 
 ### Orígenes Permitidos
-- `http://localhost:4200` - BackOffice Angular
-- `http://localhost:3000` - Frontend principal
-- `http://127.0.0.1:4200` - BackOffice (IP local)
-- `http://127.0.0.1:3000` - Frontend (IP local)
+- `http://localhost:4300` - BackOffice Angular
+- `http://localhost:4200` - Frontend principal (app móvil)
+- `http://127.0.0.1:4300` - BackOffice (IP local)
+- `http://127.0.0.1:4200` - Frontend (IP local)
 
 ### Métodos HTTP Permitidos
 - GET, POST, PUT, DELETE, PATCH, OPTIONS
@@ -151,7 +151,7 @@ Hacer una petición GET a `http://localhost:3001/auth/users` desde Postman.
 
 2. **Verificar que CORS está configurado:**
    ```bash
-   curl -H "Origin: http://localhost:4200" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: X-Requested-With" -X OPTIONS http://localhost:3001/auth/users
+   curl -H "Origin: http://localhost:4300" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: X-Requested-With" -X OPTIONS http://localhost:3001/auth/users
    ```
 
 3. **Verificar logs de los microservicios:**

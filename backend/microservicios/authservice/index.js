@@ -9,10 +9,10 @@ const app = express();
 // Configuración CORS
 app.use(cors({
   origin: [
-    'http://localhost:4200', // BackOffice Angular
-    'http://localhost:3000', // Frontend principal (si existe)
-    'http://127.0.0.1:4200',
-    'http://127.0.0.1:3000'
+    'http://localhost:4300', // BackOffice Angular
+    'http://localhost:4200', // Frontend principal (app móvil)
+    'http://127.0.0.1:4300',
+    'http://127.0.0.1:4200'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

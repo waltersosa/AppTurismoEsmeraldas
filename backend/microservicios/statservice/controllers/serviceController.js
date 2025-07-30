@@ -37,7 +37,7 @@ const microservices = {
   notifications: {
     name: 'Notifications Service',
     path: path.join(__dirname, '../../notificationsservice'),
-    port: 3005,
+    port: 3006,
     processName: 'notificationsservice'
   },
   stats: {

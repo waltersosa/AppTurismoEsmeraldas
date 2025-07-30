@@ -4,16 +4,17 @@ import { Observable } from 'rxjs';
 
 export interface Review {
   _id?: string;
-  placeId?: string;
   lugarId?: string;
-  userName?: string;
   usuarioId?: string | { _id: string; nombre?: string };
-  comment?: string;
   comentario?: string;
-  rating?: number;
   calificacion?: number;
-  createdAt?: string;
+  estado?: string;
   fecha?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userName?: string;
+  usuario?: { nombre?: string; email?: string }; // <-- Agregado
+  lugar?: { name?: string }; // <-- Agregado si se usa el nombre del lugar
 }
 
 export interface ReviewsResponse {

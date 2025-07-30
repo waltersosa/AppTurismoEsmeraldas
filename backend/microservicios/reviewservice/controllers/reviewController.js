@@ -3,6 +3,8 @@ import Activity from '../models/Activity.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
 import Review from '../models/Review.js';
+import axios from 'axios';
+import config from '../config/config.js';
 
 // ===== RUTAS PARA USUARIOS =====
 
@@ -20,7 +22,6 @@ export const createReview = async (req, res, next) => {
       comentario: String(comentario),
       calificacion: Number(calificacion)
     };
-    console.log('Objeto que se va a guardar en Review:', reviewData);
 
     // Usar el modelo importado directamente
     const review = await Review.create(reviewData);
@@ -51,25 +52,25 @@ export const getReviewsByPlace = async (req, res, next) => {
       page, limit, sortBy, order 
     });
 
-    // Asegurar que cada reseña tenga el nombre del usuario
+    // Consultar nombre del usuario en AuthService
     const dataWithUserName = await Promise.all(
       (data || []).map(async (review) => {
         let userName = '';
-        if (review.usuarioId && typeof review.usuarioId === 'object' && review.usuarioId.nombre) {
-          userName = review.usuarioId.nombre;
-        } else if (review.usuarioId) {
-          // Buscar el usuario manualmente si no está populado
-          const user = await User.findById(review.usuarioId).lean();
-          userName = user?.nombre || '';
+        if (review.usuarioId) {
+          try {
+            const resp = await axios.get(`${config.authServiceUrl}/auth/users/${review.usuarioId}`);
+            userName = resp.data.nombre;
+          } catch (err) {
+            // Usuario no encontrado o error
+          }
         }
         return {
           ...review.toObject(),
-          userName
+          userName,
+          usuario: userName ? { nombre: userName } : undefined
         };
       })
     );
-
-    console.log('RESEÑAS ENVIADAS AL FRONT:', dataWithUserName);
 
     res.json({
       success: true,
@@ -96,9 +97,38 @@ export const getReviewsAdmin = async (req, res, next) => {
       page, limit, estado, search, lugarId, usuarioId, sortBy, order 
     });
 
+    // Consultar nombre y email del usuario en AuthService y nombre del lugar en PlaceService
+    const dataWithUserAndPlace = await Promise.all((data || []).map(async (review) => {
+      let usuario = { nombre: '', email: '' };
+      let lugar = { name: '' };
+      if (review.usuarioId) {
+        try {
+          const resp = await axios.get(`${config.authServiceUrl}/auth/users/${review.usuarioId}`);
+          usuario = { nombre: resp.data.nombre, email: resp.data.email };
+        } catch (err) {
+          // Usuario no encontrado o error
+        }
+      }
+      if (review.lugarId) {
+        try {
+          const resp = await axios.get(`${config.placesServiceUrl}/places/${review.lugarId}`);
+          if (resp.data && resp.data.data && resp.data.data.name) {
+            lugar = { name: resp.data.data.name };
+          }
+        } catch (err) {
+          // Lugar no encontrado o error
+        }
+      }
+      return {
+        ...review.toObject(),
+        usuario,
+        lugar
+      };
+    }));
+
     res.json({
       success: true,
-      data,
+      data: dataWithUserAndPlace,
       pagination: {
         total,
         page: Number(page) || 1,
