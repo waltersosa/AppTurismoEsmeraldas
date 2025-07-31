@@ -22,15 +22,7 @@ export const MICROSERVICES_CONFIG = {
       COUNT: '/places/count'
     }
   },
-  MEDIA_SERVICE: {
-    BASE_URL: 'http://localhost:3003',
-    ENDPOINTS: {
-      UPLOAD: '/media/upload',
-      GET: (id: string) => `/media/${id}`,
-      DELETE: (id: string) => `/media/${id}`,
-      COUNT: '/media/count'
-    }
-  },
+
   REVIEWS_SERVICE: {
     BASE_URL: 'http://localhost:3004',
     ENDPOINTS: {
@@ -133,9 +125,7 @@ export const getPlacesServiceUrl = (endpoint: string): string => {
   return getMicroserviceUrl('PLACES_SERVICE', endpoint);
 };
 
-export const getMediaServiceUrl = (endpoint: string): string => {
-  return getMicroserviceUrl('MEDIA_SERVICE', endpoint);
-};
+
 
 export const getReviewsServiceUrl = (endpoint: string): string => {
   return getMicroserviceUrl('REVIEWS_SERVICE', endpoint);

@@ -8,7 +8,6 @@ import { connectMongo } from './config/mongo.js';
 import placeRoutes from './routes/place.js';
 import { validatePlace } from './middlewares/placeValidation.js';
 import reviewRoutes from './routes/review.js';
-import mediaRoutes from './routes/media.js';
 import notificationsRoutes from './routes/notifications.js'
 
 // Crear aplicación Express
@@ -40,7 +39,6 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/places', placeRoutes);
 app.use('/reviews', reviewRoutes);
-app.use('/media', mediaRoutes);
 app.use('/notifications', notificationsRoutes);
 
 // Ruta raíz

@@ -4,7 +4,7 @@ import path from 'path';
 const microservices = [
   { name: 'Auth Service', path: 'microservicios/authservice', port: 3001 },
   { name: 'Places Service', path: 'microservicios/placeservice', port: 3002 },
-  { name: 'Media Upload Service', path: 'microservicios/mediaupload', port: 3003 },
+
   { name: 'Reviews Service', path: 'microservicios/reviewservice', port: 3004 },
   { name: 'Stats Service', path: 'microservicios/statservice', port: 3005 },
   { name: 'Notifications Service', path: 'microservicios/notificationsservice', port: 3006 }

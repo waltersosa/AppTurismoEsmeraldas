@@ -46,23 +46,11 @@ El backend de AppTurismoEsmeraldas está basado en una arquitectura de microserv
 
 ---
 
-### 3. MediaUploadService (Archivos Multimedia)
-- **Ruta:** `microservicios/mediaupload/`
-- **Descripción:** Subida, consulta y eliminación de imágenes asociadas a lugares turísticos.
-- **Ejecución:**  
-  ```bash
-  npm install
-  node index.js
-  ```
-- **Pruebas Postman:** [postmanMedia.md](microservicios/mediaupload/postmanMedia.md)
-- **Carpeta de almacenamiento:** `uploads/`
-- **Endpoints principales:** Subida de imágenes (solo admins GAD), consulta y eliminación.
-- **Base de datos:** `mediaDB`
-- **Puerto por defecto:** 3003
+
 
 ---
 
-### 4. ReviewService (Reseñas)
+### 3. ReviewService (Reseñas)
 - **Ruta:** `microservicios/reviewservice/`
 - **Descripción:** Gestión de reseñas y calificaciones de lugares turísticos. Permite a usuarios crear reseñas y a administradores GAD moderarlas.
 - **Ejecución:**  
@@ -79,7 +67,7 @@ El backend de AppTurismoEsmeraldas está basado en una arquitectura de microserv
 
 ---
 
-### 5. NotificationsService (Notificaciones)
+### 4. NotificationsService (Notificaciones)
 - **Ruta:** `microservicios/notificationsservice/`
 - **Descripción:** Envía y gestiona notificaciones para los usuarios (por ejemplo, avisos de nuevas reseñas, alertas, etc.).
 - **Ejecución:**  
@@ -99,7 +87,7 @@ El backend de AppTurismoEsmeraldas está basado en una arquitectura de microserv
 
 ---
 
-### 6. StatService (Estadísticas y Health Check)
+### 5. StatService (Estadísticas y Health Check)
 - **Ruta:** `microservicios/statservice/`
 - **Descripción:** Proporciona estadísticas globales del sistema y monitorea el estado de todos los microservicios.
 - **Ejecución:**  
@@ -145,7 +133,7 @@ Cada microservicio cuenta con un archivo `.md` con ejemplos de pruebas y endpoin
 
 - **AuthService:** [postmanAuth.md](microservicios/authservice/postmanAuth.md)
 - **PlaceService:** [postmanPlace.md](microservicios/placeservice/postmanPlace.md)
-- **MediaUploadService:** [postmanMedia.md](microservicios/mediaupload/postmanMedia.md)
+
 - **ReviewService:** [postmanReviews.md](microservicios/reviewservice/postmanReviews.md)
 - **StatService:** [postmanStats.md](microservicios/statservice/postmanStats.md)
 

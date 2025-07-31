@@ -5,7 +5,7 @@ import path from 'path';
 const microservices = [
   'authservice',
   'placeservice', 
-  'mediaupload',
+
   'reviewservice',
   'notificationsservice',
   'statservice'

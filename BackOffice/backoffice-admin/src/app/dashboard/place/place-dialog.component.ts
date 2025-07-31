@@ -9,8 +9,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { getApiUrl, getMediaServiceUrl } from '../../config/api.config';
+import { HttpClient } from '@angular/common/http';
+import { getApiUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-place-dialog',
@@ -100,54 +100,7 @@ import { getApiUrl, getMediaServiceUrl } from '../../config/api.config';
         </div>
       </div>
       
-      <div class="local-images-section">
-        <label class="section-label">Subir Imágenes Locales</label>
-        <div class="file-upload-container">
-          <input 
-            #fileInput
-            type="file" 
-            multiple 
-            accept="image/*"
-            (change)="onFileSelected($event)"
-            class="file-input"
-            [disabled]="isUploading"
-          />
-          <button 
-            type="button" 
-            mat-raised-button 
-            color="primary" 
-            (click)="fileInput.click()"
-            [disabled]="isUploading"
-            class="upload-btn"
-          >
-            <mat-icon>cloud_upload</mat-icon>
-            Seleccionar Imágenes
-          </button>
-        </div>
-        
-        <div *ngIf="isUploading" class="upload-progress">
-          <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
-          <span class="progress-text">Subiendo imágenes... {{ uploadProgress }}%</span>
-        </div>
-        
-        <div class="uploaded-images" *ngIf="uploadedImages.length > 0">
-          <div class="image-preview" *ngFor="let image of uploadedImages; let i = index">
-            <img [src]="getImageUrl(image.url)" [alt]="image.originalName" class="preview-img">
-            <div class="image-info">
-              <span class="image-name">{{ image.originalName }}</span>
-              <button 
-                type="button" 
-                mat-icon-button 
-                color="warn" 
-                (click)="removeUploadedImage(i)"
-                class="remove-btn"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+
       
       <div class="modal-actions">
           <button mat-raised-button color="primary" type="submit">{{ isEditing ? 'Actualizar' : 'Agregar' }}</button>
@@ -267,88 +220,14 @@ import { getApiUrl, getMediaServiceUrl } from '../../config/api.config';
       max-width: 200px;
     }
     
-    .local-images-section {
-      margin-top: 16px;
-    }
-    
-    .file-upload-container {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .file-input {
-      display: none;
-    }
-    
-    .upload-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .upload-progress {
-      margin-bottom: 12px;
-    }
-    
-    .progress-text {
-      display: block;
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
-    
-    .uploaded-images {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
-    }
-    
-    .image-preview {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #f9f9f9;
-    }
-    
-    .preview-img {
-      width: 100%;
-      height: 80px;
-      object-fit: cover;
-    }
-    
-    .image-info {
-      padding: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .image-name {
-      font-size: 11px;
-      color: #666;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 80px;
-    }
-    
-    .remove-btn {
-      width: 24px;
-      height: 24px;
-      line-height: 24px;
-    }
+
   `]
 })
 export class PlaceDialogComponent {
   lugarForm: FormGroup;
   isEditing = false;
   imageUrls: string[] = [];
-  uploadedImages: any[] = [];
-  isUploading = false;
-  uploadProgress = 0;
+
 
   constructor(
     private fb: FormBuilder,
@@ -388,44 +267,7 @@ export class PlaceDialogComponent {
     this.imageUrls.splice(index, 1);
   }
 
-  onFileSelected(event: any) {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      this.uploadFiles(files);
-    }
-  }
 
-  async uploadFiles(files: FileList) {
-    this.isUploading = true;
-    this.uploadProgress = 0;
-
-    try {
-      const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append('imagenes', files[i]);
-      }
-
-      // Forzar el envío del token JWT en la cabecera Authorization
-      const token = localStorage.getItem('token');
-      const httpHeaders = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-
-      const response: any = await this.http.post(
-        getMediaServiceUrl('/media/upload'),
-        formData,
-        { headers: httpHeaders }
-      ).toPromise();
-      
-      if (response.success) {
-        this.uploadedImages.push(...response.files);
-        this.uploadProgress = 100;
-      }
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      this.isUploading = false;
-      this.uploadProgress = 0;
-    }
-  }
 
   getImageUrl(url: string): string {
     if (url.startsWith('http')) {
@@ -434,21 +276,13 @@ export class PlaceDialogComponent {
     return getApiUrl(url);
   }
 
-  removeUploadedImage(index: number) {
-    this.uploadedImages.splice(index, 1);
-  }
+
 
   onSubmit() {
     if (this.lugarForm.invalid) return;
     
     const formData = this.lugarForm.value;
     formData.imageUrls = this.imageUrls;
-    
-    // Agregar URLs de imágenes subidas localmente
-    if (this.uploadedImages.length > 0) {
-      const uploadedUrls = this.uploadedImages.map(img => this.getImageUrl(img.url));
-      formData.imageUrls = [...formData.imageUrls, ...uploadedUrls];
-    }
     
     this.dialogRef.close(formData);
   }

@@ -16,12 +16,7 @@ const microservices = {
     port: 3002,
     processName: 'placeservice'
   },
-  media: {
-    name: 'Media Upload Service',
-    path: path.join(__dirname, 'microservicios/mediaupload'), 
-    port: 3003,
-    processName: 'mediaupload'
-  }
+
 };
 
 // Comandos para Windows

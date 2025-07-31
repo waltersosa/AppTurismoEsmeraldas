@@ -1,5 +1,38 @@
 import Place from '../models/Place.js';
-import { validateImageUrls } from './uploadMediaService.js';
+
+// Función simple para validar URLs de imágenes
+const validateImageUrl = (imageUrl) => {
+  try {
+    const url = new URL(imageUrl);
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    const hasImageExtension = imageExtensions.some(ext => 
+      url.pathname.toLowerCase().includes(ext)
+    );
+    return ['http:', 'https:'].includes(url.protocol) && hasImageExtension;
+  } catch (error) {
+    return false;
+  }
+};
+
+// Función para validar múltiples URLs
+const validateImageUrls = (imageUrls) => {
+  if (!Array.isArray(imageUrls)) {
+    return { valid: [], invalid: [] };
+  }
+
+  const valid = [];
+  const invalid = [];
+
+  imageUrls.forEach(url => {
+    if (validateImageUrl(url)) {
+      valid.push(url);
+    } else {
+      invalid.push(url);
+    }
+  });
+
+  return { valid, invalid };
+};
 
 export const getPlaces = async ({ page = 1, limit = 10, search, category, active, sortBy = 'createdAt', order = 'desc' }) => {
   const query = {};
@@ -12,17 +45,12 @@ export const getPlaces = async ({ page = 1, limit = 10, search, category, active
 
   const total = await Place.countDocuments(query);
   const data = await Place.find(query)
-    .populate('coverImage', 'filename url originalName')
-    .populate('images', 'filename url originalName type')
     .sort(sort)
     .skip((page - 1) * limit)
     .limit(Number(limit));
 
-  // Asegurar que images sea siempre un array
+  // Asegurar que imageUrls sea siempre un array
   data.forEach(place => {
-    if (!place.images) {
-      place.images = [];
-    }
     if (!place.imageUrls) {
       place.imageUrls = [];
     }
@@ -32,14 +60,9 @@ export const getPlaces = async ({ page = 1, limit = 10, search, category, active
 };
 
 export const getPlaceById = async (id) => {
-  const place = await Place.findById(id)
-    .populate('coverImage', 'filename url originalName')
-    .populate('images', 'filename url originalName type');
+  const place = await Place.findById(id);
   
-  // Asegurar que images sea siempre un array
-  if (place && !place.images) {
-    place.images = [];
-  }
+  // Asegurar que imageUrls sea siempre un array
   if (place && !place.imageUrls) {
     place.imageUrls = [];
   }
@@ -50,7 +73,7 @@ export const getPlaceById = async (id) => {
 export const createPlace = async (body) => {
   // Validar URLs de imágenes si se proporcionan
   if (body.imageUrls && body.imageUrls.length > 0) {
-    const { valid, invalid } = await validateImageUrls(body.imageUrls);
+    const { valid, invalid } = validateImageUrls(body.imageUrls);
     
     if (invalid.length > 0) {
       throw new Error(`URLs de imágenes inválidas: ${invalid.join(', ')}`);
@@ -61,13 +84,8 @@ export const createPlace = async (body) => {
   }
 
   // Validar URL de imagen de portada si se proporciona
-  if (body.coverImageUrl) {
-    const { validateImageUrl } = await import('./uploadMediaService.js');
-    const isValidCover = await validateImageUrl(body.coverImageUrl);
-    
-    if (!isValidCover) {
-      throw new Error('URL de imagen de portada inválida');
-    }
+  if (body.coverImageUrl && !validateImageUrl(body.coverImageUrl)) {
+    throw new Error('URL de imagen de portada inválida');
   }
 
   return Place.create(body);
@@ -76,7 +94,7 @@ export const createPlace = async (body) => {
 export const updatePlace = async (id, body) => {
   // Validar URLs de imágenes si se proporcionan
   if (body.imageUrls && body.imageUrls.length > 0) {
-    const { valid, invalid } = await validateImageUrls(body.imageUrls);
+    const { valid, invalid } = validateImageUrls(body.imageUrls);
     
     if (invalid.length > 0) {
       throw new Error(`URLs de imágenes inválidas: ${invalid.join(', ')}`);
@@ -87,23 +105,13 @@ export const updatePlace = async (id, body) => {
   }
 
   // Validar URL de imagen de portada si se proporciona
-  if (body.coverImageUrl) {
-    const { validateImageUrl } = await import('./uploadMediaService.js');
-    const isValidCover = await validateImageUrl(body.coverImageUrl);
-    
-    if (!isValidCover) {
-      throw new Error('URL de imagen de portada inválida');
-    }
+  if (body.coverImageUrl && !validateImageUrl(body.coverImageUrl)) {
+    throw new Error('URL de imagen de portada inválida');
   }
 
-  const place = await Place.findByIdAndUpdate(id, body, { new: true })
-    .populate('coverImage', 'filename url originalName')
-    .populate('images', 'filename url originalName type');
+  const place = await Place.findByIdAndUpdate(id, body, { new: true });
   
-  // Asegurar que images sea siempre un array
-  if (place && !place.images) {
-    place.images = [];
-  }
+  // Asegurar que imageUrls sea siempre un array
   if (place && !place.imageUrls) {
     place.imageUrls = [];
   }
