@@ -447,6 +447,7 @@ export class ServiciosComponent implements OnInit {
   procesando = false;
   private statsService = inject(StatsService);
   private snackBar = inject(MatSnackBar);
+  private http = inject(HttpClient);
   private autoRefreshSubscription?: Subscription;
 
   ngOnInit(): void {
@@ -463,7 +464,7 @@ export class ServiciosComponent implements OnInit {
   cargarServicios() {
     // Verificar el estado del backend unificado
     this.http.get(getBackendUrl('/health')).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.servicios = [{
           nombre: 'Backend Unificado',
           descripcion: 'Servidor principal de la aplicación',
