@@ -9,10 +9,9 @@ export interface Place {
   description: string;
   category: string;
   location: string;
-  images: string[];
-  coverImage: string;
+  coverImageUrl?: string;
+  imageUrls?: string[];
   active: boolean;
-  ownerId: string;
   createdAt: string;
   updatedAt: string;
 }
