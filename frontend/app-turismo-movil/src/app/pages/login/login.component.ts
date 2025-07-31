@@ -40,12 +40,14 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.errorMsg = null;
       this.successMsg = null;
-      this.http.post<any>('http://localhost:3001/auth/login', {
-        correo: this.loginForm.value.email,
-        contraseña: this.loginForm.value.password
+    //this.http.post<any>('http://localhost:3001/auth/login', {
+      this.http.post<any>('https://geoapi.esmeraldas.gob.ec/new/login', {
+        email: this.loginForm.value.email,
+        password: this.loginForm.value.password
       }).subscribe({
         next: (resp) => {
-          localStorage.setItem('token', resp.token);
+          localStorage.setItem('token', resp.data?.token);
+          localStorage.setItem('userId', resp.data?.userid);
           localStorage.setItem('user', JSON.stringify(resp.user));
           this.successMsg = '¡Inicio de sesión exitoso!';
           setTimeout(() => {

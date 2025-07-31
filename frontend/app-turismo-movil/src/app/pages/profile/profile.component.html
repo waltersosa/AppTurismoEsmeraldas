@@ -81,6 +81,10 @@
         <span class="text-[#121516] font-medium">Nombre</span>
         <input type="text" [(ngModel)]="newName" name="newName" class="rounded-lg border border-[#ceeddd] px-3 py-2 text-[#131614] bg-white focus:outline-none focus:ring-2 focus:ring-[#ceeddd]" required />
       </label>
+       <label class="flex flex-col gap-1">
+        <span class="text-[#121516] font-medium">Correo</span>
+        <input type="text" [(ngModel)]="newEmail" name="newEmail" class="rounded-lg border border-[#ceeddd] px-3 py-2 text-[#131614] bg-white focus:outline-none focus:ring-2 focus:ring-[#ceeddd]" required />
+      </label>
       <label class="flex flex-col gap-1" *ngIf="newPassword">
         <span class="text-[#121516] font-medium">Contraseña actual</span>
         <input type="password" [(ngModel)]="currentPassword" name="currentPassword" class="rounded-lg border border-[#ceeddd] px-3 py-2 text-[#131614] bg-white focus:outline-none focus:ring-2 focus:ring-[#ceeddd]" />
