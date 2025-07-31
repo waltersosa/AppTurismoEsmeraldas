@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getBackendUrl } from '../config/api.config';
 
 export interface Place {
   _id: string;
@@ -35,7 +36,7 @@ export interface PlaceResponse {
   providedIn: 'root'
 })
 export class PlacesService {
-  private apiUrl = 'http://localhost:3002/places';
+  private apiUrl = getBackendUrl('/places');
 
   constructor(private http: HttpClient) { }
 

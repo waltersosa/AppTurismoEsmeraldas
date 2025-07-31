@@ -92,3 +92,17 @@ app-resenas .mat-table {
   overflow: visible !important;
   max-height: none !important;
 }
+
+/* Estilos para snackbar de error */
+.error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+}
+
+.error-snackbar .mat-simple-snackbar-action {
+  color: white !important;
+}
+
+.error-snackbar .mat-simple-snackbar-content {
+  color: white !important;
+}

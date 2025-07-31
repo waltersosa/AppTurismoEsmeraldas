@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getBackendUrl } from '../config/api.config';
 
 export interface Review {
   _id?: string;
@@ -37,7 +38,7 @@ export interface ReviewPayload {
   providedIn: 'root'
 })
 export class ReviewsService {
-  private apiUrl = 'http://localhost:3004/reviews'; // Cambia el puerto si tu microservicio usa otro
+  private apiUrl = getBackendUrl('/reviews');
 
   constructor(private http: HttpClient) { }
 

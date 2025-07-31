@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { MenuInferiorComponent } from '../menu-inferior/menu-inferior.component';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +17,11 @@ export class HomeComponent {
   userName: string = '';
   showComingSoon = false;
 
-  constructor(private router: Router, private http: HttpClient) {
+  constructor(
+    private router: Router, 
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
     if (typeof window !== 'undefined' && window.localStorage) {
       const userStr = localStorage.getItem('user');
       if (userStr) {
@@ -30,24 +35,29 @@ export class HomeComponent {
   }
 
   getUserDetails() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No se encontró token para autenticación');
-      return;
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`
-    };
-
-    this.http.get<any>('https://geoapi.esmeraldas.gob.ec/new/me', { headers }).subscribe({
-      next: (resp) => {
-        // Asumiendo que 'resp' tiene la estructura con 'nombre' o 'email'
-        this.userName = resp.data.name || '';
+    this.authService.getUserInfo().subscribe({
+      next: (user) => {
+        if (user) {
+          this.userName = user.nombre || user.name || '';
+        } else {
+          // Si no se puede obtener del servidor, usar localStorage como fallback
+          const currentUser = this.authService.getCurrentUser();
+          if (currentUser) {
+            this.userName = currentUser.nombre || currentUser.name || '';
+          } else {
+            this.userName = 'Usuario';
+          }
+        }
       },
       error: (err) => {
         console.error('Error al obtener detalles de usuario', err);
-        // Aquí puedes manejar algún mensaje de error si quieres
+        // Intentar obtener desde localStorage como fallback
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser) {
+          this.userName = currentUser.nombre || currentUser.name || '';
+        } else {
+          this.userName = 'Usuario';
+        }
       }
     });
   }

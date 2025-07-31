@@ -68,6 +68,53 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Health check simple
+app.get('/health/simple', (req, res) => {
+  res.json({
+    status: 'healthy',
+    online: 1,
+    total: 1,
+    timestamp: new Date().toISOString(),
+    services: [
+      {
+        name: 'Backend Unificado',
+        status: 'online',
+        port: 3001
+      }
+    ]
+  });
+});
+
+// Stats overview
+app.get('/stats/overview', async (req, res) => {
+  try {
+    // Importar los modelos necesarios
+    const User = (await import('./models/User.js')).default;
+    const Place = (await import('./models/Place.js')).default;
+    const Review = (await import('./models/Review.js')).default;
+
+    // Obtener conteos
+    const usuarios = await User.countDocuments();
+    const lugares = await Place.countDocuments();
+    const resenas = await Review.countDocuments();
+
+    res.json({
+      usuarios,
+      lugares,
+      resenas,
+      imagenes: 0 // Ya no tenemos módulo de imágenes
+    });
+  } catch (error) {
+    console.error('Error getting stats overview:', error);
+    res.status(500).json({
+      usuarios: 0,
+      lugares: 0,
+      resenas: 0,
+      imagenes: 0
+    });
+  }
+});
+
 // Middleware para rutas no encontradas
 app.use(notFoundHandler);
 

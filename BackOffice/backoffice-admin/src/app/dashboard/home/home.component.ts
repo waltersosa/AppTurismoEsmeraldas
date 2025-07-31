@@ -500,8 +500,8 @@ export class HomeComponent implements OnInit {
 
   loadActivities() {
     return new Promise<void>((resolve) => {
-      // Cargar actividades unificadas desde todos los microservicios
-      this.http.get<any>('http://localhost:3002/places/admin/actividades-unificadas').subscribe({
+      // Cargar actividades unificadas desde el backend unificado
+      this.http.get<any>('http://localhost:3001/places/admin/actividades-unificadas').subscribe({
         next: (res) => {
           if (res.actividades) {
             this.actividades = res.actividades.slice(0, 10); // Solo las últimas 10

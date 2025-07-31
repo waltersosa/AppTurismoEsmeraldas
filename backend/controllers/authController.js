@@ -209,6 +209,155 @@ export class AuthController {
       return errorResponse(res, 500, 'Error al obtener usuarios', error.message);
     }
   }
+
+  /**
+   * Crear usuario (solo GAD)
+   * POST /auth/users
+   */
+  async crearUsuario(req, res) {
+    try {
+      const { nombre, correo, contraseña, rol } = req.body;
+      
+      const resultado = await authService.registrarUsuario({
+        nombre,
+        correo,
+        contraseña,
+        rol: rol || 'usuario'
+      });
+
+      return successResponse(
+        res,
+        201,
+        'Usuario creado exitosamente',
+        resultado
+      );
+    } catch (error) {
+      if (error.message.includes('correo electrónico ya está registrado')) {
+        return errorResponse(res, 409, error.message);
+      }
+      return errorResponse(res, 500, 'Error al crear usuario', error.message);
+    }
+  }
+
+  /**
+   * Actualizar usuario (solo GAD)
+   * PUT /auth/users/:id
+   */
+  async actualizarUsuario(req, res) {
+    try {
+      const { id } = req.params;
+      const { nombre, correo, rol, activo } = req.body;
+      
+      const datosActualizados = {};
+      if (nombre) datosActualizados.nombre = nombre;
+      if (correo) datosActualizados.correo = correo;
+      if (rol) datosActualizados.rol = rol;
+      if (typeof activo === 'boolean') datosActualizados.activo = activo;
+
+      const usuario = await User.findByIdAndUpdate(
+        id,
+        datosActualizados,
+        { new: true, runValidators: true }
+      );
+
+      if (!usuario) {
+        return errorResponse(res, 404, 'Usuario no encontrado');
+      }
+
+      return successResponse(
+        res,
+        200,
+        'Usuario actualizado exitosamente',
+        { usuario }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al actualizar usuario', error.message);
+    }
+  }
+
+  /**
+   * Habilitar usuario (solo GAD)
+   * PATCH /auth/users/:id/enable
+   */
+  async habilitarUsuario(req, res) {
+    try {
+      const { id } = req.params;
+      
+      const usuario = await User.findByIdAndUpdate(
+        id,
+        { activo: true },
+        { new: true }
+      );
+
+      if (!usuario) {
+        return errorResponse(res, 404, 'Usuario no encontrado');
+      }
+
+      return successResponse(
+        res,
+        200,
+        'Usuario habilitado exitosamente',
+        { usuario }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al habilitar usuario', error.message);
+    }
+  }
+
+  /**
+   * Verificar disponibilidad de correo electrónico
+   * GET /auth/check-email/:email
+   */
+  async verificarDisponibilidadCorreo(req, res) {
+    try {
+      const { email } = req.params;
+      
+      // Verificar si existe un usuario activo con ese correo
+      const usuarioExistente = await User.findOne({ 
+        correo: email.toLowerCase(), 
+        activo: true 
+      });
+
+      const disponible = !usuarioExistente;
+
+      return successResponse(
+        res,
+        200,
+        'Verificación completada',
+        { 
+          disponible,
+          email: email.toLowerCase()
+        }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al verificar correo', error.message);
+    }
+  }
+
+  /**
+   * Eliminar usuario permanentemente (solo GAD)
+   * DELETE /auth/users/:id/permanent
+   */
+  async eliminarUsuarioPermanente(req, res) {
+    try {
+      const { id } = req.params;
+      
+      const usuario = await User.findByIdAndDelete(id);
+
+      if (!usuario) {
+        return errorResponse(res, 404, 'Usuario no encontrado');
+      }
+
+      return successResponse(
+        res,
+        200,
+        'Usuario eliminado permanentemente',
+        { usuario }
+      );
+    } catch (error) {
+      return errorResponse(res, 500, 'Error al eliminar usuario', error.message);
+    }
+  }
 }
 
 export default new AuthController(); 

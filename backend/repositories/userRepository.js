@@ -19,12 +19,21 @@ export class UserRepository {
   }
 
   /**
-   * Buscar usuario por correo electrónico
+   * Buscar usuario por correo electrónico (solo usuarios activos)
    * @param {string} correo - Correo electrónico del usuario
    * @returns {Promise<Object|null>} Usuario encontrado o null
    */
   async buscarPorCorreo(correo) {
     return await User.buscarPorCorreo(correo);
+  }
+
+  /**
+   * Buscar usuario por correo electrónico (incluyendo inactivos)
+   * @param {string} correo - Correo electrónico del usuario
+   * @returns {Promise<Object|null>} Usuario encontrado o null
+   */
+  async buscarPorCorreoIncluyendoInactivos(correo) {
+    return await User.buscarPorCorreoIncluyendoInactivos(correo);
   }
 
   /**
@@ -37,12 +46,21 @@ export class UserRepository {
   }
 
   /**
-   * Verificar si existe un correo electrónico
+   * Verificar si existe un correo electrónico (solo usuarios activos)
    * @param {string} correo - Correo electrónico a verificar
    * @returns {Promise<boolean>} True si existe, false si no
    */
   async correoExiste(correo) {
     return await User.correoExiste(correo);
+  }
+
+  /**
+   * Verificar si existe un correo electrónico (incluyendo inactivos)
+   * @param {string} correo - Correo electrónico a verificar
+   * @returns {Promise<boolean>} True si existe, false si no
+   */
+  async correoExisteIncluyendoInactivos(correo) {
+    return await User.correoExisteIncluyendoInactivos(correo);
   }
 
   /**

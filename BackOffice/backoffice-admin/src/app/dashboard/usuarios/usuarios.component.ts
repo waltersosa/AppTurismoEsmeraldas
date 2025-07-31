@@ -141,12 +141,22 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
     ::ng-deep .user-form-modal .mat-form-field-label, ::ng-deep .user-form-modal .mat-input-element, ::ng-deep .user-form-modal .mat-form-field {
       color: #111 !important;
     }
-    @media (max-width: 700px) {
-      .usuarios-card { padding: 12px 2px; }
-      .usuarios-table { min-width: 320px; }
-      .usuarios-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-      .action-buttons { flex-direction: column; }
-    }
+         @media (max-width: 700px) {
+       .usuarios-card { padding: 12px 2px; }
+       .usuarios-table { min-width: 320px; }
+       .usuarios-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+       .action-buttons { flex-direction: column; }
+     }
+     
+     /* Estilos para snackbar de error */
+     ::ng-deep .error-snackbar {
+       background: #f44336 !important;
+       color: white !important;
+     }
+     
+     ::ng-deep .error-snackbar .mat-simple-snackbar-action {
+       color: white !important;
+     }
   `]
 })
 export class UsuariosComponent implements OnInit {
@@ -180,9 +190,12 @@ export class UsuariosComponent implements OnInit {
     const url = this.searchTerm ? `${this.apiUrl}?search=${encodeURIComponent(this.searchTerm)}` : this.apiUrl;
     this.http.get<any>(url).subscribe({
       next: (res) => {
-        this.usuarios = (res.data?.usuarios || res.usuarios || res.users || []).map((u: any) => ({
+        // Manejar la respuesta del backend unificado
+        const usuarios = res.data?.usuarios || res.usuarios || res.users || [];
+        this.usuarios = usuarios.map((u: any) => ({
           ...u,
-          correo: u.correo || u.email
+          correo: u.correo || u.email,
+          estado: u.activo ? 'Activo' : 'Inactivo'
         }));
       },
       error: (error) => {
@@ -228,15 +241,60 @@ export class UsuariosComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al crear usuario:', error);
-        const message = error.error?.message || 'Error al crear usuario';
-        this.snackBar.open(message, 'Cerrar', { duration: 3000 });
+        
+        // Manejar errores específicos
+        if (error.status === 409) {
+          this.snackBar.open('El correo electrónico ya está registrado. Por favor, use un correo diferente.', 'Cerrar', { 
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        } else if (error.status === 400) {
+          const message = error.error?.message || 'Datos inválidos. Verifique la información ingresada.';
+          this.snackBar.open(message, 'Cerrar', { 
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        } else {
+          const message = error.error?.message || 'Error al crear usuario. Intente nuevamente.';
+          this.snackBar.open(message, 'Cerrar', { 
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+        }
       }
     });
   }
 
   updateUser(userId: string, userData: any) {
-    // Por ahora solo actualizamos el perfil, no implementamos edición completa
-    this.snackBar.open('Funcionalidad de edición en desarrollo', 'Cerrar', { duration: 3000 });
+    this.http.put<any>(`${this.apiUrl}/${userId}`, userData).subscribe({
+      next: () => {
+        this.getUsuarios();
+        this.snackBar.open('Usuario actualizado exitosamente', 'Cerrar', { duration: 3000 });
+      },
+      error: (error) => {
+        console.error('Error al actualizar usuario:', error);
+        
+        // Manejar errores específicos
+        if (error.status === 404) {
+          this.snackBar.open('Usuario no encontrado. Es posible que haya sido eliminado.', 'Cerrar', { 
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        } else if (error.status === 400) {
+          const message = error.error?.message || 'Datos inválidos. Verifique la información ingresada.';
+          this.snackBar.open(message, 'Cerrar', { 
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        } else {
+          const message = error.error?.message || 'Error al actualizar usuario. Intente nuevamente.';
+          this.snackBar.open(message, 'Cerrar', { 
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      }
+    });
   }
 
   disableUser(user: User) {

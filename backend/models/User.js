@@ -82,13 +82,23 @@ userSchema.methods.actualizarUltimoAcceso = function() {
   return this.save();
 };
 
-// Método estático para buscar por correo
+// Método estático para buscar por correo (solo usuarios activos)
 userSchema.statics.buscarPorCorreo = function(correo) {
   return this.findOne({ correo: correo.toLowerCase(), activo: true });
 };
 
-// Método estático para verificar si el correo existe
+// Método estático para buscar por correo (incluyendo inactivos)
+userSchema.statics.buscarPorCorreoIncluyendoInactivos = function(correo) {
+  return this.findOne({ correo: correo.toLowerCase() });
+};
+
+// Método estático para verificar si el correo existe (solo usuarios activos)
 userSchema.statics.correoExiste = function(correo) {
+  return this.exists({ correo: correo.toLowerCase(), activo: true });
+};
+
+// Método estático para verificar si el correo existe (incluyendo inactivos)
+userSchema.statics.correoExisteIncluyendoInactivos = function(correo) {
   return this.exists({ correo: correo.toLowerCase() });
 };
 

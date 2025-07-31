@@ -28,4 +28,7 @@ router.put('/:id', autenticarToken, autorizarGAD, cleanPlaceData, validatePlace,
 router.patch('/:id/status', autenticarToken, autorizarGAD, placeController.updatePlaceStatus);
 router.delete('/:id', autenticarToken, autorizarGAD, placeController.deletePlace);
 
+// Ruta para actividades unificadas (admin)
+router.get('/admin/actividades-unificadas', autenticarToken, autorizarGAD, placeController.getUnifiedActivities);
+
 export default router; 

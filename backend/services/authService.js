@@ -8,29 +8,64 @@ export class AuthService {
    * @returns {Promise<Object>} Usuario creado y token
    */
   async registrarUsuario(userData) {
-    // Verificar si el correo ya existe
-    const correoExiste = await userRepository.correoExiste(userData.correo);
-    if (correoExiste) {
-      throw new Error('El correo electrónico ya está registrado');
+    try {
+      // Verificar si existe un usuario inactivo con el mismo correo
+      const usuarioExistente = await userRepository.buscarPorCorreoIncluyendoInactivos(userData.correo);
+      
+      if (usuarioExistente) {
+        if (usuarioExistente.activo) {
+          // Usuario activo ya existe
+          throw new Error('El correo electrónico ya está registrado');
+        } else {
+          // Usuario inactivo existe, reactivarlo
+          const usuarioActualizado = await userRepository.actualizarUsuario(usuarioExistente._id, {
+            nombre: userData.nombre,
+            rol: userData.rol,
+            activo: true
+          });
+          
+          // Generar token
+          const payload = generarPayload(usuarioActualizado);
+          const token = generarToken(payload);
+
+          return {
+            usuario: {
+              id: usuarioActualizado._id,
+              nombre: usuarioActualizado.nombre,
+              correo: usuarioActualizado.correo,
+              rol: usuarioActualizado.rol,
+              fechaCreacion: usuarioActualizado.fechaCreacion
+            },
+            token
+          };
+        }
+      }
+
+      // Crear el usuario
+      const usuario = await userRepository.crearUsuario(userData);
+      
+      // Generar token
+      const payload = generarPayload(usuario);
+      const token = generarToken(payload);
+
+      return {
+        usuario: {
+          id: usuario._id,
+          nombre: usuario.nombre,
+          correo: usuario.correo,
+          rol: usuario.rol,
+          fechaCreacion: usuario.fechaCreacion
+        },
+        token
+      };
+    } catch (error) {
+      // Si es un error de MongoDB por correo duplicado
+      if (error.code === 11000) {
+        throw new Error('El correo electrónico ya está registrado');
+      }
+      // Re-lanzar otros errores
+      throw error;
     }
-
-    // Crear el usuario
-    const usuario = await userRepository.crearUsuario(userData);
-    
-    // Generar token
-    const payload = generarPayload(usuario);
-    const token = generarToken(payload);
-
-    return {
-      usuario: {
-        id: usuario._id,
-        nombre: usuario.nombre,
-        correo: usuario.correo,
-        rol: usuario.rol,
-        fechaCreacion: usuario.fechaCreacion
-      },
-      token
-    };
   }
 
   /**

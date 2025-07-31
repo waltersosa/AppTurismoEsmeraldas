@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { getStatsServiceUrl } from '../config/api.config';
+import { getBackendUrl } from '../config/api.config';
 
 export interface StatsOverview {
   usuarios: number;
@@ -51,22 +51,22 @@ export class StatsService {
 
   // Obtener estadísticas generales
   getStatsOverview(): Observable<StatsOverview> {
-    return this.http.get<StatsOverview>(getStatsServiceUrl('/stats/overview'));
+    return this.http.get<StatsOverview>(getBackendUrl('/stats/overview'));
   }
 
   // Obtener health check completo de todos los servicios
   getAllServicesHealth(): Observable<HealthOverview> {
-    return this.http.get<HealthOverview>(getStatsServiceUrl('/health'));
+    return this.http.get<HealthOverview>(getBackendUrl('/health'));
   }
 
   // Obtener health check simplificado
   getSimpleHealth(): Observable<SimpleHealth> {
-    return this.http.get<SimpleHealth>(getStatsServiceUrl('/health/simple'));
+    return this.http.get<SimpleHealth>(getBackendUrl('/health/simple'));
   }
 
   // Obtener health check de un servicio específico
   getServiceHealth(serviceName: string): Observable<ServiceHealth> {
-    return this.http.get<ServiceHealth>(getStatsServiceUrl(`/health/${serviceName}`));
+    return this.http.get<ServiceHealth>(getBackendUrl(`/health/${serviceName}`));
   }
 
   // Verificar si todos los servicios están funcionando
@@ -132,41 +132,56 @@ export class StatsService {
 
   // Obtener health check real de todos los servicios
   getHealthOverview(): Observable<any> {
-    return this.http.get<any>(getStatsServiceUrl('/health/overview'));
+    return this.http.get<any>(getBackendUrl('/health'));
   }
 
-  // Detener un servicio
+  // Detener un servicio (no disponible en backend unificado)
   stopService(name: string): Observable<any> {
-    return this.http.post(getStatsServiceUrl(`/service/${name}/stop`), {});
+    return new Observable(observer => {
+      observer.error(new Error('Control de servicios no disponible en backend unificado'));
+      observer.complete();
+    });
   }
 
-  // Iniciar un servicio
+  // Iniciar un servicio (no disponible en backend unificado)
   startService(name: string): Observable<any> {
-    return this.http.post(getStatsServiceUrl(`/service/${name}/start`), {});
+    return new Observable(observer => {
+      observer.error(new Error('Control de servicios no disponible en backend unificado'));
+      observer.complete();
+    });
   }
 
-  // Reiniciar un servicio
+  // Reiniciar un servicio (no disponible en backend unificado)
   restartService(name: string): Observable<any> {
-    return this.http.post(getStatsServiceUrl(`/service/${name}/restart`), {});
+    return new Observable(observer => {
+      observer.error(new Error('Control de servicios no disponible en backend unificado'));
+      observer.complete();
+    });
   }
 
   // Obtener información de todos los servicios
   getServicesInfo(): Observable<any> {
-    return this.http.get<any>(getStatsServiceUrl('/service'));
+    return this.http.get<any>(getBackendUrl('/health'));
   }
 
   // Obtener estado de un servicio específico
   getServiceStatus(name: string): Observable<any> {
-    return this.http.get<any>(getStatsServiceUrl(`/service/${name}/status`));
+    return this.http.get<any>(getBackendUrl('/health'));
   }
 
-  // Detener todos los servicios excepto auth y stats
+  // Detener todos los servicios (no disponible en backend unificado)
   stopAllServices(): Observable<any> {
-    return this.http.post(getStatsServiceUrl('/service/stopAll'), {});
+    return new Observable(observer => {
+      observer.error(new Error('Control de servicios no disponible en backend unificado'));
+      observer.complete();
+    });
   }
 
-  // Iniciar todos los servicios excepto auth y stats
+  // Iniciar todos los servicios (no disponible en backend unificado)
   startAllServices(): Observable<any> {
-    return this.http.post(getStatsServiceUrl('/service/startAll'), {});
+    return new Observable(observer => {
+      observer.error(new Error('Control de servicios no disponible en backend unificado'));
+      observer.complete();
+    });
   }
 } 
