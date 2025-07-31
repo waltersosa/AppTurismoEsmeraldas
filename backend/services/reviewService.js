@@ -61,4 +61,11 @@ export const deleteReview = (id) => Review.findByIdAndDelete(id);
 // Verificar si un usuario ya ha reseñado un lugar
 export const checkUserReviewExists = (lugarId, usuarioId) => {
   return Review.findOne({ lugarId, usuarioId });
+};
+
+// Obtener reseña del usuario para un lugar específico
+export const getUserReview = async (lugarId, usuarioId) => {
+  return Review.findOne({ lugarId, usuarioId })
+    .populate('usuarioId', 'nombre')
+    .populate('lugarId', 'name');
 }; 

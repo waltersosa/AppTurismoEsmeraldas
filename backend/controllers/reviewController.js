@@ -45,6 +45,70 @@ export const getReviewsByPlace = async (req, res, next) => {
   }
 };
 
+// Obtener reseña del usuario para un lugar específico
+export const getUserReview = async (req, res, next) => {
+  try {
+    const { lugarId } = req.params;
+    const usuarioId = req.usuario.id;
+
+    const review = await reviewService.getUserReview(lugarId, usuarioId);
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'No se encontró reseña del usuario para este lugar' });
+    }
+
+    res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Actualizar reseña del usuario
+export const updateUserReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { comentario, calificacion } = req.body;
+    const usuarioId = req.usuario.id;
+
+    // Verificar que la reseña pertenece al usuario
+    const existingReview = await reviewService.getReviewById(id);
+    if (!existingReview) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+
+    if (existingReview.usuarioId.toString() !== usuarioId) {
+      return res.status(403).json({ success: false, message: 'No tienes permisos para editar esta reseña' });
+    }
+
+    const review = await reviewService.updateReview(id, { comentario, calificacion });
+    res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Eliminar reseña del usuario
+export const deleteUserReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario.id;
+
+    // Verificar que la reseña pertenece al usuario
+    const existingReview = await reviewService.getReviewById(id);
+    if (!existingReview) {
+      return res.status(404).json({ success: false, message: 'Review no encontrada' });
+    }
+
+    if (existingReview.usuarioId.toString() !== usuarioId) {
+      return res.status(403).json({ success: false, message: 'No tienes permisos para eliminar esta reseña' });
+    }
+
+    const review = await reviewService.deleteReview(id);
+    res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // ===== RUTAS PARA ADMINISTRADORES =====
 
 // Listado filtrable y paginado para administradores

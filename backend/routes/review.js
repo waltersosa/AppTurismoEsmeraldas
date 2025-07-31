@@ -21,6 +21,9 @@ router.get('/health', (req, res) => {
 // ===== RUTAS PARA USUARIOS =====
 router.post('/', autenticarToken, reviewController.createReview);
 router.get('/lugar/:lugarId', reviewController.getReviewsByPlace);
+router.get('/user/:lugarId', autenticarToken, reviewController.getUserReview);
+router.put('/:id', autenticarToken, reviewController.updateUserReview);
+router.delete('/:id', autenticarToken, reviewController.deleteUserReview);
 
 // ===== RUTAS PARA ADMINISTRADORES (solo GAD) =====
 router.get('/admin', autenticarToken, autorizarGAD, reviewController.getReviewsAdmin);

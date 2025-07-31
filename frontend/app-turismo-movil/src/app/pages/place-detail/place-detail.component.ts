@@ -30,6 +30,8 @@ export class PlaceDetailComponent implements OnInit {
 
   user: any = null;
   editReviewId: string | null = null;
+  userHasReviewed = false;
+  userReview: Review | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -38,7 +40,7 @@ export class PlaceDetailComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.reviewForm = this.fb.group({
-      comment: ['', [Validators.required, this.maxWordsValidator(50)]],
+      comment: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(300)]],
       rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]]
     });
   }
@@ -56,8 +58,10 @@ export class PlaceDetailComponent implements OnInit {
           this.place = response.data;
           this.loading = false;
           this.loadReviews();
+          this.checkUserReview();
         },
         error: (err) => {
+          console.error('Error cargando lugar:', err);
           this.error = true;
           this.loading = false;
         }
@@ -78,9 +82,33 @@ export class PlaceDetailComponent implements OnInit {
         this.calculateRatings();
         this.reviewsLoading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error cargando reseñas:', err);
         this.reviewsError = true;
         this.reviewsLoading = false;
+      }
+    });
+  }
+
+  checkUserReview() {
+    if (!this.place || !this.user?.id) return;
+    
+    this.reviewsService.checkUserReview(this.place._id).subscribe({
+      next: (response) => {
+        if (response && response.data) {
+          this.userReview = response.data;
+          this.userHasReviewed = true;
+          // Si el usuario ya reseñó, cargar sus datos en el formulario
+          this.reviewForm.patchValue({
+            comment: this.userReview.comentario || '',
+            rating: this.userReview.calificacion || 5
+          });
+        }
+      },
+      error: (err) => {
+        // Si no encuentra reseña, el usuario no ha reseñado
+        this.userHasReviewed = false;
+        this.userReview = null;
       }
     });
   }
@@ -120,8 +148,8 @@ export class PlaceDetailComponent implements OnInit {
 
   startEditReview(review: Review) {
     this.editReviewId = review._id || null;
-    this.reviewForm.setValue({
-      comment: review.comentario,
+    this.reviewForm.patchValue({
+      comment: review.comentario || '',
       rating: review.calificacion || 5
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -130,14 +158,19 @@ export class PlaceDetailComponent implements OnInit {
   deleteReview(review: Review) {
     if (!review._id) return;
     if (!confirm('¿Seguro que deseas eliminar esta reseña?')) return;
+    
     this.reviewSubmitting = true;
     this.reviewsService.deleteReview(review._id).subscribe({
       next: () => {
         this.reviewSubmitting = false;
+        this.userHasReviewed = false;
+        this.userReview = null;
         this.loadReviews();
+        this.showAlert('Reseña eliminada exitosamente');
       },
-      error: () => {
-        this.reviewSubmitError = 'No se pudo eliminar la reseña.';
+      error: (err) => {
+        console.error('Error eliminando reseña:', err);
+        this.reviewSubmitError = err?.error?.message || 'No se pudo eliminar la reseña.';
         this.reviewSubmitting = false;
       }
     });
@@ -145,35 +178,42 @@ export class PlaceDetailComponent implements OnInit {
 
   submitReview() {
     if (!this.place || this.reviewForm.invalid) return;
+    
     this.reviewSubmitting = true;
     this.reviewSubmitError = '';
-    const review = {
+    
+    const reviewData = {
       lugarId: this.place._id,
       comentario: this.reviewForm.value.comment,
-      calificacion: this.reviewForm.value.rating,
-      userName: this.user?.nombre || this.user?.name || ''
+      calificacion: this.reviewForm.value.rating
     };
-    if (this.editReviewId) {
-      this.reviewsService.updateReview(this.editReviewId, review).subscribe({
+
+    if (this.userHasReviewed && this.userReview?._id) {
+      // Actualizar reseña existente
+      this.reviewsService.updateReview(this.userReview._id, reviewData).subscribe({
         next: () => {
-          this.reviewForm.reset({ comment: '', rating: 5 });
-          this.editReviewId = null;
           this.reviewSubmitting = false;
           this.loadReviews();
+          this.showAlert('Reseña actualizada exitosamente');
         },
         error: (err) => {
+          console.error('Error actualizando reseña:', err);
           this.reviewSubmitError = err?.error?.message || 'No se pudo actualizar la reseña.';
           this.reviewSubmitting = false;
         }
       });
     } else {
-      this.reviewsService.addReview(review).subscribe({
+      // Crear nueva reseña
+      this.reviewsService.addReview(reviewData).subscribe({
         next: () => {
-          this.reviewForm.reset({ comment: '', rating: 5 });
           this.reviewSubmitting = false;
+          this.userHasReviewed = true;
+          this.reviewForm.reset({ comment: '', rating: 5 });
           this.loadReviews();
+          this.showAlert('Reseña enviada exitosamente');
         },
         error: (err) => {
+          console.error('Error enviando reseña:', err);
           this.reviewSubmitError = err?.error?.message || 'No se pudo enviar la reseña. Intenta nuevamente.';
           this.reviewSubmitting = false;
         }
@@ -182,19 +222,11 @@ export class PlaceDetailComponent implements OnInit {
   }
 
   showAlert(msg: string) {
+    // Usar alert temporalmente, se puede mejorar con un servicio de notificaciones
     window.alert(msg);
   }
 
-  maxWordsValidator(max: number) {
-    return (control: any) => {
-      if (!control.value) return null;
-      const words = control.value.trim().split(/\s+/);
-      return words.length > max ? { maxwords: { max, actual: words.length } } : null;
-    };
-  }
-
   getReviewUserName(review: Review): string {
-    console.log('REVIEW RECIBIDA:', review);
     if (review.userName) return review.userName;
     if (review.usuario && typeof review.usuario === 'object' && 'nombre' in review.usuario) {
       return review.usuario.nombre || '';
@@ -202,6 +234,20 @@ export class PlaceDetailComponent implements OnInit {
     if (review.usuarioId && typeof review.usuarioId === 'object' && 'nombre' in review.usuarioId) {
       return (review.usuarioId as any).nombre || '';
     }
-    return typeof review.usuarioId === 'string' ? review.usuarioId : '';
+    return typeof review.usuarioId === 'string' ? review.usuarioId : 'Usuario';
+  }
+
+  getFormErrorMessage(): string {
+    const commentControl = this.reviewForm.get('comment');
+    if (commentControl?.errors?.['required']) {
+      return 'El comentario es requerido';
+    }
+    if (commentControl?.errors?.['minlength']) {
+      return 'El comentario debe tener al menos 10 caracteres';
+    }
+    if (commentControl?.errors?.['maxlength']) {
+      return 'El comentario no puede exceder 300 caracteres';
+    }
+    return '';
   }
 }
