@@ -45,16 +45,26 @@ app.use('/notifications', notificationsRoutes);
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Esmeraldas Turismo - Auth Service',
+    message: 'Esmeraldas Turismo - Backend Unificado',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     endpoints: {
       auth: '/auth',
-      health: '/auth/health',
-      register: '/auth/register',
-      login: '/auth/login',
-      validate: '/auth/validate'
+      places: '/places',
+      reviews: '/reviews',
+      notifications: '/notifications',
+      health: '/health'
     }
+  });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Backend funcionando correctamente',
+    status: 'online',
+    timestamp: new Date().toISOString()
   });
 });
 

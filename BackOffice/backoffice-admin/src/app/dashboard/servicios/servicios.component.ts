@@ -11,7 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
 import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { getPlacesServiceUrl, getReviewsServiceUrl } from '../../config/api.config';
+import { getBackendUrl } from '../../config/api.config';
 import { StatsService } from '../../services/stats.service';
 
 interface Service {
@@ -461,23 +461,36 @@ export class ServiciosComponent implements OnInit {
   }
 
   cargarServicios() {
-    this.statsService.getHealthOverview().subscribe({
+    // Verificar el estado del backend unificado
+    this.http.get(getBackendUrl('/health')).subscribe({
       next: (res) => {
-        this.servicios = (res.data || []).map((svc: any) => ({
-          nombre: svc.name,
-          descripcion: svc.name,
-          tipo: svc.type ? svc.type.toLowerCase() : '',
-          estado: svc.status,
-          estadoReal: svc.status === 'online' ? 'running' : 'stopped',
-          tiempoRespuesta: svc.responseTime || 0,
-          activo: svc.status === 'online',
-          puerto: svc.port,
-          procesoId: null
-        }));
+        this.servicios = [{
+          nombre: 'Backend Unificado',
+          descripcion: 'Servidor principal de la aplicación',
+          tipo: 'api',
+          estado: 'online',
+          estadoReal: 'running',
+          tiempoRespuesta: 0,
+          activo: true,
+          puerto: 3001,
+          procesoId: null,
+          ultimaVerificacion: new Date().toISOString()
+        }];
         this.cargarEstadisticas();
       },
       error: () => {
-        this.servicios = [];
+        this.servicios = [{
+          nombre: 'Backend Unificado',
+          descripcion: 'Servidor principal de la aplicación',
+          tipo: 'api',
+          estado: 'offline',
+          estadoReal: 'stopped',
+          tiempoRespuesta: 0,
+          activo: false,
+          puerto: 3001,
+          procesoId: null,
+          ultimaVerificacion: new Date().toISOString()
+        }];
         this.cargarEstadisticas();
       }
     });
@@ -534,52 +547,11 @@ export class ServiciosComponent implements OnInit {
   }
 
   alternarEstado(service: any) {
-    if (service.nombre.toLowerCase().includes('autenticación')) {
-      if (!confirm('¡Advertencia! Si detienes el servicio de autenticación perderás la sesión y deberás volver a iniciar sesión cuando el servicio esté disponible. ¿Deseas continuar?')) {
-        return;
-      }
-    }
-    this.procesando = true;
-    const action = service.activo ? this.statsService.stopService : this.statsService.startService;
-    const key = this.obtenerKeyServicio(service.nombre);
-    action.call(this.statsService, key).subscribe({
-      next: (response) => {
-        this.snackBar.open(`Servicio ${service.nombre} ${service.activo ? 'detenido' : 'iniciado'} correctamente`, 'Cerrar', { duration: 2000 });
-        setTimeout(() => this.cargarServicios(), 2000);
-        this.procesando = false;
-      },
-      error: (error) => {
-        console.error('Error al cambiar estado del servicio:', error);
-        this.snackBar.open(`Error al ${service.activo ? 'detener' : 'iniciar'} el servicio ${service.nombre}`, 'Cerrar', { duration: 3000 });
-        this.procesando = false;
-      }
-    });
+    this.snackBar.open('El control de servicios no está disponible en el backend unificado', 'Cerrar', { duration: 3000 });
   }
 
   reiniciarServicio(service: any) {
-    if (service.nombre.toLowerCase().includes('autenticación')) {
-      if (!confirm('¡Advertencia! Si reinicias el servicio de autenticación perderás la sesión temporalmente. ¿Deseas continuar?')) {
-        return;
-      }
-    }
-    
-    if (confirm(`¿Seguro que deseas reiniciar el servicio ${service.nombre}?`)) {
-      this.procesando = true;
-      const key = this.obtenerKeyServicio(service.nombre);
-      
-      this.statsService.restartService(key).subscribe({
-        next: (response) => {
-          this.snackBar.open(`Servicio ${service.nombre} reiniciado correctamente`, 'Cerrar', { duration: 2000 });
-          setTimeout(() => this.cargarServicios(), 3000); // Esperar un poco más para el reinicio
-          this.procesando = false;
-        },
-        error: (error) => {
-          console.error('Error al reiniciar servicio:', error);
-          this.snackBar.open(`Error al reiniciar el servicio ${service.nombre}`, 'Cerrar', { duration: 3000 });
-          this.procesando = false;
-        }
-      });
-    }
+    this.snackBar.open('El control de servicios no está disponible en el backend unificado', 'Cerrar', { duration: 3000 });
   }
 
   obtenerKeyServicio(nombre: string): string {
@@ -594,43 +566,11 @@ export class ServiciosComponent implements OnInit {
   }
 
   activarTodos() {
-    if (confirm('¿Seguro que deseas activar todos los servicios? (El servicio de autenticación y estadísticas permanecerán activos)')) {
-      this.procesando = true;
-      this.statsService.startAllServices().subscribe({
-        next: (response) => {
-          const iniciados = (response.finalStates || []).filter((s: any) => s.status === 'online').length;
-          const total = (response.finalStates || []).length;
-          this.snackBar.open(`Servicios activados: ${iniciados} de ${total} (excepto auth y stats)`, 'Cerrar', { duration: 4000 });
-          this.cargarServicios();
-          this.procesando = false;
-        },
-        error: (error) => {
-          console.error('Error al activar todos los servicios:', error);
-          this.snackBar.open('Error al activar todos los servicios', 'Cerrar', { duration: 4000 });
-          this.procesando = false;
-        }
-      });
-    }
+    this.snackBar.open('El control de servicios no está disponible en el backend unificado', 'Cerrar', { duration: 3000 });
   }
 
   desactivarTodos() {
-    if (confirm('¿Seguro que deseas desactivar todos los servicios? (El servicio de autenticación y estadísticas permanecerán activos)')) {
-      this.procesando = true;
-      this.statsService.stopAllServices().subscribe({
-        next: (response) => {
-          const detenidos = (response.finalStates || []).filter((s: any) => s.status === 'stopped').length;
-          const total = (response.finalStates || []).length;
-          this.snackBar.open(`Servicios detenidos: ${detenidos} de ${total} (excepto auth y stats)`, 'Cerrar', { duration: 4000 });
-          this.cargarServicios();
-          this.procesando = false;
-        },
-        error: (error) => {
-          console.error('Error al detener todos los servicios:', error);
-          this.snackBar.open('Error al detener todos los servicios', 'Cerrar', { duration: 4000 });
-          this.procesando = false;
-        }
-      });
-    }
+    this.snackBar.open('El control de servicios no está disponible en el backend unificado', 'Cerrar', { duration: 3000 });
   }
 
   getResponseTimeClass(tiempo: number): string {

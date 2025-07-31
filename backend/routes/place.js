@@ -25,6 +25,7 @@ router.get('/:id', placeController.getPlaceById);
 // Rutas protegidas (solo GAD)
 router.post('/', autenticarToken, autorizarGAD, cleanPlaceData, validatePlace, handleValidationErrors, placeController.createPlace);
 router.put('/:id', autenticarToken, autorizarGAD, cleanPlaceData, validatePlace, handleValidationErrors, placeController.updatePlace);
+router.patch('/:id/status', autenticarToken, autorizarGAD, placeController.updatePlaceStatus);
 router.delete('/:id', autenticarToken, autorizarGAD, placeController.deletePlace);
 
 export default router; 

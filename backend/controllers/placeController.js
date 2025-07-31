@@ -63,6 +63,17 @@ export const updatePlace = async (req, res, next) => {
   }
 };
 
+export const updatePlaceStatus = async (req, res, next) => {
+  try {
+    const { active } = req.body;
+    const place = await placeService.updatePlace(req.params.id, { active });
+    if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
+    res.json({ success: true, data: place });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const deletePlace = async (req, res, next) => {
   try {
     const place = await placeService.deletePlace(req.params.id);
