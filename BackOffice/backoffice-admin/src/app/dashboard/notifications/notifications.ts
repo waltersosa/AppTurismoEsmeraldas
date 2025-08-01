@@ -51,7 +51,8 @@ export interface Notification {
 
         <mat-form-field appearance="fill" class="full-width" style="margin-bottom: 16px;">
           <mat-label>Descripción</mat-label>
-          <textarea matInput rows="4" required [(ngModel)]="nuevaNotificacion.message" name="descripcion" #desc="ngModel"></textarea>
+          <textarea matInput rows="4" required [(ngModel)]="nuevaNotificacion.message" name="descripcion" #desc="ngModel">
+          </textarea>
           <mat-error *ngIf="desc.invalid && (desc.dirty || desc.touched)">La descripción es obligatoria</mat-error>
         </mat-form-field>
 
@@ -80,7 +81,13 @@ export interface Notification {
 
         <!-- Botón para enviar la notificación seleccionada -->
       <div *ngIf="notificacionSeleccionada" style="margin-top: 16px;">
-        <button mat-raised-button color="accent" (click)="enviarNotificacion(notificacionSeleccionada._id!)">
+
+        <mat-form-field appearance="fill" class="full-width" style="margin-bottom: 16px;">
+        <mat-label>Ingrese el ID del usuario destino</mat-label>
+        <input matInput [(ngModel)]="userId" name="userId">
+        </mat-form-field>
+      
+      <button mat-raised-button color="accent" (click)="enviarNotificacion(notificacionSeleccionada._id!)">
           <mat-icon>send</mat-icon> Enviar Notificación
         </button>
       </div>
@@ -95,14 +102,13 @@ export interface Notification {
 })
 export class NotificationsComponent implements OnInit {
 
-
-
-
   currentUser: User | null = null;
 
   notificaciones: Notification[] = [];
 
   nuevaNotificacion: Notification = { title: '', message: '' };
+
+  userId: string = '';
 
   notificacionSeleccionada: Notification | null = null;
 
@@ -118,7 +124,6 @@ export class NotificationsComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
-        console.log('Drama', user.id)
         this.cargarNotificaciones(user.id);
       }
     });
@@ -172,12 +177,15 @@ export class NotificationsComponent implements OnInit {
 
   enviarNotificacion(notificationId: string) {
     if (!this.currentUser || !this.notificacionSeleccionada) {
-      this.snackBar.open('No se puede enviar la notificación. Usuario o notificación no disponible.', 'Cerrar', { duration: 3000 });
+      this.snackBar.open('No se puede enviar la notificación. Usuario o notificación no disponible.',
+        'Cerrar', { duration: 3000 });
       return;
     }
 
     //const userId = this.currentUser.id;
-    const userId = '6888aebc8ba208fd9fbbd816'
+    // const userId = '6888aebc8ba208fd9fbbd816'
+    const userId = this.userId;
+    console.log('cara', userId)
     const data = {
       titulo: this.notificacionSeleccionada.title,
       mensaje: this.notificacionSeleccionada.message,
