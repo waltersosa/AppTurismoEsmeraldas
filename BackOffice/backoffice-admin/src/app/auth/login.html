@@ -1,0 +1,30 @@
+<div class="login-bg">
+  <div class="login-card">
+    <div class="login-avatar">
+      <mat-icon fontIcon="admin_panel_settings" class="admin-icon"></mat-icon>
+    </div>
+    <h2>Panel de Administración</h2>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Correo electrónico</mat-label>
+        <input matInput formControlName="correo" type="email" autocomplete="username" />
+        <mat-error *ngIf="loginForm.get('correo')?.invalid && loginForm.get('correo')?.touched">
+          Correo requerido y válido
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Contraseña</mat-label>
+        <input matInput formControlName="contraseña" type="password" autocomplete="current-password" />
+        <mat-error *ngIf="loginForm.get('contraseña')?.invalid && loginForm.get('contraseña')?.touched">
+          Contraseña requerida
+        </mat-error>
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading">
+        Ingresar
+      </button>
+      <div *ngIf="errorMsg" class="error-message">
+        {{ errorMsg }}
+      </div>
+    </form>
+  </div>
+</div>

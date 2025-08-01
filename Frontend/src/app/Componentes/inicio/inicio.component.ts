@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })
@@ -21,12 +21,15 @@ export class InicioComponent implements OnInit {
 
     this.authService.obtenerPerfil().subscribe({
       next: (response) => {
-        
-        this.nombre = response.data?.usuario?.nombre || '';
-        this.correo = response.data?.usuario?.correo || '';
+
+        this.nombre = response.data.usuario.nombre || '';
+        this.correo = response.data.usuario.correo || '';
+
+        console.log("this.nombre", response.data);
       },
       error: (error) => {
         console.error('Error al obtener el perfil:', error);
+        console.log('')
       }
     });
   }

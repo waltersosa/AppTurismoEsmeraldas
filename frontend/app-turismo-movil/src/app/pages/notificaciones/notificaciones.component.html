@@ -1,0 +1,17 @@
+<!-- src/app/Componentes/notificaciones/notificaciones.component.html -->
+
+<body>
+  <div class="notificaciones-container">
+    <h2>NOTIFICACIONES</h2>
+    <ul>
+      <li *ngFor="let noti of notificaciones" class="notificacion-item">
+        <div class="card-notificacion" [@fadeInUp]>
+          <div class="notificacion-header">
+            <p><strong>{{ noti.titulo }}</strong></p>
+          </div>
+          <p>{{ noti.mensaje }}</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</body>

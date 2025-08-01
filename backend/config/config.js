@@ -8,7 +8,7 @@ export const config = {
     nodeEnv: process.env.NODE_ENV || 'development'
   },
   database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/turismoDB'
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/authDB'
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'default_secret_change_in_production',

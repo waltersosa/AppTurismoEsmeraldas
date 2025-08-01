@@ -8,9 +8,11 @@ import { routes } from './app/app.routes';
 import { HttpClientModule } from '@angular/common/http';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { AuthInterceptor } from './app/services/auth.interceptor';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideAnimations(),
     provideRouter(routes),
     importProvidersFrom(FormsModule, HttpClientModule), // <-- Agrega HttpClientModule aquí
     provideHttpClient(

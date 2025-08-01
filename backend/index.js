@@ -9,6 +9,7 @@ import placeRoutes from './routes/place.js';
 import { validatePlace } from './middlewares/placeValidation.js';
 import reviewRoutes from './routes/review.js';
 import mediaRoutes from './routes/media.js';
+import notificationsRoutes from './routes/notifications.js'
 
 // Crear aplicación Express
 const app = express();
@@ -23,7 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Configuración CORS
 app.use(cors({
-  origin: '*', //config.cors.origin,
+  origin: config.cors.origin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -40,6 +41,7 @@ app.use('/auth', authRoutes);
 app.use('/places', placeRoutes);
 app.use('/reviews', reviewRoutes);
 app.use('/media', mediaRoutes);
+app.use('/notifications', notificationsRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {

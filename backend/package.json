@@ -18,14 +18,16 @@
   "author": "Esmeraldas Turismo",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.11.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.21.2",
+    "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
-    "multer": "^2.0.1"
+    "multer": "^2.0.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
