@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { getAuthServiceUrl } from '../config/api.config';
 
 export interface User {
-  _id: string;
+  id: string;
   nombre: string;
   correo: string;
   rol: 'admin' | 'usuario' | 'gad';

@@ -1,39 +1,108 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 
-export interface Notification {
-  _id?: string;
-  title: string;
-  message: string;
-  creadorId?: string;
-  fechaCreacion?: string;
-}
 
-export interface NotificationsApiResponse {
-  success: boolean;
-  data: Notification[];
-}
+@Injectable({
+  providedIn: 'root',
+})
+export class SocketService {
+  private socket!: Socket;
 
+  constructor(private http: HttpClient) {
+    //this.initializeStorageListener();
+  }
+  private initializeStorageListener() {
+    console.log("INICIALIZADOR DE ESCUCHA SOCKET");
+    // Escucha cambios en localStorage y sessionStorage
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'userId') {
+        this.inicializador();
+      }
+    });
+  }
+  inicializador() {
+    try {
+      const userId =
+        localStorage.getItem('userId') ||
+        sessionStorage.getItem('userId');
+      console.log("id del usuario", userId);
+      if (userId) {
+        this.socket = io('https://geoapi.esmeraldas.gob.ec', {
+          path: '/new/socket.io',
+        });
 
-@Injectable({ providedIn: 'root' })
-export class NotificationsService {
-  private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:3006/notifications';
+        this.socket.on('connect', () => {
+          console.log('Socket connected:', this.socket.connected);
 
-  getUserNotifications(userId: string): Observable<NotificationsApiResponse> {
-    return this.http.get<NotificationsApiResponse>(`${this.baseUrl}/user/${userId}`);
+          if (userId) {
+            this.socket.emit('set-user-id', userId);
+            console.log(userId)
+            const userid = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
+            //  this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
+          } else {
+            console.error(
+              'User ID not found in localStorage or sessionStorage.'
+            );
+          }
+        });
+        this.socket.on('error', (error) => {
+          console.error('Socket error:', error);
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing Socket.IO:', error);
+    }
   }
 
-  // Método para crear una notificación (opcional)
-  createNotification(notification: Notification): Observable<Notification> {
-    return this.http.post<Notification>(this.baseUrl, notification);
-  }
-  
-  //Metodo para enviar las notificaciones a los usuarios.
-  sendNotification(notificationId: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/send/${notificationId}`, {});
+  onPermissionChange(): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on('permissions-updated', (data) => {
+        observer.next(data);
+      });
+    });
   }
 
+  onRoleChange(): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on('role-updated', (data) => {
+        //  console.log("SE ACTUALIZO EL ROL");
+        observer.next(data);
+      });
+    });
+  }
+  onNotification(): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on('notification', (data) => {
+        observer.next(data);
+      });
+    });
+  }
 
+  // Método para enviar notificaciones a un usuario específico
+  public notifyUser(userId: string, data: any): void {
+    console.log('Notify User', userId, data)
+    this.socket.emit('notify-user', { userId, data });
+  }
+
+  public getUserNotifications(userId: string): Observable<any> {
+    const url = `http://localhost:3001/notifications/user/${userId}`;
+    return this.http.get<any>(url);
+  }
+
+  public createNotification(notificacion: any): Observable<any> {
+    const url = `http://localhost:3001/notifications/`;
+    return this.http.post<any>(url, notificacion);
+  }
+
+  public sendNotification(notificationId: string) {
+
+    const url = `http://localhost:3001/notifications/${notificationId}`;
+    const noti = this.http.get<any>(url);
+
+    const userid = localStorage.getItem('userId') || '6888aebc8ba208fd9fbbd816'
+
+    this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
+  }
 }

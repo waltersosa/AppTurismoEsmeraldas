@@ -70,6 +70,7 @@ interface Notificacion {
 
 @Component({
   selector: 'app-notificaciones',
+  standalone: true,
   templateUrl: './notificaciones.component.html',
   imports: [CommonModule],  // <-- ESTA LÍNEA FALTABA
   styleUrls: ['./notificaciones.component.css'] // Si tienes estilos específicos

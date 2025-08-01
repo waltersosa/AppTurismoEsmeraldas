@@ -246,7 +246,7 @@ export class UsuariosComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         if (user) {
-          this.updateUser(user._id, result);
+          this.updateUser(user.id, result);
         } else {
           this.createUser(result);
         }
@@ -279,7 +279,7 @@ export class UsuariosComponent implements OnInit {
 
   disableUser(user: User) {
     if (confirm(`¿Seguro que deseas deshabilitar a ${user.nombre}?`)) {
-      this.http.delete<any>(`${this.apiUrl}/${user._id}`).subscribe({
+      this.http.delete<any>(`${this.apiUrl}/${user.id}`).subscribe({
         next: () => {
           this.getUsuarios();
           this.snackBar.open('Usuario deshabilitado correctamente', 'Cerrar', { duration: 3000 });
@@ -294,7 +294,7 @@ export class UsuariosComponent implements OnInit {
 
   enableUser(user: User) {
     if (confirm(`¿Seguro que deseas habilitar a ${user.nombre}?`)) {
-      this.http.patch<any>(`${this.apiUrl}/${user._id}/enable`, {}).subscribe({
+      this.http.patch<any>(`${this.apiUrl}/${user.id}/enable`, {}).subscribe({
         next: () => {
           this.getUsuarios();
           this.snackBar.open('Usuario habilitado correctamente', 'Cerrar', { duration: 3000 });
@@ -309,7 +309,7 @@ export class UsuariosComponent implements OnInit {
 
   deleteUserPermanently(user: User) {
     if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${user.nombre}? Esta acción no se puede deshacer.`)) {
-      this.http.delete<any>(`${this.apiUrl}/${user._id}/permanent`).subscribe({
+      this.http.delete<any>(`${this.apiUrl}/${user.id}/permanent`).subscribe({
         next: () => {
           this.getUsuarios();
           this.snackBar.open('Usuario eliminado permanentemente', 'Cerrar', { duration: 3000 });

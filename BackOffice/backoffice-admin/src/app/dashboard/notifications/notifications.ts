@@ -9,7 +9,19 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService, User } from '../../auth/auth.service';
-import { NotificationsService, Notification } from './notificationsService';
+import { SocketService } from './notificationsService';
+
+export interface Notification {
+  _id?: string;
+  title: string;
+  message: string;
+  userId?: string;
+  fechaCreacion?: string;
+  type?: string;
+  data?: any;
+  read?: boolean;
+}
+
 
 @Component({
   selector: 'app-dashboard',
@@ -80,6 +92,10 @@ import { NotificationsService, Notification } from './notificationsService';
   `]
 })
 export class NotificationsComponent implements OnInit {
+
+
+
+
   currentUser: User | null = null;
 
   notificaciones: Notification[] = [];
@@ -90,21 +106,26 @@ export class NotificationsComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private notificationsService: NotificationsService,
+    private socketService: SocketService,
     private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
+    this.socketService.inicializador();
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
-        this.cargarNotificaciones(user._id);
+        console.log('Drama', user.id)
+        this.cargarNotificaciones(user.id);
       }
     });
   }
 
+
+
   cargarNotificaciones(userId: string) {
-    this.notificationsService.getUserNotifications(userId).subscribe({
+    this.socketService.getUserNotifications(userId).subscribe({
       next: (response) => {
         console.log('Respuesta del backend', response)
         this.notificaciones = response.data || [];
@@ -125,14 +146,14 @@ export class NotificationsComponent implements OnInit {
 
     const nueva = {
       ...this.nuevaNotificacion,
-      userId: this.currentUser._id,
+      userId: this.currentUser.id,
       fechaCreacion: new Date().toISOString(),
       type: 'info',
       data: {},
       read: true,
     };
 
-    this.notificationsService.createNotification(nueva).subscribe({
+    this.socketService.createNotification(nueva).subscribe({
       next: (noti) => {
         this.snackBar.open('Notificación guardada', 'Cerrar', { duration: 2000 });
         this.notificaciones.push(noti);
@@ -147,15 +168,29 @@ export class NotificationsComponent implements OnInit {
 
 
   enviarNotificacion(notificationId: string) {
-    this.notificationsService.sendNotification(notificationId).subscribe({
-      next: () => {
-        this.snackBar.open('Notificación enviada correctamente', 'Cerrar', { duration: 3000 });
-      },
-      error: (error) => {
-        console.error('Error al enviar notificación:', error);
-        this.snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
-      }
-    });
+    if (!this.currentUser || !this.notificacionSeleccionada) {
+      this.snackBar.open('No se puede enviar la notificación. Usuario o notificación no disponible.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    //const userId = this.currentUser.id;
+    const userId = '6888aebc8ba208fd9fbbd816'
+    const data = {
+      titulo: this.notificacionSeleccionada.title,
+      mensaje: this.notificacionSeleccionada.message,
+      type: this.notificacionSeleccionada.type || 'info',
+      fecha: this.notificacionSeleccionada.fechaCreacion || new Date().toISOString(),
+      extra: this.notificacionSeleccionada.data || {}
+    };
+
+    try {
+      this.socketService.notifyUser(userId, data);
+      this.snackBar.open('Notificación enviada correctamente', 'Cerrar', { duration: 3000 });
+    } catch (error) {
+      console.error('Error al enviar notificación:', error);
+      this.snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
+    }
   }
+
 
 }

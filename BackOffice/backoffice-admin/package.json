@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:backoffice-admin": "node dist/backoffice-admin/server/server.mjs",
-     "build:ssr": "ng build && ng run backoffice-admin:server",
+    "build:ssr": "ng build && ng run backoffice-admin:server",
     "serve:ssr": "node dist/backoffice-admin/server/main.js"
   },
   "private": true,
@@ -25,6 +25,7 @@
     "@angular/ssr": "^20.0.1",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.1",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },

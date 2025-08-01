@@ -9,6 +9,7 @@ export const routes: Routes = [
   { path: 'places', loadComponent: () => import('./pages/places/places.component').then(m => m.PlacesComponent) },
   { path: 'places/:id', loadComponent: () => import('./pages/place-detail/place-detail.component').then(m => m.PlaceDetailComponent) },
   { path: 'perfil', loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
+  { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent) },
   {
     path: 'emergencias',
     loadComponent: () => import('./pages/emergencias/emergencias.component').then(m => m.EmergenciasComponent)

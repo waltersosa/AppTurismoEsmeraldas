@@ -84,3 +84,12 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
 
 ---
 Desarrollado para Esmeraldas Turismo 🏖️
+
+## ¿Tienes problemas al ejecutar el backoffice?
+ # Suelen haber problemas con el tema del caché del backoffice, así que si los tienes, ejecuta los siguientes comandos
+```bash
+cd backoffice-admin
+ rm -rf ./node_modules/.vite
+ rm -rf .angular/cache
+ rm -rf node_modules
+ ```
