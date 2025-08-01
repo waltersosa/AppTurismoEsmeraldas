@@ -52,6 +52,10 @@ export class HomeComponent {
     });
   }
 
+  goToNotificaciones() {
+    this.router.navigate(['/notificaciones']);
+  }
+
 
   goToEmergencias() {
     this.router.navigate(['/emergencias']);

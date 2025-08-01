@@ -2,7 +2,16 @@
 
 <div class="fondo">
   <div class="notificaciones-container">
+    <div class="botonVolver">
+      <button (click)="returnHome()" aria-label="Volver a inicio" class="icon-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
     <h2>NOTIFICACIONES</h2>
+
     <ul>
       <li *ngFor="let noti of notificaciones" class="notificacion-item">
         <div class="card-notificacion" [@fadeInUp]>

@@ -63,6 +63,7 @@ import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';  // IMPORTANTE para *ngFor y otras directivas comunes
 import { trigger, transition, style, animate } from '@angular/animations';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { Router } from '@angular/router'
 
 interface Notificacion {
   titulo: string;
@@ -91,7 +92,7 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
   notificaciones: Notificacion[] = [];
   private notificationSub!: Subscription;
 
-  constructor(private socketService: SocketService) { }
+  constructor(private socketService: SocketService, private router: Router) { }
 
   ngOnInit(): void {
     // Inicializa la conexión socket
@@ -135,4 +136,9 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
       this.notificationSub.unsubscribe();
     }
   }
+
+  returnHome() {
+    this.router.navigate(['/home']);
+  }
+
 }
