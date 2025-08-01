@@ -22,13 +22,21 @@ ul {
     display: flex;
     justify-content: center;
 }
-.notificacion-header{
+
+.notificacion-header {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 0px;
     border-bottom: 1px solid rgb(167, 221, 122);
 }
+
+.time-label {
+    font-size: 2vh;
+    text-align: right;
+    margin-bottom: 8px;
+}
+
 .card-notificacion {
     background-color: rgba(188, 252, 136, 0.6);
     border: 1px solid rgb(167, 221, 122);

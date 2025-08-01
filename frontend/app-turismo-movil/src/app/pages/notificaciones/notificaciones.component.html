@@ -6,6 +6,7 @@
     <ul>
       <li *ngFor="let noti of notificaciones" class="notificacion-item">
         <div class="card-notificacion" [@fadeInUp]>
+          <span class="time-label">{{ formatearFecha(noti.fecha) }}</span>
           <div class="notificacion-header">
             <p><strong>{{ noti.titulo }}</strong></p>
           </div>
@@ -14,4 +15,4 @@
       </li>
     </ul>
   </div>
-  </div>
+</div>

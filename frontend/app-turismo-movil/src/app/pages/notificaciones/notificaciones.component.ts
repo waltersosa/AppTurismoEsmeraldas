@@ -67,8 +67,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 interface Notificacion {
   titulo: string;
   mensaje: string;
+  fecha: Date;
   // Puedes agregar más campos si es necesario
 }
+
 
 @Component({
   selector: 'app-notificaciones',
@@ -100,19 +102,31 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
       (data: any) => {
         if (data) {
           // Asumiendo que data tiene las propiedades titulo y mensaje
+
+          console.log(data)
           const nuevaNotificacion: Notificacion = {
             titulo: data.titulo || 'Sin título',
-            mensaje: data.mensaje || 'Sin mensaje'
+            mensaje: data.mensaje || 'Sin mensaje',
+            fecha: new Date(data.fecha)
           };
 
           // Agrega la notificación al arreglo para mostrar en pantalla
-          this.notificaciones.push(nuevaNotificacion);
+          this.notificaciones.unshift(nuevaNotificacion);
         }
       },
       (error) => {
         console.error('Error en la suscripción a notificaciones:', error);
       }
     );
+  }
+
+  formatearFecha(fecha: Date): string {
+    const horas = fecha.getHours().toString().padStart(2, '0');
+    const minutos = fecha.getMinutes().toString().padStart(2, '0');
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const anio = fecha.getFullYear();
+    return `${horas}:${minutos} - ${dia}/${mes}/${anio}`;
   }
 
   ngOnDestroy(): void {
