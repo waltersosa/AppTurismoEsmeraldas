@@ -1,4 +1,4 @@
-body {
+.fondo {
     background: linear-gradient(rgb(230, 255, 200), rgb(200, 255, 230));
     min-height: 100vh;
     height: max-content;

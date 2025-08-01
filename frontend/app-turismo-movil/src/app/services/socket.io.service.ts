@@ -118,7 +118,7 @@ export class SocketService {
             this.socket.emit('set-user-id', userId);
             console.log(userId)
             const userid = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
-            this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
+         //   this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
           } else {
             console.error(
               'User ID not found in localStorage or sessionStorage.'

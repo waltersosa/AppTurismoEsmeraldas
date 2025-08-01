@@ -61,6 +61,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SocketService } from './../../services/socket.io.service' // Ajusta la ruta si es necesario
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';  // IMPORTANTE para *ngFor y otras directivas comunes
+import { trigger, transition, style, animate } from '@angular/animations';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 interface Notificacion {
   titulo: string;
@@ -72,14 +74,22 @@ interface Notificacion {
   selector: 'app-notificaciones',
   standalone: true,
   templateUrl: './notificaciones.component.html',
-  imports: [CommonModule],  // <-- ESTA LÍNEA FALTABA
-  styleUrls: ['./notificaciones.component.css'] // Si tienes estilos específicos
+  imports: [CommonModule],
+  styleUrls: ['./notificaciones.component.css'],
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ],
 })
 export class NotificacionesComponent implements OnInit, OnDestroy {
   notificaciones: Notificacion[] = [];
   private notificationSub!: Subscription;
 
-  constructor(private socketService: SocketService) {}
+  constructor(private socketService: SocketService) { }
 
   ngOnInit(): void {
     // Inicializa la conexión socket

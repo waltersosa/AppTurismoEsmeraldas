@@ -96,13 +96,5 @@ export class SocketService {
     return this.http.post<any>(url, notificacion);
   }
 
-  public sendNotification(notificationId: string) {
-
-    const url = `http://localhost:3001/notifications/${notificationId}`;
-    const noti = this.http.get<any>(url);
-
-    const userid = localStorage.getItem('userId') || '6888aebc8ba208fd9fbbd816'
-
-    this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
-  }
+  
 }

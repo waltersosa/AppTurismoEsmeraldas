@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService, User } from '../../auth/auth.service';
 import { SocketService } from './notificationsService';
+import { title } from 'process';
 
 export interface Notification {
   _id?: string;
@@ -40,6 +41,7 @@ export interface Notification {
   template: `
     <div class="notifications-container" style="max-width: 600px; margin: 20px auto;">
       <h2>Crear Notificación</h2>
+      
       <form (ngSubmit)="guardarNotificacion()" #form="ngForm">
         <mat-form-field appearance="fill" class="full-width" style="margin-bottom: 16px;">
           <mat-label>Título</mat-label>
@@ -158,6 +160,7 @@ export class NotificationsComponent implements OnInit {
         this.snackBar.open('Notificación guardada', 'Cerrar', { duration: 2000 });
         this.notificaciones.push(noti);
         this.nuevaNotificacion = { title: '', message: '' };
+        this.cargarNotificaciones(this.currentUser!.id);
       },
       error: (error) => {
         console.error('Error al guardar notificación:', error);
