@@ -9,6 +9,10 @@ export const getNotificationsByUser = (userId) =>
 export const getNotificationById = (id) =>
   Notification.findById(id);
 
+export const getAdminNotifications = async () => {
+  return await Notification.find({ userId: null }).sort({ createdAt: -1 });
+};
+
 export const markAsRead = (id) =>
   Notification.findByIdAndUpdate(id, { read: true }, { new: true });
 

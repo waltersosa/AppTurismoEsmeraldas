@@ -10,7 +10,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService, User } from '../../auth/auth.service';
 import { SocketService } from './notificationsService';
-import { title } from 'process';
 
 export interface Notification {
   _id?: string;
@@ -87,7 +86,7 @@ export interface Notification {
         <input matInput [(ngModel)]="userId" name="userId">
         </mat-form-field>
       
-      <button mat-raised-button color="accent" (click)="enviarNotificacion(notificacionSeleccionada._id!)">
+      <button mat-raised-button color="accent" (click)="enviarNotificacion()">
           <mat-icon>send</mat-icon> Enviar Notificación
         </button>
       </div>
@@ -124,15 +123,15 @@ export class NotificationsComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
-        this.cargarNotificaciones(user.id);
+        this.cargarNotificaciones();
       }
     });
   }
 
 
 
-  cargarNotificaciones(userId: string) {
-    this.socketService.getUserNotifications(userId).subscribe({
+  cargarNotificaciones() {
+    this.socketService.getUserNotifications().subscribe({
       next: (response) => {
         console.log('Respuesta del backend', response)
         this.notificaciones = response.data || [];
@@ -153,7 +152,7 @@ export class NotificationsComponent implements OnInit {
 
     const nueva = {
       ...this.nuevaNotificacion,
-      userId: this.currentUser.id,
+      userId: null,
       fechaCreacion: new Date().toISOString(),
       type: 'info',
       data: {},
@@ -165,7 +164,7 @@ export class NotificationsComponent implements OnInit {
         this.snackBar.open('Notificación guardada', 'Cerrar', { duration: 2000 });
         this.notificaciones.push(noti);
         this.nuevaNotificacion = { title: '', message: '' };
-        this.cargarNotificaciones(this.currentUser!.id);
+        this.cargarNotificaciones();
       },
       error: (error) => {
         console.error('Error al guardar notificación:', error);
@@ -175,7 +174,7 @@ export class NotificationsComponent implements OnInit {
   }
 
 
-  enviarNotificacion(notificationId: string) {
+  enviarNotificacion() {
     if (!this.currentUser || !this.notificacionSeleccionada) {
       this.snackBar.open('No se puede enviar la notificación. Usuario o notificación no disponible.',
         'Cerrar', { duration: 3000 });
@@ -184,8 +183,7 @@ export class NotificationsComponent implements OnInit {
 
     //const userId = this.currentUser.id;
     // const userId = '6888aebc8ba208fd9fbbd816'
-    const userId = this.userId;
-    console.log('cara', userId)
+    console.log('cara', this.userId)
     const data = {
       titulo: this.notificacionSeleccionada.title,
       mensaje: this.notificacionSeleccionada.message,
@@ -195,7 +193,42 @@ export class NotificationsComponent implements OnInit {
     };
 
     try {
-      this.socketService.notifyUser(userId, data);
+      this.socketService.notifyUser(this.userId, data);
+      /**
+       * OJO. ¿Por qué creamos otra notificación?
+       * Esta es la notificación que verá el usuario en su teléfono.
+       * Por eso tiene su id, esto se hace para guardarla en la base de datos.
+       * Y que desde el frontend pueda recuperarla sin necesidad de que
+       * le llege desde el socket.io
+       * 
+       * Más información en el README.md
+       */
+      const dataconUserID = {
+        title: this.notificacionSeleccionada.title,
+        message: this.notificacionSeleccionada.message,
+        userId: this.userId,
+        fechaCreacion: new Date().toISOString(),
+        type: this.notificacionSeleccionada.type || 'info',
+        data: this.notificacionSeleccionada.data || {},
+        read: this.notificacionSeleccionada.read || false
+      };
+      this.socketService.createNotification(dataconUserID).subscribe({
+        next: (noti) => {
+          this.notificacionSeleccionada = {
+            title: '',
+            message: '',
+            userId: '',
+            fechaCreacion: '',
+            type: '',
+            data: '',
+            read: false
+          }
+        },
+        error: (error) => {
+          this.snackBar.open('Hubo un error al enviar la notificación', 'Cerrar', { duration: 4000 });
+          console.error('Error al enviar la notificación:', error);
+        }
+      });
       this.snackBar.open('Notificación enviada correctamente', 'Cerrar', { duration: 3000 });
     } catch (error) {
       console.error('Error al enviar notificación:', error);

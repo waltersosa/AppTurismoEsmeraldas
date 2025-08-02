@@ -27,7 +27,7 @@ export class SocketService {
       const userId =
         localStorage.getItem('userId') ||
         sessionStorage.getItem('userId');
-      console.log("id del usuario", userId);
+
       if (userId) {
         this.socket = io('https://geoapi.esmeraldas.gob.ec', {
           path: '/new/socket.io',
@@ -38,7 +38,6 @@ export class SocketService {
 
           if (userId) {
             this.socket.emit('set-user-id', userId);
-            console.log(userId)
             const userid = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
             //  this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
           } else {
@@ -86,12 +85,13 @@ export class SocketService {
     this.socket.emit('notify-user', { userId, data });
   }
 
-  public getUserNotifications(userId: string): Observable<any> {
-    const url = `http://localhost:3001/notifications/user/${userId}`;
+  public getUserNotifications(): Observable<any> {
+    const url = `http://localhost:3001/notifications/null/`;
     return this.http.get<any>(url);
   }
 
   public createNotification(notificacion: any): Observable<any> {
+    console.log('Hola soy la función createNotification, estos son los datos que estoy recibiendo', notificacion)
     const url = `http://localhost:3001/notifications/`;
     return this.http.post<any>(url, notificacion);
   }

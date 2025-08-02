@@ -83,8 +83,6 @@ Aplicación móvil de turismo para Esmeraldas desarrollada en Angular. Permite e
 - Si ves el mensaje de error relacionado con la importación de la página de reporte, asegúrate de reiniciar el servidor de desarrollo para que Angular detecte los nuevos archivos.
 
 ---
-Desarrollado para Esmeraldas Turismo 🏖️
-
 ## ¿Tienes problemas al ejecutar el backoffice?
  # Suelen haber problemas con el tema del caché del backoffice, así que si los tienes, ejecuta los siguientes comandos
 ```bash
@@ -93,3 +91,28 @@ cd backoffice-admin
  rm -rf .angular/cache
  rm -rf node_modules
  ```
+
+---
+# Sistema de notificaciones
+El sistema de notificaciones se basa en 4 nodos:
+1. Backend
+2. BackOffice
+3. Servidor Socket.io
+4. Frontend (aplicación movil)
+
+- ## ¿Como funciona?
+  El backend cuenta con un modelo de notificaciones, dicho modelo puede o no, llevar el id de un usuario registrado. 
+  Cuando desde el backoffice se quiera enviar una notificación, inicialmente el backoffice cargará las notificaciones cuyo id de usuario sea null, esto para evitar problemas de duplicado, el administrador puede escoger de entre la lista de notificaciones y mandar la que crea conveniente, al hacerlo el backoffice hará dos cosas:
+
+  1. Enviará la notificación mediante Socket.io al usuario.
+  2. Mandará una copia de esa notificación justo con el id del usuario al backend, para que la notificación sea persisente.
+
+  Es por ello que las notificaciones que generan desde el backoffice no tienen userId, para indicar que esas notificaciones no le corresponden a ningún usuario, y por ende todos los miembros del equipo administrativo pueden verla y enviarla.
+
+  El usuario recibirá la notificación en tiempo real gracias al Socker.io, y quedará almacenada de manera persistente, dado que se encuentra en la base de datos.
+### Mejoras a futuro
+- Implementar un sistema que elimine las notificaciones si cuentan con un userId, y que llevan más de un año de haber sido enviadas.
+
+--- 
+Desarrollado para Esmeraldas Turismo 🏖️
+

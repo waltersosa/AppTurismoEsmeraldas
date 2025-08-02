@@ -22,6 +22,9 @@ router.post('/', notificationController.createNotification);
 // Listar notificaciones de un usuario
 router.get('/user/:userId', notificationController.getNotificationsByUser);
 
+//Listar notificaciones adminsitrativas
+router.get('/null', notificationController.getAdminNotification)
+
 // Obtener detalle de una notificación
 router.get('/:id', notificationController.getNotificationById);
 

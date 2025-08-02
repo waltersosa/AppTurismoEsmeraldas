@@ -27,6 +27,25 @@ export const getNotificationById = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+/**
+ * Esta función busca las notificaciones cuyo userId, sea null. Esto es importante, porque permite
+ * separar las notificaciones a las cuales tiene acceso los administradores, de las que se envian al 
+ * usuario.
+ * Más información en el README.md
+ */
+export const getAdminNotification = async (req, res) => {
+  try {
+    const notification = await notificationService.getAdminNotifications();
+    if (!notification) return res.status(404).json({
+      success: false, message: 'Hubo un problema,'
+        + 'parece que no hay notificaciones en la base de datos para enviar'
+    });
+    res.json({ success: true, data: notification });
+  } catch (error) {
+    console.error('Hubo un error al recoger las notificaciones administrativas', error);
+    res.status(400).json({ message: 'Error interno del servidor' });
+  }
+}
 
 export const markAsRead = async (req, res) => {
   try {
@@ -78,3 +97,4 @@ export const sendNotificationToSingleUser = async (req, res) => {
     res.status(500).json({ success: false, message: error.message })
   }
 }
+

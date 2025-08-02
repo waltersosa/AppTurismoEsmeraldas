@@ -64,6 +64,7 @@ import { CommonModule } from '@angular/common';  // IMPORTANTE para *ngFor y otr
 import { trigger, transition, style, animate } from '@angular/animations';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router'
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 interface Notificacion {
   titulo: string;
@@ -77,7 +78,7 @@ interface Notificacion {
   selector: 'app-notificaciones',
   standalone: true,
   templateUrl: './notificaciones.component.html',
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   styleUrls: ['./notificaciones.component.css'],
   animations: [
     trigger('fadeInUp', [
@@ -92,7 +93,9 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
   notificaciones: Notificacion[] = [];
   private notificationSub!: Subscription;
 
-  constructor(private socketService: SocketService, private router: Router) { }
+  constructor(private socketService: SocketService, private router: Router, private http: HttpClient) {
+    this.getPersistentNotification();
+  }
 
   ngOnInit(): void {
     // Inicializa la conexión socket
@@ -135,6 +138,34 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
     if (this.notificationSub) {
       this.notificationSub.unsubscribe();
     }
+  }
+
+  getPersistentNotification() {
+    const userId = localStorage.getItem('userId');
+    console.log(userId);
+    if (!userId) {
+      console.error('Error al recuperar la identidad del usuario');
+      return
+    }
+
+    //Traemos las notificaciones de la base de datos.
+    this.http.get<any>(`http://localhost:3001/notifications/user/${userId}`).subscribe({
+      next: (resp) => {
+        console.log(resp.data[0].title);
+
+        const nuevasNotificaciones: Notificacion[] = resp.data.map((item: any) => ({
+          titulo: item.title,
+          mensaje: item.message,
+          fecha: new Date(item.createdAt)
+        }));
+
+        this.notificaciones.unshift(...nuevasNotificaciones);
+      },
+      error: (err) => {
+        console.error('Error al recuperar las notificaciones', err);
+      }
+    })
+
   }
 
   returnHome() {
