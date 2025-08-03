@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Eliminación</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Koulen&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+
+        .fondo {
+            background: linear-gradient(rgb(213, 243, 185), rgb(181, 255, 134));
+            padding-bottom: 2vh;
+        }
+
+        .cajaTitulo {
+            background: linear-gradient(90deg, rgb(161, 245, 105) 25%, rgb(124, 233, 123) 75%);
+        }
+
+        h1 {
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            margin-left: 5%;
+            margin-right: 5%;
+            color: black;
+            font-family: "Koulen", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h2 {
+            text-align: center;
+            font-family: "Rethink Sans", sans-serif;
+            font-weight: bolder;
+        }
+
+        .formatoTexto {
+            font-family: "Rethink Sans", sans-serif;
+            font-size: 3vh;
+            margin-left: 3%;
+            margin-right: 3%;
+            color: black;
+        }
+
+        .cuadrado {
+            border: 2px solid rgb(58, 226, 15);
+            margin: 4vh;
+        }
+
+        .linea-texto {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .linea-texto::before,
+        .linea-texto::after {
+            content: "";
+            flex: 1;
+            border-bottom: 2px solid rgb(58, 226, 15);
+            margin: 0 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="fondo">
+        <div class="cajaTitulo">
+            <h1>HEMOS ELIMINADO TU CUENTA</h1>
+        </div>
+
+        <h2 class="linea-texto"><span>Querido, {{name}}</span></h2>
+        <div class="cuadrado">
+            <p class="formatoTexto">
+                De parte de nuestro equipo administrativo, queremos informarte que tu cuenta ha
+                incumplido con nuestras normas de comportamiento y actividad sospechosa, así que
+                hemos optado por la eliminación permanente de tu cuenta.
+            </p>
+            <p class="formatoTexto" style="font-weight: bold;">Que tenga un buen día</p>
+            <p class="formatoTexto">Atentamente: Alcaldía de Esmeraldas</p>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

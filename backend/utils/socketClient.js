@@ -1,7 +1,7 @@
 /**
  * Este archivo se usa para generar una conexión socket al servidor de notificaciones.
  */
-import { io, Socket } from 'socket.io-client';
+/*import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 
 let socket;
@@ -78,4 +78,4 @@ export function enviarNotificacion(titulo, mensaje, userId = null, type = 'info'
   }
 }
 
-
+*/
