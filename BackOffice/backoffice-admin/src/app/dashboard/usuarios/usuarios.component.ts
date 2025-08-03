@@ -1,20 +1,24 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatCardModule } from '@angular/material/card';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService, User } from '../../auth/auth.service';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.component';
 import { getAuthUrl } from '../../config/api.config';
+import { UsuarioDialogComponent } from './usuario-dialog.component';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -30,7 +34,6 @@ import { getAuthUrl } from '../../config/api.config';
     MatDialogModule,
     MatCardModule,
     MatTooltipModule,
-    MatSnackBarModule,
     MatFormFieldModule
   ],
   template: `
@@ -164,6 +167,7 @@ export class UsuariosComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  private confirmationService = inject(ConfirmationService);
 
   constructor(private authService: AuthService) {
     this.userForm = this.fb.group({
@@ -287,57 +291,63 @@ export class UsuariosComponent implements OnInit {
   }
 
   disableUser(user: User) {
-    if (confirm(`¿Seguro que deseas deshabilitar a ${user.nombre}?`)) {
-      const token = this.authService.getToken();
-      const headers = { 'Authorization': `Bearer ${token}` };
+    this.confirmationService.confirmDisableUser(user.nombre).subscribe(confirmed => {
+      if (confirmed) {
+        const token = this.authService.getToken();
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-      this.http.patch<any>(`${getAuthUrl('/users')}/${user._id}/disable`, {}, { headers }).subscribe({
-        next: () => {
-          this.getUsuarios();
-          this.snackBar.open('Usuario deshabilitado correctamente', 'Cerrar', { duration: 3000 });
-        },
-        error: (error) => {
-          console.error('Error al deshabilitar usuario:', error);
-          this.snackBar.open('Error al deshabilitar usuario', 'Cerrar', { duration: 3000 });
-        }
-      });
-    }
+        this.http.patch<any>(`${getAuthUrl('/users')}/${user._id}/disable`, {}, { headers }).subscribe({
+          next: () => {
+            this.getUsuarios();
+            this.snackBar.open('Usuario deshabilitado correctamente', 'Cerrar', { duration: 3000 });
+          },
+          error: (error) => {
+            console.error('Error al deshabilitar usuario:', error);
+            this.snackBar.open('Error al deshabilitar usuario', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   enableUser(user: User) {
-    if (confirm(`¿Seguro que deseas habilitar a ${user.nombre}?`)) {
-      const token = this.authService.getToken();
-      const headers = { 'Authorization': `Bearer ${token}` };
+    this.confirmationService.confirmEnableUser(user.nombre).subscribe(confirmed => {
+      if (confirmed) {
+        const token = this.authService.getToken();
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-      this.http.patch<any>(`${getAuthUrl('/users')}/${user._id}/enable`, {}, { headers }).subscribe({
-        next: () => {
-          this.getUsuarios();
-          this.snackBar.open('Usuario habilitado correctamente', 'Cerrar', { duration: 3000 });
-        },
-        error: (error) => {
-          console.error('Error al habilitar usuario:', error);
-          this.snackBar.open('Error al habilitar usuario', 'Cerrar', { duration: 3000 });
-        }
-      });
-    }
+        this.http.patch<any>(`${getAuthUrl('/users')}/${user._id}/enable`, {}, { headers }).subscribe({
+          next: () => {
+            this.getUsuarios();
+            this.snackBar.open('Usuario habilitado correctamente', 'Cerrar', { duration: 3000 });
+          },
+          error: (error) => {
+            console.error('Error al habilitar usuario:', error);
+            this.snackBar.open('Error al habilitar usuario', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   deleteUserPermanently(user: User) {
-    if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${user.nombre}? Esta acción no se puede deshacer.`)) {
-      const token = this.authService.getToken();
-      const headers = { 'Authorization': `Bearer ${token}` };
+    this.confirmationService.confirmDeleteUser(user.nombre).subscribe(confirmed => {
+      if (confirmed) {
+        const token = this.authService.getToken();
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-      this.http.delete<any>(`${getAuthUrl('/users')}/${user._id}`, { headers }).subscribe({
-        next: () => {
-          this.getUsuarios();
-          this.snackBar.open('Usuario eliminado permanentemente', 'Cerrar', { duration: 3000 });
-        },
-        error: (error) => {
-          console.error('Error al eliminar usuario:', error);
-          this.snackBar.open('Error al eliminar usuario', 'Cerrar', { duration: 3000 });
-        }
-      });
-    }
+        this.http.delete<any>(`${getAuthUrl('/users')}/${user._id}`, { headers }).subscribe({
+          next: () => {
+            this.getUsuarios();
+            this.snackBar.open('Usuario eliminado permanentemente', 'Cerrar', { duration: 3000 });
+          },
+          error: (error) => {
+            console.error('Error al eliminar usuario:', error);
+            this.snackBar.open('Error al eliminar usuario', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   deleteUser(user: User) {
