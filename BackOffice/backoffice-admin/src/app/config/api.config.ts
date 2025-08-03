@@ -21,13 +21,6 @@ export const BACKEND_CONFIG = {
       GET_BY_ID: (id: string) => `/places/${id}`,
       COUNT: '/places/count'
     },
-    // Media endpoints
-    MEDIA: {
-      UPLOAD: '/media/upload',
-      GET: (id: string) => `/media/${id}`,
-      DELETE: (id: string) => `/media/${id}`,
-      COUNT: '/media/count'
-    },
     // Reviews endpoints
     REVIEWS: {
       LIST: '/reviews',
@@ -116,10 +109,6 @@ export const getPlacesUrl = (endpoint: string): string => {
   return getBackendUrl(`/places${endpoint}`);
 };
 
-export const getMediaUrl = (endpoint: string): string => {
-  return getBackendUrl(`/media${endpoint}`);
-};
-
 export const getReviewsUrl = (endpoint: string): string => {
   return getBackendUrl(`/reviews${endpoint}`);
 };
@@ -131,6 +120,5 @@ export const getNotificationsUrl = (endpoint: string): string => {
 // Funciones de conveniencia para endpoints específicos
 export const getAuthEndpoints = () => BACKEND_CONFIG.ENDPOINTS.AUTH;
 export const getPlacesEndpoints = () => BACKEND_CONFIG.ENDPOINTS.PLACES;
-export const getMediaEndpoints = () => BACKEND_CONFIG.ENDPOINTS.MEDIA;
 export const getReviewsEndpoints = () => BACKEND_CONFIG.ENDPOINTS.REVIEWS;
 export const getNotificationsEndpoints = () => BACKEND_CONFIG.ENDPOINTS.NOTIFICATIONS; 

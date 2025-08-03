@@ -74,4 +74,43 @@ export class ConfirmationService {
       type: 'danger'
     });
   }
+
+  /**
+   * Confirmación para activar lugar
+   */
+  confirmActivatePlace(placeName: string): Observable<boolean> {
+    return this.confirm({
+      title: 'Activar Lugar',
+      message: `¿Estás seguro de que quieres activar "${placeName}"? El lugar será visible para los usuarios.`,
+      confirmText: 'Activar',
+      cancelText: 'Cancelar',
+      type: 'info'
+    });
+  }
+
+  /**
+   * Confirmación para desactivar lugar
+   */
+  confirmDeactivatePlace(placeName: string): Observable<boolean> {
+    return this.confirm({
+      title: 'Desactivar Lugar',
+      message: `¿Estás seguro de que quieres desactivar "${placeName}"? El lugar no será visible para los usuarios.`,
+      confirmText: 'Desactivar',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    });
+  }
+
+  /**
+   * Confirmación para eliminar lugar permanentemente
+   */
+  confirmDeletePlace(placeName: string): Observable<boolean> {
+    return this.confirm({
+      title: 'Eliminar Lugar Permanentemente',
+      message: `¿Estás seguro de que quieres eliminar permanentemente "${placeName}"? Esta acción no se puede deshacer y todos los datos asociados al lugar serán eliminados.`,
+      confirmText: 'Eliminar Permanentemente',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+  }
 } 

@@ -12,12 +12,11 @@ class ActivityService {
   static async logActivity(data) {
     try {
       const activity = new Activity({
-        type: data.type,
-        action: data.action,
-        description: data.description,
         userId: data.userId,
-        targetId: data.targetId,
-        targetModel: data.targetModel,
+        action: data.action,
+        details: data.details,
+        resourceType: data.resourceType,
+        resourceId: data.resourceId,
         metadata: data.metadata || {}
       });
 
@@ -34,9 +33,8 @@ class ActivityService {
    */
   static async logLogin(userId, userEmail) {
     return this.logActivity({
-      type: 'login',
       action: 'login',
-      description: `Administrador ${userEmail} inició sesión`,
+      details: `Administrador ${userEmail} inició sesión`,
       userId: userId,
       metadata: { userEmail }
     });
@@ -47,9 +45,8 @@ class ActivityService {
    */
   static async logLogout(userId, userEmail) {
     return this.logActivity({
-      type: 'logout',
       action: 'logout',
-      description: `Administrador ${userEmail} cerró sesión`,
+      details: `Administrador ${userEmail} cerró sesión`,
       userId: userId,
       metadata: { userEmail }
     });
@@ -60,12 +57,11 @@ class ActivityService {
    */
   static async logUserCreated(adminId, newUser) {
     return this.logActivity({
-      type: 'user',
-      action: 'create',
-      description: `Usuario creado: ${newUser.nombre} (${newUser.correo})`,
+      action: 'user',
+      details: `Usuario creado: ${newUser.nombre} (${newUser.correo})`,
       userId: adminId,
-      targetId: newUser._id,
-      targetModel: 'User',
+      resourceType: 'User',
+      resourceId: newUser._id,
       metadata: { 
         userEmail: newUser.correo,
         userRole: newUser.rol 
@@ -78,12 +74,11 @@ class ActivityService {
    */
   static async logUserUpdated(adminId, user, changes) {
     return this.logActivity({
-      type: 'user',
-      action: 'update',
-      description: `Usuario actualizado: ${user.nombre} (${user.correo})`,
+      action: 'user',
+      details: `Usuario actualizado: ${user.nombre} (${user.correo})`,
       userId: adminId,
-      targetId: user._id,
-      targetModel: 'User',
+      resourceType: 'User',
+      resourceId: user._id,
       metadata: { 
         userEmail: user.correo,
         changes: Object.keys(changes)
@@ -96,13 +91,15 @@ class ActivityService {
    */
   static async logUserEnabled(adminId, user) {
     return this.logActivity({
-      type: 'user',
-      action: 'enable',
-      description: `Usuario habilitado: ${user.nombre} (${user.correo})`,
+      action: 'user',
+      details: `Usuario habilitado: ${user.nombre} (${user.correo})`,
       userId: adminId,
-      targetId: user._id,
-      targetModel: 'User',
-      metadata: { userEmail: user.correo }
+      resourceType: 'User',
+      resourceId: user._id,
+      metadata: { 
+        userEmail: user.correo,
+        userRole: user.rol 
+      }
     });
   }
 
@@ -111,13 +108,15 @@ class ActivityService {
    */
   static async logUserDisabled(adminId, user) {
     return this.logActivity({
-      type: 'user',
-      action: 'disable',
-      description: `Usuario deshabilitado: ${user.nombre} (${user.correo})`,
+      action: 'user',
+      details: `Usuario deshabilitado: ${user.nombre} (${user.correo})`,
       userId: adminId,
-      targetId: user._id,
-      targetModel: 'User',
-      metadata: { userEmail: user.correo }
+      resourceType: 'User',
+      resourceId: user._id,
+      metadata: { 
+        userEmail: user.correo,
+        userRole: user.rol 
+      }
     });
   }
 
@@ -126,13 +125,103 @@ class ActivityService {
    */
   static async logUserDeleted(adminId, user) {
     return this.logActivity({
-      type: 'user',
-      action: 'delete',
-      description: `Usuario eliminado: ${user.nombre} (${user.correo})`,
+      action: 'user',
+      details: `Usuario eliminado: ${user.nombre} (${user.correo})`,
       userId: adminId,
-      targetId: user._id,
-      targetModel: 'User',
-      metadata: { userEmail: user.correo }
+      resourceType: 'User',
+      resourceId: user._id,
+      metadata: { 
+        userEmail: user.correo,
+        userRole: user.rol 
+      }
+    });
+  }
+
+  /**
+   * Registrar creación de lugar
+   */
+  static async logPlaceCreated(adminId, place) {
+    return this.logActivity({
+      action: 'place',
+      details: `Lugar creado: ${place.name} (${place.category})`,
+      userId: adminId,
+      resourceType: 'Place',
+      resourceId: place._id,
+      metadata: { 
+        placeName: place.name,
+        placeCategory: place.category,
+        placeLocation: place.location
+      }
+    });
+  }
+
+  /**
+   * Registrar actualización de lugar
+   */
+  static async logPlaceUpdated(adminId, place, changes) {
+    return this.logActivity({
+      action: 'place',
+      details: `Lugar actualizado: ${place.name} (${place.category})`,
+      userId: adminId,
+      resourceType: 'Place',
+      resourceId: place._id,
+      metadata: { 
+        placeName: place.name,
+        placeCategory: place.category,
+        changes: Object.keys(changes)
+      }
+    });
+  }
+
+  /**
+   * Registrar activación de lugar
+   */
+  static async logPlaceActivated(adminId, place) {
+    return this.logActivity({
+      action: 'place',
+      details: `Lugar activado: ${place.name} (${place.category})`,
+      userId: adminId,
+      resourceType: 'Place',
+      resourceId: place._id,
+      metadata: { 
+        placeName: place.name,
+        placeCategory: place.category
+      }
+    });
+  }
+
+  /**
+   * Registrar desactivación de lugar
+   */
+  static async logPlaceDeactivated(adminId, place) {
+    return this.logActivity({
+      action: 'place',
+      details: `Lugar desactivado: ${place.name} (${place.category})`,
+      userId: adminId,
+      resourceType: 'Place',
+      resourceId: place._id,
+      metadata: { 
+        placeName: place.name,
+        placeCategory: place.category
+      }
+    });
+  }
+
+  /**
+   * Registrar eliminación de lugar
+   */
+  static async logPlaceDeleted(adminId, place) {
+    return this.logActivity({
+      action: 'place',
+      details: `Lugar eliminado: ${place.name} (${place.category})`,
+      userId: adminId,
+      resourceType: 'Place',
+      resourceId: place._id,
+      metadata: { 
+        placeName: place.name,
+        placeCategory: place.category,
+        placeLocation: place.location
+      }
     });
   }
 
@@ -143,7 +232,7 @@ class ActivityService {
     try {
       const activities = await Activity.find()
         .populate('userId', 'nombre correo')
-        .sort({ timestamp: -1 })
+        .sort({ createdAt: -1 })
         .limit(limit);
 
       return activities;
@@ -156,11 +245,11 @@ class ActivityService {
   /**
    * Obtener actividades por tipo
    */
-  static async getActivitiesByType(type, limit = 10) {
+  static async getActivitiesByType(action, limit = 10) {
     try {
-      const activities = await Activity.find({ type })
+      const activities = await Activity.find({ action })
         .populate('userId', 'nombre correo')
-        .sort({ timestamp: -1 })
+        .sort({ createdAt: -1 })
         .limit(limit);
 
       return activities;

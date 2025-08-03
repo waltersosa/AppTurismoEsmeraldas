@@ -1,52 +1,38 @@
 import mongoose from 'mongoose';
 
 const activitySchema = new mongoose.Schema({
-  type: {
-    type: String,
-    required: true,
-    enum: ['user', 'place', 'review', 'media', 'notification', 'login', 'logout'],
-    default: 'user'
-  },
-  action: {
-    type: String,
-    required: true,
-    enum: ['create', 'update', 'delete', 'enable', 'disable', 'approve', 'reject', 'login', 'logout'],
-    default: 'create'
-  },
-  description: {
-    type: String,
-    required: true
-  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  targetId: {
-    type: mongoose.Schema.Types.ObjectId,
-    refPath: 'targetModel'
-  },
-  targetModel: {
+  action: {
     type: String,
-    enum: ['User', 'Place', 'Review', 'Media', 'Notification']
+    required: true,
+    enum: ['user', 'place', 'review', 'notification', 'login', 'logout'],
+  },
+  details: {
+    type: String,
+    required: true
+  },
+  resourceType: {
+    type: String,
+    enum: ['User', 'Place', 'Review', 'Notification']
+  },
+  resourceId: {
+    type: mongoose.Schema.Types.ObjectId
   },
   metadata: {
     type: mongoose.Schema.Types.Mixed,
     default: {}
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
   }
 }, {
   timestamps: true
 });
 
-// Índices para mejorar el rendimiento
-activitySchema.index({ type: 1, timestamp: -1 });
-activitySchema.index({ userId: 1, timestamp: -1 });
-activitySchema.index({ timestamp: -1 });
+// Índices para mejorar el rendimiento de consultas
+activitySchema.index({ userId: 1, createdAt: -1 });
+activitySchema.index({ action: 1, createdAt: -1 });
+activitySchema.index({ resourceType: 1, resourceId: 1 });
 
-const Activity = mongoose.model('Activity', activitySchema);
-
-export default Activity; 
+export default mongoose.model('Activity', activitySchema); 

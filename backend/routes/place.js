@@ -13,6 +13,7 @@ router.get('/:id', placeController.getPlaceById);
 // ===== RUTAS ADMINISTRATIVAS (solo ADMIN) =====
 router.post('/', autenticarToken, autorizarAdmin, cleanPlaceData, validatePlace, handleValidationErrors, placeController.createPlace);
 router.put('/:id', autenticarToken, autorizarAdmin, cleanPlaceData, validatePlace, handleValidationErrors, placeController.updatePlace);
+router.patch('/:id/status', autenticarToken, autorizarAdmin, placeController.togglePlaceStatus);
 router.delete('/:id', autenticarToken, autorizarAdmin, placeController.deletePlace);
 
 export default router; 

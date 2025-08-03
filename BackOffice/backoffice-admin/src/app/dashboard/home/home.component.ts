@@ -11,7 +11,6 @@ interface DashboardStats {
   totalUsers: number;
   totalPlaces: number;
   totalReviews: number;
-  totalImages: number;
   recentActivity: any[];
 }
 
@@ -74,20 +73,6 @@ interface DashboardStats {
             </div>
           </mat-card-content>
         </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon images">
-                <mat-icon>photo_library</mat-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-number">{{stats.totalImages}}</div>
-                <div class="stat-label">Imágenes</div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
       </div>
 
       <div class="recent-activity">
@@ -104,11 +89,11 @@ interface DashboardStats {
             <div *ngIf="!isLoading && recentActivity.length > 0" class="activity-list">
               <div *ngFor="let activity of recentActivity" class="activity-item">
                 <div class="activity-icon">
-                  <mat-icon>{{getActivityIcon(activity.type)}}</mat-icon>
+                  <mat-icon>{{getActivityIcon(activity.action)}}</mat-icon>
                 </div>
                 <div class="activity-content">
-                  <div class="activity-text">{{activity.description}}</div>
-                  <div class="activity-time">{{formatDate(activity.timestamp)}}</div>
+                  <div class="activity-text">{{activity.details}}</div>
+                  <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
                   <div class="activity-user" *ngIf="activity.userId?.nombre">
                     Por: {{activity.userId.nombre}}
                   </div>
@@ -194,10 +179,6 @@ interface DashboardStats {
 
     .stat-icon.reviews {
       background: linear-gradient(135deg, #9c27b0, #ba68c8);
-    }
-
-    .stat-icon.images {
-      background: linear-gradient(135deg, #f44336, #ef5350);
     }
 
     .stat-icon mat-icon {
@@ -310,7 +291,6 @@ export class HomeComponent implements OnInit {
     totalUsers: 0,
     totalPlaces: 0,
     totalReviews: 0,
-    totalImages: 0,
     recentActivity: []
   };
   recentActivity: any[] = [];
@@ -379,26 +359,15 @@ export class HomeComponent implements OnInit {
         console.error('Error loading reviews count:', error);
       }
     });
-
-    // Cargar conteo de imágenes
-    this.http.get<{success: boolean, data: {count: number}}>(getBackendUrl('/media/count')).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.stats.totalImages = response.data.count;
-        }
-      },
-      error: (error) => {
-        console.error('Error loading media count:', error);
-      }
-    });
   }
 
-  getActivityIcon(type: string): string {
-    switch (type) {
+  getActivityIcon(action: string): string {
+    switch (action) {
       case 'user': return 'person_add';
       case 'place': return 'location_on';
       case 'review': return 'rate_review';
-      case 'image': return 'photo_library';
+      case 'login': return 'login';
+      case 'logout': return 'logout';
       default: return 'info';
     }
   }

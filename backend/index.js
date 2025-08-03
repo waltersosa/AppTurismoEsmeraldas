@@ -7,7 +7,6 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 import placeRoutes from './routes/place.js';
 import { validatePlace } from './middlewares/placeValidation.js';
 import reviewRoutes from './routes/review.js';
-import mediaRoutes from './routes/media.js';
 import notificationsRoutes from './routes/notifications.js'
 import activityRoutes from './routes/activity.js'
 import User from './models/User.js';
@@ -73,7 +72,6 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/places', placeRoutes);
 app.use('/reviews', reviewRoutes);
-app.use('/media', mediaRoutes);
 app.use('/notifications', notificationsRoutes);
 app.use('/activities', activityRoutes);
 

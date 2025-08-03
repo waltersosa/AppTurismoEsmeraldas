@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClient } from '@angular/common/http';
 import { getBackendUrl } from '../../config/api.config';
 import { PlaceDialogComponent } from './place-dialog.component';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 interface Place {
   _id: string;
@@ -140,6 +141,12 @@ interface PlacesResponse {
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
 
+        <div *ngIf="places.length === 0" class="no-data">
+          <mat-icon>location_off</mat-icon>
+          <p>No hay lugares turísticos registrados</p>
+          <p>Haz clic en "Agregar Lugar" para crear el primer lugar</p>
+        </div>
+
         <mat-paginator 
           [length]="totalItems"
           [pageSize]="pageSize"
@@ -168,6 +175,21 @@ interface PlacesResponse {
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-height: 400px;
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      min-width: 600px;
+    }
+    .mat-mdc-table {
+      width: 100%;
+    }
+    .mat-mdc-header-row {
+      background-color: #f5f5f5;
+    }
+    .mat-mdc-row:hover {
+      background-color: #f9f9f9;
     }
     .status-active {
       color: green;
@@ -176,6 +198,11 @@ interface PlacesResponse {
     .status-inactive {
       color: red;
       font-weight: bold;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
     }
   `]
 })
@@ -192,7 +219,8 @@ export class PlaceComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirmationService: ConfirmationService
   ) { }
 
   ngOnInit(): void {
@@ -213,10 +241,12 @@ export class PlaceComponent implements OnInit {
         if (response.success) {
           this.places = response.data;
           this.totalItems = response.pagination.total;
+        } else {
+          console.error('❌ Respuesta sin éxito:', response);
         }
       },
       error: (error) => {
-        console.error('Error loading places:', error);
+        console.error('❌ Error loading places:', error);
         this.snackBar.open('Error al cargar lugares', 'Cerrar', { duration: 3000 });
       }
     });
@@ -267,31 +297,57 @@ export class PlaceComponent implements OnInit {
 
   toggleStatus(place: Place): void {
     const newStatus = !place.active;
-    this.http.patch(getBackendUrl(`/places/${place._id}/status`), { active: newStatus }).subscribe({
-      next: (response) => {
-        this.snackBar.open(`Lugar ${newStatus ? 'activado' : 'desactivado'} exitosamente`, 'Cerrar', { duration: 3000 });
-        this.loadPlaces();
-      },
-      error: (error) => {
-        console.error('Error toggling place status:', error);
-        this.snackBar.open('Error al cambiar estado del lugar', 'Cerrar', { duration: 3000 });
-      }
-    });
-  }
-
-  deletePlace(place: Place): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar "${place.name}"?`)) {
-      this.http.delete(getBackendUrl(`/places/${place._id}`)).subscribe({
-        next: (response) => {
-          this.snackBar.open('Lugar eliminado exitosamente', 'Cerrar', { duration: 3000 });
-          this.loadPlaces();
-        },
-        error: (error) => {
-          console.error('Error deleting place:', error);
-          this.snackBar.open('Error al eliminar lugar', 'Cerrar', { duration: 3000 });
+    
+    if (newStatus) {
+      // Activar lugar
+      this.confirmationService.confirmActivatePlace(place.name).subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          this.http.patch(getBackendUrl(`/places/${place._id}/status`), { active: newStatus }).subscribe({
+            next: (response) => {
+              this.snackBar.open('Lugar activado exitosamente', 'Cerrar', { duration: 3000 });
+              this.loadPlaces();
+            },
+            error: (error) => {
+              console.error('Error toggling place status:', error);
+              this.snackBar.open('Error al activar lugar', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      });
+    } else {
+      // Desactivar lugar
+      this.confirmationService.confirmDeactivatePlace(place.name).subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          this.http.patch(getBackendUrl(`/places/${place._id}/status`), { active: newStatus }).subscribe({
+            next: (response) => {
+              this.snackBar.open('Lugar desactivado exitosamente', 'Cerrar', { duration: 3000 });
+              this.loadPlaces();
+            },
+            error: (error) => {
+              console.error('Error toggling place status:', error);
+              this.snackBar.open('Error al desactivar lugar', 'Cerrar', { duration: 3000 });
+            }
+          });
         }
       });
     }
+  }
+
+  deletePlace(place: Place): void {
+    this.confirmationService.confirmDeletePlace(place.name).subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(getBackendUrl(`/places/${place._id}`)).subscribe({
+          next: (response) => {
+            this.snackBar.open('Lugar eliminado exitosamente', 'Cerrar', { duration: 3000 });
+            this.loadPlaces();
+          },
+          error: (error) => {
+            console.error('Error deleting place:', error);
+            this.snackBar.open('Error al eliminar lugar', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   editPlace(place: Place): void {
