@@ -1,5 +1,5 @@
 import Notification from '../models/Notification.js';
-import { connectSocketServer, notifyAll, enviarNotificacion } from '../utils/socketClient.js';
+//import { connectSocketServer, notifyAll, enviarNotificacion } from '../utils/socketClient.js';
 
 export const createNotification = (data) => Notification.create(data);
 
@@ -21,7 +21,7 @@ export const deleteNotification = (id) =>
 
 export const getNotificationsCount = () =>
   Notification.countDocuments();
-
+/*
 export const sendNotification = async (id) => {
   console.log('Enviando notificación:', id);
 
@@ -45,7 +45,7 @@ export const sendNotification = async (id) => {
         message: notificationSelected.message,
         notification: notificationSelected
       });*/
-    enviarNotificacion(notificationSelected.title, notificationSelected.message);
+  /*  enviarNotificacion(notificationSelected.title, notificationSelected.message);
   } catch (error) {
     console.error('No se pudo establecerla conexión al servidor:', error);
   }
@@ -66,4 +66,4 @@ export const sendNotificationToSingleUser = async (userId, notiId) => {
   } catch (error) {
     console.error('No se pudo establecer conexión', error)
   }
-}
+}*/

@@ -86,12 +86,12 @@ export class SocketService {
   }
 
   public getUserNotifications(): Observable<any> {
-    const url = `http://localhost:3001/notifications/null/`;
+    const url = `http://localhost:3001/notifications/admin`;
     return this.http.get<any>(url);
   }
 
   public createNotification(notificacion: any): Observable<any> {
-    console.log('Hola soy la función createNotification, estos son los datos que estoy recibiendo', notificacion)
+    //console.log('Hola soy la función createNotification, estos son los datos que estoy recibiendo', notificacion)
     const url = `http://localhost:3001/notifications/`;
     return this.http.post<any>(url, notificacion);
   }

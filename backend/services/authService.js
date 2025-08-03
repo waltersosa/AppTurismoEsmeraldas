@@ -1,5 +1,5 @@
 import userRepository from '../repositories/userRepository.js';
-import { generarToken, generarPayload } from '../utils/jwt.js';
+import { generarToken, generarPayload, generarEmail } from '../utils/jwt.js';
 
 export class AuthService {
   /**
@@ -16,10 +16,13 @@ export class AuthService {
 
     // Crear el usuario
     const usuario = await userRepository.crearUsuario(userData);
-    
+
     // Generar token
     const payload = generarPayload(usuario);
     const token = generarToken(payload);
+
+    //Enviar correo de Bienvenida
+    generarEmail(usuario)
 
     return {
       usuario: {
@@ -83,11 +86,11 @@ export class AuthService {
    */
   async validarToken(token) {
     const { verificarToken } = await import('../utils/jwt.js');
-    
+
     try {
       // Verificar token
       const payload = verificarToken(token);
-      
+
       // Buscar usuario en la base de datos
       const usuario = await userRepository.buscarPorId(payload.id);
       if (!usuario) {

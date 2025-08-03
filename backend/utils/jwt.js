@@ -1,5 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { config } from '../config/config.js';
+import { createEmailTransporter } from './mailTransporter.js';
+import dotenv from 'dotenv';
+import fs from 'fs/promises'
+import path from 'path';
+dotenv.config();
 
 /**
  * Genera un token JWT para un usuario
@@ -56,4 +61,29 @@ export const generarPayload = (user) => {
     iat: Math.floor(Date.now() / 1000)
     // No incluir 'exp' aquí, se maneja automáticamente con expiresIn
   };
-}; 
+};
+/**
+ * Función que envia el email de notificación al
+ * usuario recién registrado
+ * @param {Object} user - El usuario que se acaba de resgistrar 
+ */
+export const generarEmail = async (user) => {
+  const transporter = createEmailTransporter();
+
+//Llamamos al archivo html que se enviará por correo.
+  const filePath = path.resolve('./utils/emailsHTML/welcome.html'); 
+ let htmlTemplate = await fs.readFile(filePath, { encoding: 'utf-8' });
+
+
+ //Pasamos el nombre del usuario al archivo html
+htmlTemplate = htmlTemplate.replace(/{{name}}/g, user.nombre); 
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: user.correo,
+    subject: 'Le damos la bienvenida a mi app',
+    html: htmlTemplate,
+  });
+}
+
+
