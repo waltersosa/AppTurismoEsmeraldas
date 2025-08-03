@@ -1,16 +1,36 @@
 import Notification from '../models/Notification.js';
 import { connectSocketServer, notifyAll, enviarNotificacion } from '../utils/socketClient.js';
+import mongoose from 'mongoose';
 
-export const createNotification = (data) => Notification.create(data);
+export const createNotification = (data) => {
+  // Si userId es null, undefined, o cadena vacía, establecerlo como null explícitamente
+  if (!data.userId || data.userId === '' || data.userId === 'null') {
+    data.userId = null;
+  }
+  
+  return Notification.create(data);
+};
 
-export const getNotificationsByUser = (userId) =>
-  Notification.find({ userId }).sort({ createdAt: -1 });
+export const getNotificationsByUser = (userId) => {
+  // Si userId está vacío o no es válido, retornar array vacío
+  if (!userId || userId === '' || userId === 'null' || userId === 'undefined') {
+    return Promise.resolve([]);
+  }
+  
+  // Verificar si userId es un ObjectId válido
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return Promise.resolve([]);
+  }
+  
+  return Notification.find({ userId }).sort({ createdAt: -1 });
+};
 
 export const getNotificationById = (id) =>
   Notification.findById(id);
 
 export const getAdminNotifications = async () => {
-  return await Notification.find({ userId: null }).sort({ createdAt: -1 });
+  const notifications = await Notification.find({ userId: null }).sort({ createdAt: -1 });
+  return notifications;
 };
 
 export const markAsRead = (id) =>

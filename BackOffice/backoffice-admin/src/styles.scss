@@ -86,3 +86,133 @@ textarea,
   color: #000 !important;
   caret-color: #000 !important;
 }
+
+/* ===== ARREGLAR SUPERPOSICIÓN DE TEXTO ===== */
+
+/* Asegurar que los campos de formulario tengan z-index correcto */
+.mat-mdc-form-field {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.mat-mdc-text-field-wrapper {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.mat-mdc-form-field-focus-overlay {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.mat-mdc-form-field-error-wrapper {
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+/* Asegurar que los inputs y textareas no se superpongan */
+.mat-mdc-input-element {
+  position: relative !important;
+  z-index: 2 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+/* Asegurar que los placeholders sean legibles */
+.mat-mdc-input-element::placeholder {
+  color: rgba(0, 0, 0, 0.38) !important;
+  font-size: 14px !important;
+  font-family: 'Roboto', sans-serif !important;
+  opacity: 1 !important;
+}
+
+/* Asegurar que las etiquetas sean legibles */
+.mat-mdc-form-field-label {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Asegurar que los errores sean legibles */
+.mat-mdc-form-field-error {
+  font-size: 12px !important;
+  color: #f44336 !important;
+  font-weight: 500 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Asegurar que los diálogos tengan z-index correcto */
+.cdk-overlay-pane {
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+.mat-mdc-dialog-container {
+  position: relative !important;
+  z-index: 1001 !important;
+}
+
+/* Asegurar que los selects no se superpongan */
+.mat-mdc-select {
+  position: relative !important;
+  z-index: 2 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 14px !important;
+}
+
+.mat-mdc-select-value {
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* Asegurar que las opciones del select sean legibles */
+.mat-mdc-option {
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 14px !important;
+  position: relative !important;
+  z-index: 1002 !important;
+}
+
+/* Asegurar que los iconos en las opciones sean visibles */
+.mat-mdc-option mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-right: 8px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Asegurar que los chips sean legibles */
+.mat-mdc-chip {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Asegurar que los botones tengan z-index correcto */
+.mat-mdc-button,
+.mat-mdc-raised-button {
+  position: relative !important;
+  z-index: 1 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Asegurar que los iconos en botones sean visibles */
+.mat-mdc-button mat-icon,
+.mat-mdc-raised-button mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-right: 4px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
