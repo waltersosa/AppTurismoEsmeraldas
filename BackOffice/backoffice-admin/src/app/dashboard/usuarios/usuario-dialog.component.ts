@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 export interface UsuarioDialogData {
   user?: any;
@@ -22,7 +23,8 @@ export interface UsuarioDialogData {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatOptionModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data.editMode ? 'Editar Usuario' : 'Agregar Usuario' }}</h2>
@@ -39,6 +41,16 @@ export interface UsuarioDialogData {
         <mat-form-field appearance="outline" color="primary">
           <mat-label>Contraseña</mat-label>
           <input matInput formControlName="contraseña" required type="password" />
+          <mat-hint>Mínimo 6 caracteres, incluir mayúscula, minúscula y número</mat-hint>
+          <mat-error *ngIf="userForm.get('contraseña')?.hasError('required')">
+            La contraseña es requerida
+          </mat-error>
+          <mat-error *ngIf="userForm.get('contraseña')?.hasError('minlength')">
+            La contraseña debe tener al menos 6 caracteres
+          </mat-error>
+          <mat-error *ngIf="userForm.get('contraseña')?.hasError('pattern')">
+            La contraseña debe contener mayúscula, minúscula y número
+          </mat-error>
         </mat-form-field>
       </ng-container>
       <mat-form-field appearance="outline" color="primary">
@@ -46,7 +58,7 @@ export interface UsuarioDialogData {
         <mat-select formControlName="rol" required>
           <mat-option value="usuario">Usuario</mat-option>
           <mat-option value="propietario">Propietario</mat-option>
-          <mat-option value="gad">GAD</mat-option>
+          <mat-option value="admin">Administrador</mat-option>
         </mat-select>
       </mat-form-field>
       <div class="modal-actions">
@@ -117,7 +129,11 @@ export class UsuarioDialogComponent {
     this.userForm = this.fb.group({
       nombre: [data.user?.nombre || '', Validators.required],
       correo: [data.user?.correo || '', [Validators.required, Validators.email]],
-      contraseña: ['', data.editMode ? [] : [Validators.required]],
+      contraseña: ['', data.editMode ? [] : [
+        Validators.required, 
+        Validators.minLength(6),
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+      ]],
       rol: [data.user?.rol || '', Validators.required]
     });
   }

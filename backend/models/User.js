@@ -25,8 +25,8 @@ const userSchema = new mongoose.Schema({
   rol: {
     type: String,
     enum: {
-      values: ['usuario', 'propietario', 'gad'],
-      message: 'El rol debe ser: usuario, propietario o gad'
+      values: ['usuario', 'propietario', 'admin'],
+      message: 'El rol debe ser: usuario, propietario o admin'
     },
     default: 'usuario'
   },

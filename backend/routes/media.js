@@ -1,7 +1,7 @@
 import express from 'express';
-import { upload } from '../middlewares/mediaValidation.js';
 import * as mediaController from '../controllers/mediaController.js';
-import { autenticarToken, autorizarGAD } from '../middlewares/auth.js';
+import { autenticarToken, autorizarAdmin } from '../middlewares/auth.js';
+import { upload } from '../middlewares/mediaValidation.js';
 
 const router = express.Router();
 
@@ -19,12 +19,13 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Rutas públicas (solo lectura)
-router.get('/place/:placeId', mediaController.getMediaByPlace);
+// ===== RUTAS PÚBLICAS =====
 router.get('/file/:filename', mediaController.getMedia);
+router.get('/place/:placeId', mediaController.getMediaByPlace);
+router.get('/count', mediaController.getMediaCount);
 
-// Rutas protegidas (solo GAD)
-router.post('/upload', autenticarToken, autorizarGAD, upload.array('files', 10), mediaController.uploadMedia);
-router.delete('/:mediaId', autenticarToken, autorizarGAD, mediaController.deleteMedia);
+// ===== RUTAS ADMINISTRATIVAS (solo ADMIN) =====
+router.post('/upload', autenticarToken, autorizarAdmin, upload.array('files', 10), mediaController.uploadMedia);
+router.delete('/:mediaId', autenticarToken, autorizarAdmin, mediaController.deleteMedia);
 
 export default router; 

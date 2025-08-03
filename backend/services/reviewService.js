@@ -20,7 +20,7 @@ export const getReviewsByPlace = async (lugarId, { page = 1, limit = 10, sortBy 
   return { data, total };
 };
 
-// Para administradores: listado filtrable y paginado
+// Para admin: listado filtrable y paginado
 export const getReviewsAdmin = async ({ 
   page = 1, 
   limit = 10, 
@@ -61,4 +61,9 @@ export const deleteReview = (id) => Review.findByIdAndDelete(id);
 // Verificar si un usuario ya ha reseñado un lugar
 export const checkUserReviewExists = (lugarId, usuarioId) => {
   return Review.findOne({ lugarId, usuarioId });
+};
+
+// Obtener conteo de reseñas
+export const getReviewsCount = async () => {
+  return await Review.countDocuments();
 }; 

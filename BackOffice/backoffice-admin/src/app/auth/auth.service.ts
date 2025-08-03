@@ -1,144 +1,192 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { getAuthServiceUrl } from '../config/api.config';
+import { getAuthUrl, getBackendUrl } from '../config/api.config';
 
 export interface User {
-  id: string;
+  _id?: string;
   nombre: string;
   correo: string;
-  rol: 'admin' | 'usuario' | 'gad';
-  fechaCreacion: string;
+  rol: 'usuario' | 'propietario' | 'admin';
+  activo: boolean;
+  fechaCreacion?: Date;
+  ultimoAcceso?: Date;
 }
 
-export interface LoginResponse {
+export interface LoginCredentials {
+  correo: string;
+  contraseña: string;
+}
+
+export interface RegisterData {
+  nombre: string;
+  correo: string;
+  contraseña: string;
+  rol: string;
+}
+
+export interface AuthResponse {
   success: boolean;
   message: string;
-  token?: string;
-  user?: User;
   data?: {
     usuario: User;
     token: string;
   };
 }
 
-@Injectable({ providedIn: 'root' })
-export class AuthService {
+export interface UsersResponse {
+  success: boolean;
+  data: User[];
+}
 
-  private http = inject(HttpClient);
-  private router = inject(Router);
-  
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient, private router: Router) {
     this.loadUserFromStorage();
   }
 
-  login(credentials: { correo: string; contraseña: string }): Observable<LoginResponse> {
-    return this.http.post<any>(getAuthServiceUrl('/auth/login'), credentials)
-      .pipe(
-        tap(response => {
-          if (response.success || response.message === 'Login exitoso') {
-            const user = response.user || response.data?.usuario || response.user;
-            const token = response.token || response.data?.token || response.token;
-            if (user && token) {
-              localStorage.setItem('token', token);
-              localStorage.setItem('user', JSON.stringify(user));
-              this.currentUserSubject.next(user);
-            }
-          }
-        })
-      );
+  /**
+   * Login local para administradores del BackOffice
+   */
+  login(credentials: LoginCredentials): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(getAuthUrl('/login'), credentials).pipe(
+      tap((response: AuthResponse) => {
+        if (response.success && response.data?.usuario) {
+          this.setUserAndToken(response.data.usuario, response.data.token);
+        }
+      })
+    );
   }
 
-  register(userData: { nombre: string; correo: string; contraseña: string; rol?: string }): Observable<any> {
-    return this.http.post<any>(getAuthServiceUrl('/auth/register'), userData);
+  /**
+   * Registrar usuario solo en base local
+   */
+  register(userData: RegisterData): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(getAuthUrl('/register'), userData).pipe(
+      tap((response: AuthResponse) => {
+        if (response.success && response.data?.usuario) {
+          this.setUserAndToken(response.data.usuario, response.data.token);
+        }
+      })
+    );
   }
 
-  logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    this.currentUserSubject.next(null);
-    this.router.navigate(['/auth/login']);
+  /**
+   * Establecer usuario y token en localStorage
+   */
+  private setUserAndToken(user: User, token: string): void {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    localStorage.setItem('token', token);
+    this.currentUserSubject.next(user);
   }
 
-  isAuthenticated(): boolean {
-    const token = localStorage.getItem('token');
-    return !!token && !this.isTokenExpired(token);
+  /**
+   * Cargar usuario desde localStorage
+   */
+  private loadUserFromStorage(): void {
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      this.currentUserSubject.next(user);
+    }
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
-  }
-
+  /**
+   * Obtener usuario actual
+   */
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    return user?.rol === role;
+  /**
+   * Obtener token
+   */
+  getToken(): string | null {
+    return localStorage.getItem('token');
   }
 
-  isAdmin(): boolean {
-    return this.hasRole('admin');
-  }
-
-  isGad(): boolean {
-    return this.hasRole('gad');
-  }
-
+  /**
+   * Verificar si el usuario puede acceder al BackOffice
+   */
   canAccessBackOffice(): boolean {
     const user = this.getCurrentUser();
-    return user?.rol === 'gad' || user?.rol === 'admin';
+    return user ? (user.rol === 'admin') : false;
   }
 
-  private loadUserFromStorage(): void {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        this.currentUserSubject.next(user);
-      } catch (error) {
-        console.error('Error parsing user from storage:', error);
-        this.logout();
-      }
+  /**
+   * Cerrar sesión
+   */
+  logout(): void {
+    const currentUser = this.getCurrentUser();
+    
+    // Registrar logout en el backend si hay usuario
+    if (currentUser && currentUser._id) {
+      this.http.post(getAuthUrl('/logout'), {}, {
+        headers: { 'Authorization': `Bearer ${this.getToken()}` }
+      }).subscribe({
+        next: () => console.log('Logout registrado en el backend'),
+        error: (error) => console.error('Error al registrar logout:', error)
+      });
     }
+    
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('token');
+    this.currentUserSubject.next(null);
+    this.router.navigate(['/auth/login']);
   }
 
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 < Date.now();
-    } catch (error) {
-      return true;
-    }
+  /**
+   * Verificar si está autenticado
+   */
+  isAuthenticated(): boolean {
+    return !!this.getToken();
   }
 
+  /**
+   * Validar token
+   */
   validateToken(): Observable<any> {
-    return this.http.get<any>(getAuthServiceUrl('/auth/validate'));
+    return this.http.get<any>(getAuthUrl('/validate'));
   }
 
-  // Métodos para gestión de usuarios (solo para GAD)
-  getUsers(): Observable<any> {
-    return this.http.get<any>(getAuthServiceUrl('/auth/users'));
+  /**
+   * Obtener todos los usuarios (solo admin)
+   */
+  getUsers(): Observable<UsersResponse> {
+    return this.http.get<UsersResponse>(getAuthUrl('/users'));
   }
 
-  createUser(userData: any): Observable<any> {
-    return this.http.post<any>(getAuthServiceUrl('/auth/register'), userData);
+  /**
+   * Crear usuario (solo admin)
+   */
+  createUser(userData: RegisterData): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(getAuthUrl('/users'), userData);
   }
 
-  updateUser(userId: string, userData: any): Observable<any> {
-    return this.http.put<any>(getAuthServiceUrl(`/auth/users/${userId}`), userData);
+  /**
+   * Actualizar usuario (solo admin)
+   */
+  updateUser(userId: string, userData: Partial<User>): Observable<any> {
+    return this.http.put<any>(getAuthUrl(`/users/${userId}`), userData);
   }
 
+  /**
+   * Eliminar usuario (solo admin)
+   */
   deleteUser(userId: string): Observable<any> {
-    return this.http.delete<any>(getAuthServiceUrl(`/auth/users/${userId}`));
+    return this.http.delete<any>(getAuthUrl(`/users/${userId}`));
   }
 
-  getUsersCount(): Observable<any> {
-    return this.http.get<any>(getAuthServiceUrl('/auth/users/count'));
+  /**
+   * Obtener conteo de usuarios
+   */
+  getUsersCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(getAuthUrl('/users/count'));
   }
 } 

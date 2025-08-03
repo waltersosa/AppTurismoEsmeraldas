@@ -206,13 +206,20 @@ export class DashboardComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
+    // Obtener usuario actual
+    this.currentUser = this.authService.getCurrentUser();
   }
 
   logout(): void {
-    this.authService.logout();
+    // Mostrar mensaje de confirmación
+    this.snackBar.open('Cerrando sesión...', 'Cerrar', {
+      duration: 2000
+    });
+    
+    // Pequeño delay para que se vea el mensaje
+    setTimeout(() => {
+      this.authService.logout();
+    }, 500);
   }
 
   mostrarMensajeProximamente() {

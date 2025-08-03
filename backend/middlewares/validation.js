@@ -36,8 +36,8 @@ export const validarRegistro = [
   
   body('rol')
     .optional()
-    .isIn(['usuario', 'propietario', 'gad'])
-    .withMessage('El rol debe ser: usuario, propietario o gad'),
+    .isIn(['usuario', 'propietario', 'admin'])
+    .withMessage('El rol debe ser: usuario, propietario o admin'),
   
   manejarErroresValidacion
 ];
@@ -95,8 +95,8 @@ export const validarActualizacionPerfil = [
   
   body('rol')
     .optional()
-    .isIn(['usuario', 'propietario', 'gad'])
-    .withMessage('El rol debe ser: usuario, propietario o gad'),
+    .isIn(['usuario', 'propietario', 'admin'])
+    .withMessage('El rol debe ser: usuario, propietario o admin'),
   
   manejarErroresValidacion
 ]; 

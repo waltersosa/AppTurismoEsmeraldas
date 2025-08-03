@@ -10,6 +10,7 @@ export class AuthGuard {
 
   canActivate(): boolean {
     console.log('Guard: usuario actual', this.authService.getCurrentUser());
+    
     if (this.authService.isAuthenticated()) {
       // Verificar si el usuario tiene acceso al BackOffice
       if (this.authService.canAccessBackOffice()) {
@@ -17,9 +18,11 @@ export class AuthGuard {
       } else {
         // Usuario autenticado pero sin permisos para BackOffice
         this.authService.logout();
+        this.router.navigate(['/auth/login']);
         return false;
       }
     } else {
+      // Usuario no autenticado
       this.router.navigate(['/auth/login']);
       return false;
     }

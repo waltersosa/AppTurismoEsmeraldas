@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService, User } from '../../auth/auth.service';
 import { SocketService } from './notificationsService';
@@ -35,6 +36,7 @@ export interface Notification {
     MatInputModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatOptionModule,
     MatSnackBarModule,
   ],
   template: `
@@ -120,12 +122,11 @@ export class NotificationsComponent implements OnInit {
   ngOnInit(): void {
     this.socketService.inicializador();
 
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      if (user) {
-        this.cargarNotificaciones();
-      }
-    });
+    // Obtener usuario actual
+    this.currentUser = this.authService.getCurrentUser();
+    if (this.currentUser) {
+      this.cargarNotificaciones();
+    }
   }
 
 

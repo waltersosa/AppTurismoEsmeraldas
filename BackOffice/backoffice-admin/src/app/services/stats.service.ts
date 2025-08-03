@@ -1,172 +1,84 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { getStatsServiceUrl } from '../config/api.config';
+import { getBackendUrl } from '../config/api.config';
 
 export interface StatsOverview {
-  usuarios: number;
-  lugares: number;
-  resenas: number;
-  imagenes: number;
-}
-
-export interface ServiceHealth {
-  service: string;
-  url: string;
-  port: number;
-  status: 'online' | 'offline';
-  responseTime: string;
-  statusCode: number | string;
-  timestamp: string;
-  data?: any;
-  error?: string;
+  success: boolean;
+  data: {
+    totalUsers: number;
+    totalPlaces: number;
+    totalReviews: number;
+    totalImages: number;
+    recentActivity: any[];
+  };
 }
 
 export interface HealthOverview {
-  overall: {
+  success: boolean;
+  data: {
     status: 'healthy' | 'degraded' | 'unhealthy';
-    onlineServices: number;
-    totalServices: number;
-    uptime: string;
-    timestamp: string;
+    services: {
+      [key: string]: {
+        status: 'online' | 'offline' | 'error';
+        uptime: number;
+        memory: number;
+        connections: number;
+      };
+    };
   };
-  services: ServiceHealth[];
 }
 
 export interface SimpleHealth {
+  success: boolean;
   status: 'healthy' | 'degraded' | 'unhealthy';
-  online: number;
-  total: number;
-  timestamp: string;
-  services: Array<{
-    name: string;
-    status: 'online' | 'offline';
-    port: number;
-  }>;
+  servicesOnline: number;
+  totalServices: number;
 }
 
-@Injectable({ providedIn: 'root' })
+export interface ServiceHealth {
+  success: boolean;
+  data: {
+    status: 'online' | 'offline' | 'error';
+    uptime: number;
+    memory: number;
+    connections: number;
+  };
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class StatsService {
-  private http = inject(HttpClient);
+  constructor(private http: HttpClient) { }
 
-  // Obtener estadísticas generales
-  getStatsOverview(): Observable<StatsOverview> {
-    return this.http.get<StatsOverview>(getStatsServiceUrl('/stats/overview'));
+  // Obtener health check completo
+  getHealthOverview(): Observable<HealthOverview> {
+    return this.http.get<HealthOverview>(getBackendUrl('/health'));
   }
 
-  // Obtener health check completo de todos los servicios
-  getAllServicesHealth(): Observable<HealthOverview> {
-    return this.http.get<HealthOverview>(getStatsServiceUrl('/health'));
+  // Obtener métricas de usuarios
+  getUsersStats(): Observable<any> {
+    return this.http.get<any>(getBackendUrl('/auth/users/count'));
   }
 
-  // Obtener health check simplificado
-  getSimpleHealth(): Observable<SimpleHealth> {
-    return this.http.get<SimpleHealth>(getStatsServiceUrl('/health/simple'));
+  // Obtener métricas de lugares
+  getPlacesStats(): Observable<any> {
+    return this.http.get<any>(getBackendUrl('/places/count'));
   }
 
-  // Obtener health check de un servicio específico
-  getServiceHealth(serviceName: string): Observable<ServiceHealth> {
-    return this.http.get<ServiceHealth>(getStatsServiceUrl(`/health/${serviceName}`));
+  // Obtener métricas de reseñas
+  getReviewsStats(): Observable<any> {
+    return this.http.get<any>(getBackendUrl('/reviews/count'));
   }
 
-  // Verificar si todos los servicios están funcionando
-  isSystemHealthy(): Observable<boolean> {
-    return new Observable(observer => {
-      this.getSimpleHealth().subscribe({
-        next: (health) => {
-          observer.next(health.status === 'healthy');
-          observer.complete();
-        },
-        error: () => {
-          observer.next(false);
-          observer.complete();
-        }
-      });
-    });
+  // Obtener métricas de imágenes
+  getMediaStats(): Observable<any> {
+    return this.http.get<any>(getBackendUrl('/media/count'));
   }
 
-  // Obtener servicios offline
-  getOfflineServices(): Observable<ServiceHealth[]> {
-    return new Observable(observer => {
-      this.getAllServicesHealth().subscribe({
-        next: (health) => {
-          const offlineServices = health.services.filter(service => service.status === 'offline');
-          observer.next(offlineServices);
-          observer.complete();
-        },
-        error: () => {
-          observer.next([]);
-          observer.complete();
-        }
-      });
-    });
-  }
-
-  // Obtener tiempo de respuesta promedio
-  getAverageResponseTime(): Observable<number> {
-    return new Observable(observer => {
-      this.getAllServicesHealth().subscribe({
-        next: (health) => {
-          const onlineServices = health.services.filter(service => service.status === 'online');
-          if (onlineServices.length === 0) {
-            observer.next(0);
-            observer.complete();
-            return;
-          }
-
-          const totalTime = onlineServices.reduce((sum, service) => {
-            const timeMs = parseInt(service.responseTime.replace('ms', ''));
-            return sum + (isNaN(timeMs) ? 0 : timeMs);
-          }, 0);
-
-          observer.next(totalTime / onlineServices.length);
-          observer.complete();
-        },
-        error: () => {
-          observer.next(0);
-          observer.complete();
-        }
-      });
-    });
-  }
-
-  // Obtener health check real de todos los servicios
-  getHealthOverview(): Observable<any> {
-    return this.http.get<any>(getStatsServiceUrl('/health/overview'));
-  }
-
-  // Detener un servicio
-  stopService(name: string): Observable<any> {
-    return this.http.post(getStatsServiceUrl(`/service/${name}/stop`), {});
-  }
-
-  // Iniciar un servicio
-  startService(name: string): Observable<any> {
-    return this.http.post(getStatsServiceUrl(`/service/${name}/start`), {});
-  }
-
-  // Reiniciar un servicio
-  restartService(name: string): Observable<any> {
-    return this.http.post(getStatsServiceUrl(`/service/${name}/restart`), {});
-  }
-
-  // Obtener información de todos los servicios
-  getServicesInfo(): Observable<any> {
-    return this.http.get<any>(getStatsServiceUrl('/service'));
-  }
-
-  // Obtener estado de un servicio específico
-  getServiceStatus(name: string): Observable<any> {
-    return this.http.get<any>(getStatsServiceUrl(`/service/${name}/status`));
-  }
-
-  // Detener todos los servicios excepto auth y stats
-  stopAllServices(): Observable<any> {
-    return this.http.post(getStatsServiceUrl('/service/stopAll'), {});
-  }
-
-  // Iniciar todos los servicios excepto auth y stats
-  startAllServices(): Observable<any> {
-    return this.http.post(getStatsServiceUrl('/service/startAll'), {});
+  // Obtener actividades recientes
+  getRecentActivity(): Observable<any> {
+    return this.http.get<any>(getBackendUrl('/activities/recent'));
   }
 } 

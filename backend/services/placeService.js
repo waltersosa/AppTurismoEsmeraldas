@@ -111,4 +111,8 @@ export const updatePlace = async (id, body) => {
   return place;
 };
 
-export const deletePlace = (id) => Place.findByIdAndDelete(id); 
+export const deletePlace = (id) => Place.findByIdAndDelete(id);
+
+export const getPlacesCount = async () => {
+  return await Place.countDocuments();
+}; 

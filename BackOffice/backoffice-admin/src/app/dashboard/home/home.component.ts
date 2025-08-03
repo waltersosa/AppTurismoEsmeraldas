@@ -1,20 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatGridListModule } from '@angular/material/grid-list';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { HttpClient } from '@angular/common/http';
-import { MatDialog } from '@angular/material/dialog';
-import { UsuarioDialogComponent } from '../usuarios/usuario-dialog.component';
-import { Router } from '@angular/router';
-import { PlaceDialogComponent } from '../place/place-dialog.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { StatsService, StatsOverview, SimpleHealth } from '../../services/stats.service';
-import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config';
+import { MatButtonModule } from '@angular/material/button';
+import { getBackendUrl } from '../../config/api.config';
+
+interface DashboardStats {
+  totalUsers: number;
+  totalPlaces: number;
+  totalReviews: number;
+  totalImages: number;
+  recentActivity: any[];
+}
 
 @Component({
   selector: 'app-home',
@@ -23,68 +22,17 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
     CommonModule,
     MatCardModule,
     MatIconModule,
-    MatButtonModule,
-    MatGridListModule,
-    MatDividerModule,
-    MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatButtonModule
   ],
   template: `
     <div class="home-container">
       <div class="welcome-section">
-        <h1>Bienvenido al Panel GAD</h1>
-        <p>Gestiona la plataforma de turismo de Esmeraldas desde el Gobierno Autónomo Descentralizado</p>
+        <h1>Bienvenido al Panel de Administración</h1>
+        <p>Gobierno Autónomo Descentralizado de Esmeraldas</p>
       </div>
 
-      <!-- Health Check Status -->
-      <div class="health-status-section">
-        <h2>Estado del Sistema</h2>
-        <div class="health-grid">
-          <mat-card class="health-card">
-            <mat-card-content>
-              <div class="health-content">
-                <div class="health-icon" [ngClass]="healthStatus.status">
-                  <mat-icon>{{ getHealthIcon(healthStatus.status) }}</mat-icon>
-                </div>
-                <div class="health-info">
-                  <h3>{{ healthStatus.status.toUpperCase() }}</h3>
-                  <p>{{ healthStatus.online }}/{{ healthStatus.total }} servicios online</p>
-                  <mat-chip-set>
-                    <mat-chip [color]="healthStatus.status === 'healthy' ? 'primary' : 'warn'" selected>
-                      {{ healthStatus.status === 'healthy' ? 'Sistema Operativo' : 'Problemas Detectados' }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </div>
-
-      <!-- Statistics -->
-      <div *ngIf="loading" class="stats-grid">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div style="text-align: center; padding: 20px;">
-              <mat-spinner diameter="40"></mat-spinner>
-              <p style="margin-top: 10px;">Cargando estadísticas...</p>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-      
-      <div *ngIf="error" class="stats-grid">
-        <mat-card class="stat-card error">
-          <mat-card-content>
-            <div style="text-align: center; padding: 20px; color: #f44336;">
-              <mat-icon style="font-size: 48px; margin-bottom: 10px;">error</mat-icon>
-              <p>{{ error }}</p>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-      
-      <div *ngIf="!loading && !error" class="stats-grid">
+      <div class="stats-grid">
         <mat-card class="stat-card">
           <mat-card-content>
             <div class="stat-content">
@@ -92,8 +40,8 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
                 <mat-icon>people</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>{{ stats.usuarios }}</h3>
-                <p>Usuarios Registrados</p>
+                <div class="stat-number">{{stats.totalUsers}}</div>
+                <div class="stat-label">Usuarios Registrados</div>
               </div>
             </div>
           </mat-card-content>
@@ -102,12 +50,12 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
         <mat-card class="stat-card">
           <mat-card-content>
             <div class="stat-content">
-              <div class="stat-icon destinations">
-                <mat-icon>place</mat-icon>
+              <div class="stat-icon places">
+                <mat-icon>location_on</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>{{ stats.lugares }}</h3>
-                <p>Destinos Activos</p>
+                <div class="stat-number">{{stats.totalPlaces}}</div>
+                <div class="stat-label">Lugares Turísticos</div>
               </div>
             </div>
           </mat-card-content>
@@ -116,12 +64,12 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
         <mat-card class="stat-card">
           <mat-card-content>
             <div class="stat-content">
-              <div class="stat-icon bookings">
+              <div class="stat-icon reviews">
                 <mat-icon>rate_review</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>{{ stats.resenas }}</h3>
-                <p>Reseñas</p>
+                <div class="stat-number">{{stats.totalReviews}}</div>
+                <div class="stat-label">Reseñas</div>
               </div>
             </div>
           </mat-card-content>
@@ -130,60 +78,47 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
         <mat-card class="stat-card">
           <mat-card-content>
             <div class="stat-content">
-              <div class="stat-icon revenue">
-                <mat-icon>collections</mat-icon>
+              <div class="stat-icon images">
+                <mat-icon>photo_library</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>{{ stats.imagenes }}</h3>
-                <p>Imágenes</p>
+                <div class="stat-number">{{stats.totalImages}}</div>
+                <div class="stat-label">Imágenes</div>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
       </div>
 
-      <div class="quick-actions">
-        <h2>Acciones Rápidas</h2>
-        <div class="actions-grid">
-          <button mat-raised-button color="primary" class="action-button" (click)="openCrearLugarTuristico()">
-            <mat-icon>add_location_alt</mat-icon>
-            <span>Agregar Lugar Turístico</span>
-          </button>
-          
-          <button mat-raised-button color="accent" class="action-button" (click)="openCrearUsuario()">
-            <mat-icon>person_add</mat-icon>
-            <span>Crear Usuario</span>
-          </button>
-          
-          <button mat-raised-button color="warn" class="action-button" (click)="verResenas()">
-            <mat-icon>rate_review</mat-icon>
-            <span>Ver Reseñas</span>
-          </button>
-          
-          <button mat-raised-button class="action-button" (click)="openConfiguracion()">
-            <mat-icon>settings</mat-icon>
-            <span>Configuración</span>
-          </button>
-        </div>
-      </div>
-
       <div class="recent-activity">
-        <h2>Actividad Reciente</h2>
         <mat-card>
+          <mat-card-header>
+            <mat-card-title>Actividad Reciente</mat-card-title>
+          </mat-card-header>
           <mat-card-content>
-            <div class="activity-list">
-              <div *ngFor="let act of actividades" class="activity-item">
+            <div *ngIf="isLoading" class="loading-container">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Cargando actividad reciente...</p>
+            </div>
+            
+            <div *ngIf="!isLoading && recentActivity.length > 0" class="activity-list">
+              <div *ngFor="let activity of recentActivity" class="activity-item">
                 <div class="activity-icon">
-                  <mat-icon>history</mat-icon>
+                  <mat-icon>{{getActivityIcon(activity.type)}}</mat-icon>
                 </div>
                 <div class="activity-content">
-                  <h4>{{ act.nombreUsuario }} {{ act.accion }}</h4>
-                  <p *ngIf="act.recurso && act.recurso !== ''" class="activity-resource">{{ act.recurso }}</p>
-                  <span class="activity-time">{{ act.fecha | date:'short' }}</span>
+                  <div class="activity-text">{{activity.description}}</div>
+                  <div class="activity-time">{{formatDate(activity.timestamp)}}</div>
+                  <div class="activity-user" *ngIf="activity.userId?.nombre">
+                    Por: {{activity.userId.nombre}}
+                  </div>
                 </div>
               </div>
-              <mat-divider *ngIf="!actividades.length"></mat-divider>
-              <div *ngIf="!actividades.length" style="text-align:center; color:#999; padding:16px;">No hay actividades recientes</div>
+            </div>
+            
+            <div *ngIf="!isLoading && recentActivity.length === 0" class="no-activity">
+              <mat-icon>info</mat-icon>
+              <p>No hay actividad reciente</p>
             </div>
           </mat-card-content>
         </mat-card>
@@ -192,6 +127,7 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
   `,
   styles: [`
     .home-container {
+      padding: 20px;
       max-width: 1200px;
       margin: 0 auto;
     }
@@ -200,78 +136,21 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
       text-align: center;
       margin-bottom: 30px;
       padding: 20px;
+      background: linear-gradient(135deg, #1976d2, #42a5f5);
+      color: white;
+      border-radius: 8px;
     }
 
     .welcome-section h1 {
-      color: #1e3c72;
-      margin-bottom: 10px;
-      font-size: 2.5rem;
-      font-weight: 600;
+      margin: 0 0 10px 0;
+      font-size: 2.5em;
+      font-weight: 300;
     }
 
     .welcome-section p {
-      color: #666;
-      font-size: 1.1rem;
       margin: 0;
-    }
-
-    .health-status-section {
-      margin-bottom: 30px;
-    }
-
-    .health-status-section h2 {
-      color: #1e3c72;
-      margin-bottom: 15px;
-    }
-
-    .health-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .health-card {
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .health-content {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .health-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-    }
-
-    .health-icon.healthy {
-      background: linear-gradient(135deg, #4caf50, #45a049);
-    }
-
-    .health-icon.degraded {
-      background: linear-gradient(135deg, #ff9800, #f57c00);
-    }
-
-    .health-icon.unhealthy {
-      background: linear-gradient(135deg, #f44336, #d32f2f);
-    }
-
-    .health-info h3 {
-      margin: 0 0 5px 0;
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .health-info p {
-      margin: 0 0 10px 0;
-      color: #666;
+      font-size: 1.2em;
+      opacity: 0.9;
     }
 
     .stats-grid {
@@ -282,20 +161,17 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
     }
 
     .stat-card {
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.2s ease;
     }
 
     .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
     }
 
     .stat-content {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 15px;
     }
 
     .stat-icon {
@@ -309,68 +185,54 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
     }
 
     .stat-icon.users {
-      background: linear-gradient(135deg, #2196f3, #1976d2);
+      background: linear-gradient(135deg, #4caf50, #66bb6a);
     }
 
-    .stat-icon.destinations {
-      background: linear-gradient(135deg, #4caf50, #388e3c);
+    .stat-icon.places {
+      background: linear-gradient(135deg, #ff9800, #ffb74d);
     }
 
-    .stat-icon.bookings {
-      background: linear-gradient(135deg, #ff9800, #f57c00);
+    .stat-icon.reviews {
+      background: linear-gradient(135deg, #9c27b0, #ba68c8);
     }
 
-    .stat-icon.revenue {
-      background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    .stat-icon.images {
+      background: linear-gradient(135deg, #f44336, #ef5350);
     }
 
-    .stat-info h3 {
-      margin: 0;
-      font-size: 2rem;
-      font-weight: 700;
+    .stat-icon mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    .stat-info {
+      flex: 1;
+    }
+
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
       color: #333;
+      line-height: 1;
     }
 
-    .stat-info p {
-      margin: 5px 0 0 0;
+    .stat-label {
       color: #666;
-      font-size: 0.9rem;
+      font-size: 0.9em;
+      margin-top: 5px;
     }
 
-    .quick-actions {
-      margin-bottom: 30px;
+    .recent-activity {
+      margin-top: 30px;
     }
 
-    .quick-actions h2 {
-      color: #1e3c72;
-      margin-bottom: 15px;
-    }
-
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-    }
-
-    .action-button {
-      padding: 15px;
+    .loading-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      height: auto;
-      min-height: 80px;
-    }
-
-    .action-button mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-    }
-
-    .recent-activity h2 {
-      color: #1e3c72;
-      margin-bottom: 15px;
+      padding: 40px;
+      color: #666;
     }
 
     .activity-list {
@@ -380,8 +242,7 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
 
     .activity-item {
       display: flex;
-      align-items: flex-start;
-      gap: 15px;
+      align-items: center;
       padding: 15px 0;
       border-bottom: 1px solid #eee;
     }
@@ -391,174 +252,156 @@ import { getStatsServiceUrl, getPlacesServiceUrl } from '../../config/api.config
     }
 
     .activity-icon {
-      width: 40px;
-      height: 40px;
-      background: #f5f5f5;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
+      margin-right: 15px;
     }
 
-    .activity-content h4 {
-      margin: 0 0 5px 0;
-      font-size: 1rem;
+    .activity-icon mat-icon {
+      color: #1976d2;
+    }
+
+    .activity-content {
+      flex: 1;
+    }
+
+    .activity-text {
+      font-weight: 500;
       color: #333;
-    }
-
-    .activity-content p {
-      margin: 0 0 5px 0;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .activity-resource {
-      background: #f0f0f0;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      color: #555;
-      display: inline-block;
-      margin: 2px 0;
+      margin-bottom: 5px;
     }
 
     .activity-time {
-      color: #999;
-      font-size: 0.8rem;
+      font-size: 0.85em;
+      color: #666;
     }
 
-    .error {
-      border-left: 4px solid #f44336;
+    .activity-user {
+      font-size: 0.8em;
+      color: #555;
+      margin-top: 5px;
+    }
+
+    .no-activity {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .no-activity mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .welcome-section h1 {
+        font-size: 2em;
+      }
     }
   `]
 })
 export class HomeComponent implements OnInit {
-  stats: StatsOverview = { usuarios: 0, lugares: 0, resenas: 0, imagenes: 0 };
-  healthStatus: SimpleHealth = { status: 'unhealthy', online: 0, total: 0, timestamp: '', services: [] };
-  loading = true;
-  error = '';
-  actividades: any[] = [];
+  stats: DashboardStats = {
+    totalUsers: 0,
+    totalPlaces: 0,
+    totalReviews: 0,
+    totalImages: 0,
+    recentActivity: []
+  };
+  recentActivity: any[] = [];
+  isLoading = false;
 
-  constructor(
-    private http: HttpClient, 
-    private dialog: MatDialog, 
-    private router: Router, 
-    private snackBar: MatSnackBar,
-    private statsService: StatsService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    this.loadData();
+    this.loadDashboardData();
   }
 
-  loadData() {
-    this.loading = true;
-    this.error = '';
-
-    // Cargar health check y estadísticas en paralelo
-    Promise.all([
-      this.loadHealthStatus(),
-      this.loadStats(),
-      this.loadActivities()
-    ]).finally(() => {
-      this.loading = false;
-    });
-  }
-
-  loadHealthStatus() {
-    return new Promise<void>((resolve) => {
-      this.statsService.getSimpleHealth().subscribe({
-        next: (health) => {
-          this.healthStatus = health;
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error loading health status:', err);
-          this.healthStatus = { status: 'unhealthy', online: 0, total: 0, timestamp: '', services: [] };
-          resolve();
+  loadDashboardData(): void {
+    this.isLoading = true;
+    
+    // Cargar métricas individuales
+    this.loadIndividualStats();
+    
+    // Cargar actividad reciente
+    this.http.get<{success: boolean, data: any[]}>(getBackendUrl('/activities/recent')).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.recentActivity = response.data || [];
         }
-      });
+      },
+      error: (error) => {
+        console.error('Error loading recent activity:', error);
+      }
+    });
+
+    this.isLoading = false;
+  }
+
+  loadIndividualStats(): void {
+    // Cargar conteo de usuarios
+    this.http.get<{count: number}>(getBackendUrl('/auth/users/count')).subscribe({
+      next: (response) => {
+        this.stats.totalUsers = response.count;
+      },
+      error: (error) => {
+        console.error('Error loading users count:', error);
+      }
+    });
+
+    // Cargar conteo de lugares
+    this.http.get<{count: number}>(getBackendUrl('/places/count')).subscribe({
+      next: (response) => {
+        this.stats.totalPlaces = response.count;
+      },
+      error: (error) => {
+        console.error('Error loading places count:', error);
+      }
+    });
+
+    // Cargar conteo de reseñas
+    this.http.get<{count: number}>(getBackendUrl('/reviews/count')).subscribe({
+      next: (response) => {
+        this.stats.totalReviews = response.count;
+      },
+      error: (error) => {
+        console.error('Error loading reviews count:', error);
+      }
+    });
+
+    // Cargar conteo de imágenes
+    this.http.get<{count: number}>(getBackendUrl('/media/count')).subscribe({
+      next: (response) => {
+        this.stats.totalImages = response.count;
+      },
+      error: (error) => {
+        console.error('Error loading media count:', error);
+      }
     });
   }
 
-  loadStats() {
-    return new Promise<void>((resolve) => {
-      this.statsService.getStatsOverview().subscribe({
-        next: (stats) => {
-          this.stats = stats;
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error loading stats:', err);
-          this.error = 'Error al cargar estadísticas: ' + (err.error?.message || err.message);
-          resolve();
-        }
-      });
-    });
-  }
-
-  loadActivities() {
-    return new Promise<void>((resolve) => {
-      // Cargar actividades unificadas desde todos los microservicios
-      this.http.get<any>('http://localhost:3002/places/admin/actividades-unificadas').subscribe({
-        next: (res) => {
-          if (res.actividades) {
-            this.actividades = res.actividades.slice(0, 10); // Solo las últimas 10
-          } else {
-            this.actividades = [];
-          }
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error loading unified activities:', err);
-          this.actividades = [];
-          resolve();
-        }
-      });
-    });
-  }
-
-  getHealthIcon(status: string): string {
-    switch (status) {
-      case 'healthy': return 'check_circle';
-      case 'degraded': return 'warning';
-      case 'unhealthy': return 'error';
-      default: return 'help';
+  getActivityIcon(type: string): string {
+    switch (type) {
+      case 'user': return 'person_add';
+      case 'place': return 'location_on';
+      case 'review': return 'rate_review';
+      case 'image': return 'photo_library';
+      default: return 'info';
     }
   }
 
-  openCrearUsuario() {
-    const dialogRef = this.dialog.open(UsuarioDialogComponent, {
-      width: '500px',
-      data: {}
+  formatDate(timestamp: string): string {
+    return new Date(timestamp).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.snackBar.open('Usuario creado correctamente', 'Cerrar', { duration: 2000 });
-      }
-    });
-  }
-
-  openCrearLugarTuristico() {
-    const dialogRef = this.dialog.open(PlaceDialogComponent, {
-      maxWidth: '90vw',
-      maxHeight: '90vh',
-      width: '500px'
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.snackBar.open('Lugar turístico creado correctamente', 'Cerrar', { duration: 2000 });
-        this.loadStats(); // Recargar estadísticas
-      }
-    });
-  }
-
-  verResenas() {
-    this.router.navigate(['/dashboard/review']);
-  }
-
-  openConfiguracion() {
-    this.snackBar.open('Configuración próximamente disponible', 'Cerrar', { duration: 2000 });
   }
 } 

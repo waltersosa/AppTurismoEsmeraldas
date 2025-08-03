@@ -14,6 +14,7 @@ import { AuthService, User } from '../../auth/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.component';
+import { getAuthUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-usuarios',
@@ -37,7 +38,7 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
       <div class="usuarios-header">
         <div>
           <h1>Gestión de Usuarios</h1>
-          <p class="subtitle">Lista de usuarios disponibles</p>
+          <p class="subtitle">Lista de usuarios locales del sistema</p>
         </div>
         <button mat-raised-button color="primary" (click)="openUserDialog()" class="add-button">
           <mat-icon>add</mat-icon>
@@ -60,18 +61,18 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
         <table mat-table [dataSource]="usuarios" class="mat-elevation-z8 usuarios-table">
           <ng-container matColumnDef="nombre">
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let user">{{ user.nombres }}</td>
+            <td mat-cell *matCellDef="let user">{{ user.nombre }}</td>
           </ng-container>
           <ng-container matColumnDef="correo">
             <th mat-header-cell *matHeaderCellDef>Correo</th>
             <td mat-cell *matCellDef="let user">{{ user.correo }}</td>
           </ng-container>
-        <ng-container matColumnDef="rol_user">
-          <th mat-header-cell *matHeaderCellDef>Rol</th>
-          <td mat-cell *matCellDef="let user">
-            <span class="role-badge" [class]="'role-' + user.rol_user">{{ user.rol_user }}</span>
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="rol">
+            <th mat-header-cell *matHeaderCellDef>Rol</th>
+            <td mat-cell *matCellDef="let user">
+              <span class="role-badge" [class]="'role-' + user.rol">{{ user.rol }}</span>
+            </td>
+          </ng-container>
           <ng-container matColumnDef="estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
             <td mat-cell *matCellDef="let user">
@@ -99,8 +100,9 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
               </div>
             </td>
           </ng-container>
+
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" [class.zebra]="i % 2 === 0"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
       </div>
     </mat-card>
@@ -127,7 +129,7 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
     }
     .role-usuario { background: #e3f2fd; color: #1976d2; }
     .role-propietario { background: #f3e5f5; color: #7b1fa2; }
-    .role-gad { background: #e8f5e8; color: #388e3c; }
+    .role-admin { background: #e8f5e8; color: #388e3c; }
     .status-badge {
       padding: 4px 8px;
       border-radius: 12px;
@@ -151,14 +153,13 @@ import { UsuarioDialogComponent, UsuarioDialogData } from './usuario-dialog.comp
 })
 export class UsuariosComponent implements OnInit {
   usuarios: User[] = [];
-  displayedColumns = ['nombre', 'correo', 'rol_user', 'estado', 'acciones'];
+  displayedColumns = ['nombre', 'correo', 'rol', 'estado', 'acciones'];
   userForm: FormGroup;
   editMode = false;
   editingUserId: string | null = null;
   searchTerm = '';
 
-  //private apiUrl = 'http://localhost:3001/auth/users';
-  private apiUrl = 'https://geoapi.esmeraldas.gob.ec/new/usuario';
+  private apiUrl = getAuthUrl('/users');
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
@@ -174,6 +175,10 @@ export class UsuariosComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('UsuariosComponent ngOnInit');
+    console.log('Usuario actual:', this.authService.getCurrentUser());
+    console.log('Está autenticado:', this.authService.isAuthenticated());
+    console.log('Token:', this.authService.getToken());
     this.getUsuarios();
   }
 
@@ -181,54 +186,44 @@ export class UsuariosComponent implements OnInit {
     const token = this.authService.getToken();
     const headers = { 'Authorization': `Bearer ${token}` };
 
-    // Paso 1: obtener todos los roles
-    this.http.get<any>('https://geoapi.esmeraldas.gob.ec/new/rol_user', { headers }).subscribe({
-      next: (rolesRes) => {
-        const roles = rolesRes.data || [];
+    console.log('Obteniendo usuarios...');
+    console.log('Token:', token);
+    console.log('URL:', this.apiUrl);
 
-        // Mapeamos los roles en un diccionario para acceso rápido
-        const rolesMap: Record<number, string> = {};
-        roles.forEach((rol: any) => {
-          rolesMap[rol._id] = rol.nombre;
-        });
-
-        // Paso 2: obtener los usuarios
-        const url = this.searchTerm
-          ? `${this.apiUrl}?search=${encodeURIComponent(this.searchTerm)}`
-          : this.apiUrl;
-
-        this.http.get<any>(url, { headers }).subscribe({
-          next: (res) => {
-            const usuariosData = res.data;
-
-            this.usuarios = usuariosData.map((u: any) => {
-              const rolNombre = rolesMap[u.rol_user] || 'Desconocido';
-
-              return {
-                ...u,
-                nombres: u.nombres,
-                rol: rolNombre,
-                rol_user: rolNombre, // puedes mantenerlo así si tu template lo usa
-                correo: u.correo || u.email,
-                activo: u.estado === 'On'
-              };
-            });
-          },
-          error: (err) => {
-            console.error('Error al obtener usuarios:', err);
-            this.snackBar.open('Error al cargar usuarios', 'Cerrar', { duration: 3000 });
-          }
-        });
+    this.http.get<any>(this.apiUrl, { headers }).subscribe({
+      next: (res) => {
+        console.log('Respuesta del servidor:', res);
+        console.log('res.data:', res.data);
+        console.log('res.data.usuarios:', res.data?.usuarios);
+        
+        // El backend devuelve { success: true, data: { usuarios: [...] } }
+        if (res && res.data && res.data.usuarios && Array.isArray(res.data.usuarios)) {
+          console.log('Usando res.data.usuarios:', res.data.usuarios);
+          this.usuarios = res.data.usuarios;
+        } else if (res && res.usuarios && Array.isArray(res.usuarios)) {
+          console.log('Usando res.usuarios:', res.usuarios);
+          this.usuarios = res.usuarios;
+        } else if (res && res.data && Array.isArray(res.data)) {
+          console.log('Usando res.data:', res.data);
+          this.usuarios = res.data;
+        } else if (Array.isArray(res)) {
+          console.log('Usando res directo:', res);
+          this.usuarios = res;
+        } else {
+          console.log('No se encontró estructura válida, usando array vacío');
+          console.log('Estructura completa de res:', JSON.stringify(res, null, 2));
+          this.usuarios = [];
+        }
+        
+        console.log('Usuarios finales:', this.usuarios);
       },
       error: (err) => {
-        console.error('Error al obtener roles:', err);
-        this.snackBar.open('Error al cargar roles de usuario', 'Cerrar', { duration: 3000 });
+        console.error('Error al obtener usuarios:', err);
+        this.usuarios = []; // Inicializar como array vacío en caso de error
+        this.snackBar.open('Error al cargar usuarios', 'Cerrar', { duration: 3000 });
       }
     });
   }
-
-
-
 
   onSearchChange() {
     this.getUsuarios();
@@ -246,7 +241,7 @@ export class UsuariosComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         if (user) {
-          this.updateUser(user.id, result);
+          this.updateUser(user._id!, result);
         } else {
           this.createUser(result);
         }
@@ -259,7 +254,10 @@ export class UsuariosComponent implements OnInit {
   }
 
   createUser(userData: any) {
-    this.http.post<any>(this.apiUrl, userData).subscribe({
+    const token = this.authService.getToken();
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    this.http.post<any>(getAuthUrl('/users'), userData, { headers }).subscribe({
       next: () => {
         this.getUsuarios();
         this.snackBar.open('Usuario creado exitosamente', 'Cerrar', { duration: 3000 });
@@ -273,13 +271,27 @@ export class UsuariosComponent implements OnInit {
   }
 
   updateUser(userId: string, userData: any) {
-    // Por ahora solo actualizamos el perfil, no implementamos edición completa
-    this.snackBar.open('Funcionalidad de edición en desarrollo', 'Cerrar', { duration: 3000 });
+    const token = this.authService.getToken();
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    this.http.put<any>(`${getAuthUrl('/users')}/${userId}`, userData, { headers }).subscribe({
+      next: () => {
+        this.getUsuarios();
+        this.snackBar.open('Usuario actualizado exitosamente', 'Cerrar', { duration: 3000 });
+      },
+      error: (error) => {
+        console.error('Error al actualizar usuario:', error);
+        this.snackBar.open('Error al actualizar usuario', 'Cerrar', { duration: 3000 });
+      }
+    });
   }
 
   disableUser(user: User) {
     if (confirm(`¿Seguro que deseas deshabilitar a ${user.nombre}?`)) {
-      this.http.delete<any>(`${this.apiUrl}/${user.id}`).subscribe({
+      const token = this.authService.getToken();
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      this.http.patch<any>(`${getAuthUrl('/users')}/${user._id}/disable`, {}, { headers }).subscribe({
         next: () => {
           this.getUsuarios();
           this.snackBar.open('Usuario deshabilitado correctamente', 'Cerrar', { duration: 3000 });
@@ -294,7 +306,10 @@ export class UsuariosComponent implements OnInit {
 
   enableUser(user: User) {
     if (confirm(`¿Seguro que deseas habilitar a ${user.nombre}?`)) {
-      this.http.patch<any>(`${this.apiUrl}/${user.id}/enable`, {}).subscribe({
+      const token = this.authService.getToken();
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      this.http.patch<any>(`${getAuthUrl('/users')}/${user._id}/enable`, {}, { headers }).subscribe({
         next: () => {
           this.getUsuarios();
           this.snackBar.open('Usuario habilitado correctamente', 'Cerrar', { duration: 3000 });
@@ -309,7 +324,10 @@ export class UsuariosComponent implements OnInit {
 
   deleteUserPermanently(user: User) {
     if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${user.nombre}? Esta acción no se puede deshacer.`)) {
-      this.http.delete<any>(`${this.apiUrl}/${user.id}/permanent`).subscribe({
+      const token = this.authService.getToken();
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      this.http.delete<any>(`${getAuthUrl('/users')}/${user._id}`, { headers }).subscribe({
         next: () => {
           this.getUsuarios();
           this.snackBar.open('Usuario eliminado permanentemente', 'Cerrar', { duration: 3000 });
@@ -323,7 +341,6 @@ export class UsuariosComponent implements OnInit {
   }
 
   deleteUser(user: User) {
-    // Mantener compatibilidad con el método anterior
     this.disableUser(user);
   }
 
@@ -333,6 +350,5 @@ export class UsuariosComponent implements OnInit {
     this.userForm.reset();
   }
 
-  // TemplateRef para el modal
   userFormTemplate: any;
-} 
+}

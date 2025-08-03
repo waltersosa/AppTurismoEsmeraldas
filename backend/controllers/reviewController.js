@@ -110,15 +110,27 @@ export const deleteReview = async (req, res, next) => {
   }
 };
 
-// Obtener una reseña específica por ID (admin)
+// Obtener una reseña específica para administradores
 export const getReviewByIdAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
     const review = await reviewService.getReviewById(id);
+    
     if (!review) {
       return res.status(404).json({ success: false, message: 'Review no encontrada' });
     }
+
     res.json({ success: true, data: review });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Obtener conteo de reseñas
+export const getReviewsCount = async (req, res, next) => {
+  try {
+    const count = await reviewService.getReviewsCount();
+    res.json({ count });
   } catch (err) {
     next(err);
   }

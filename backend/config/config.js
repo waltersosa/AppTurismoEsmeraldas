@@ -5,17 +5,18 @@ dotenv.config();
 export const config = {
   server: {
     port: process.env.PORT || 3001,
-    nodeEnv: process.env.NODE_ENV || 'development'
+    nodeEnv: process.env.NODE_ENV
   },
   database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/authDB'
+    uri: process.env.MONGODB_URI
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'default_secret_change_in_production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+    secret: process.env.JWT_SECRET || 'esmeraldas-turismo-secret-key',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    audience: 'esmeraldas-turismo-users',
+    issuer: 'esmeraldas-turismo-auth'
   },
   cors: {
-    //   origin: ['http://localhost:3000', 'http://localhost:4200']
-    origin: '*'
+    origin: ['http://localhost:3000', 'http://localhost:4200', 'http://localhost:4300']
   }
 }; 

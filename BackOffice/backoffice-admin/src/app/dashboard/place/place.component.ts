@@ -1,242 +1,314 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { PlaceDialogComponent } from './place-dialog.component';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { getPlacesServiceUrl } from '../../config/api.config';
+import { HttpClient } from '@angular/common/http';
+import { getPlacesUrl } from '../../config/api.config';
+import { PlaceDialogComponent } from './place-dialog.component';
+
+interface Place {
+  _id: string;
+  name: string;
+  description: string;
+  location: string;
+  category: string;
+  coverImageUrl?: string;
+  imageUrls?: string[];
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PlacesResponse {
+  success: boolean;
+  data: Place[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
 
 @Component({
-  selector: 'app-lugares',
+  selector: 'app-place',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
-    ReactiveFormsModule,
+    MatDialogModule,
+    MatPaginatorModule,
+    MatSortModule,
     MatFormFieldModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatOptionModule,
     MatTooltipModule
   ],
   template: `
-    <h1>Lugares Turísticos</h1>
-    <div style="display: flex; gap: 18px; margin-bottom: 16px; align-items: flex-end;">
-      <mat-form-field appearance="outline">
-        <mat-label>Filtrar por nombre</mat-label>
-        <input matInput [formControl]="nombreControl" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Filtrar por categoría</mat-label>
-        <input matInput [formControl]="categoriaControl" />
-      </mat-form-field>
-      <button mat-raised-button color="primary" (click)="openAgregarLugar()">
-        <mat-icon>add_location_alt</mat-icon> Agregar Lugar Turístico
-      </button>
-    </div>
-    <div *ngIf="isLoading" style="text-align: center; padding: 40px;">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p style="margin-top: 16px; color: #666;">Cargando lugares turísticos...</p>
-    </div>
-    
-    <table mat-table [dataSource]="filteredLugares" class="mat-elevation-z8" *ngIf="!isLoading && lugares.length">
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Nombre</th>
-        <td mat-cell *matCellDef="let lugar">{{ lugar.name }}</td>
-      </ng-container>
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef>Descripción</th>
-        <td mat-cell *matCellDef="let lugar">{{ lugar.description }}</td>
-      </ng-container>
-      <ng-container matColumnDef="location">
-        <th mat-header-cell *matHeaderCellDef>Ubicación</th>
-        <td mat-cell *matCellDef="let lugar">{{ lugar.location }}</td>
-      </ng-container>
-      <ng-container matColumnDef="category">
-        <th mat-header-cell *matHeaderCellDef>Categoría</th>
-        <td mat-cell *matCellDef="let lugar">{{ lugar.category || 'Sin categoría' }}</td>
-      </ng-container>
-      <ng-container matColumnDef="active">
-        <th mat-header-cell *matHeaderCellDef>Estado</th>
-        <td mat-cell *matCellDef="let lugar">
-          <span [ngClass]="lugar.active ? 'estado-activo' : 'estado-inactivo'">
-            {{ lugar.active ? 'Activo' : 'Inactivo' }}
-          </span>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef>Acciones</th>
-        <td mat-cell *matCellDef="let lugar">
-          <button mat-icon-button color="primary" (click)="openEditarLugar(lugar)" matTooltip="Editar lugar">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button [color]="lugar.active ? 'warn' : 'primary'" (click)="toggleActivo(lugar)" 
-                  [matTooltip]="lugar.active ? 'Desactivar lugar' : 'Activar lugar'">
-            <mat-icon>{{ lugar.active ? 'block' : 'check_circle' }}</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-    
-    <div *ngIf="!isLoading && !lugares.length" style="text-align: center; padding: 40px; color: #666;">
-      <mat-icon style="font-size: 48px; color: #ccc; margin-bottom: 16px;">location_off</mat-icon>
-      <h3>No hay lugares registrados</h3>
-      <p>Comienza agregando el primer lugar turístico de Esmeraldas.</p>
+    <div class="place-container">
+      <div class="header">
+        <h2>Gestión de Lugares Turísticos</h2>
+        <button mat-raised-button color="primary" (click)="openDialog()">
+          <mat-icon>add</mat-icon>
+          Agregar Lugar
+        </button>
+      </div>
+
+      <div class="filters">
+        <mat-form-field appearance="outline">
+          <mat-label>Buscar</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Buscar lugares...">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Categoría</mat-label>
+          <mat-select [(ngModel)]="selectedCategory" (selectionChange)="applyFilter()">
+            <mat-option value="">Todas las categorías</mat-option>
+            <mat-option value="natural">Natural</mat-option>
+            <mat-option value="cultural">Cultural</mat-option>
+            <mat-option value="gastronomico">Gastronómico</mat-option>
+            <mat-option value="recreativo">Recreativo</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estado</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilter()">
+            <mat-option value="">Todos los estados</mat-option>
+            <mat-option value="true">Activo</mat-option>
+            <mat-option value="false">Inactivo</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="table-container">
+        <table mat-table [dataSource]="places" matSort (matSortChange)="sortData($event)">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
+            <td mat-cell *matCellDef="let place"> {{place.name}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Categoría </th>
+            <td mat-cell *matCellDef="let place"> {{place.category}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="location">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Ubicación </th>
+            <td mat-cell *matCellDef="let place"> {{place.location}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="active">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+            <td mat-cell *matCellDef="let place">
+              <span [class]="place.active ? 'status-active' : 'status-inactive'">
+                {{place.active ? 'Activo' : 'Inactivo'}}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Acciones </th>
+            <td mat-cell *matCellDef="let place">
+              <button mat-icon-button (click)="editPlace(place)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="toggleStatus(place)" [matTooltip]="place.active ? 'Desactivar' : 'Activar'">
+                <mat-icon>{{place.active ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+              <button mat-icon-button (click)="deletePlace(place)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator 
+          [length]="totalItems"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
     </div>
   `,
   styles: [`
-    .estado-activo { color: #388e3c; font-weight: 600; }
-    .estado-inactivo { color: #b71c1c; font-weight: 600; }
-    table { width: 100%; margin-top: 18px; }
-    th.mat-header-cell, td.mat-cell { text-align: left; padding: 12px 16px; }
-    button[mat-icon-button] { margin-right: 4px; }
+    .place-container {
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .filters {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .table-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status-active {
+      color: green;
+      font-weight: bold;
+    }
+    .status-inactive {
+      color: red;
+      font-weight: bold;
+    }
   `]
 })
 export class PlaceComponent implements OnInit {
-  lugares: any[] = [];
-  filteredLugares: any[] = [];
-  nombreControl = new FormControl('');
-  categoriaControl = new FormControl('');
-  displayedColumns = ['name', 'description', 'location', 'category', 'active', 'acciones'];
-  isLoading = false;
+  places: Place[] = [];
+  displayedColumns: string[] = ['name', 'category', 'location', 'active', 'actions'];
+  totalItems = 0;
+  pageSize = 10;
+  currentPage = 0;
+  searchTerm = '';
+  selectedCategory = '';
+  selectedStatus = '';
 
-  constructor(private http: HttpClient, private snackBar: MatSnackBar, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) { }
 
-  ngOnInit() {
-    this.cargarLugares();
-    this.nombreControl.valueChanges.subscribe(() => this.filtrarLugares());
-    this.categoriaControl.valueChanges.subscribe(() => this.filtrarLugares());
+  ngOnInit(): void {
+    this.loadPlaces();
   }
 
-  cargarLugares() {
-    this.isLoading = true;
-    this.http.get<any>(getPlacesServiceUrl('/places')).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        if (res.success && res.data) {
-          this.lugares = res.data || [];
-        } else {
-          this.lugares = [];
-        }
-        this.filtrarLugares();
-      },
-      error: (err) => {
-        this.isLoading = false;
-        console.error('Error al cargar lugares:', err);
-        this.snackBar.open('Error al cargar lugares: ' + (err.error?.message || err.message), 'Cerrar', { duration: 3000 });
-        this.lugares = [];
-        this.filtrarLugares();
-      }
-    });
-  }
+  loadPlaces(): void {
+    const params = {
+      page: (this.currentPage + 1).toString(),
+      limit: this.pageSize.toString(),
+      search: this.searchTerm,
+      category: this.selectedCategory,
+      active: this.selectedStatus
+    };
 
-  filtrarLugares() {
-    const nombre = (this.nombreControl.value || '').toLowerCase();
-    const categoria = (this.categoriaControl.value || '').toLowerCase();
-    this.filteredLugares = this.lugares.filter(l =>
-      l.name.toLowerCase().includes(nombre) &&
-      (!categoria || (l.category || '').toLowerCase().includes(categoria))
-    );
-  }
-
-  openAgregarLugar() {
-    const dialogRef = this.dialog.open(PlaceDialogComponent, {
-      maxWidth: '90vw',
-      maxHeight: '90vh',
-      width: '500px'
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('Datos a enviar:', result);
-        this.http.post(getPlacesServiceUrl('/places'), result).subscribe({
-          next: (res: any) => {
-            console.log('Respuesta exitosa:', res);
-            if (res.success) {
-              this.snackBar.open('Lugar creado correctamente', 'Cerrar', { duration: 2000 });
-              this.cargarLugares();
-            } else {
-              this.snackBar.open('Error al crear lugar: ' + (res.message || 'Error desconocido'), 'Cerrar', { duration: 3000 });
-            }
-          },
-          error: err => {
-            console.error('Error al crear lugar:', err);
-            console.error('Datos enviados:', result);
-            console.error('Respuesta del servidor:', err.error);
-            
-            let errorMessage = 'Error al crear lugar';
-            if (err.status === 401) {
-              errorMessage = 'No tienes permisos para crear lugares. Debes ser usuario GAD.';
-            } else if (err.status === 400) {
-              if (err.error?.errors && Array.isArray(err.error.errors)) {
-                const validationErrors = err.error.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
-                errorMessage = 'Errores de validación: ' + validationErrors;
-              } else {
-                errorMessage = 'Datos inválidos: ' + (err.error?.message || 'Verifica los campos requeridos');
-              }
-            } else if (err.error?.message) {
-              errorMessage = err.error.message;
-            }
-            this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
-          }
-        });
-      }
-    });
-  }
-
-  openEditarLugar(lugar: any) {
-    const dialogRef = this.dialog.open(PlaceDialogComponent, {
-      data: lugar,
-      maxWidth: '90vw',
-      maxHeight: '90vh',
-      width: '500px'
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.http.put(getPlacesServiceUrl(`/places/${lugar._id}`), result).subscribe({
-          next: (res: any) => {
-            if (res.success) {
-              this.snackBar.open('Lugar actualizado correctamente', 'Cerrar', { duration: 2000 });
-              this.cargarLugares();
-            } else {
-              this.snackBar.open('Error al actualizar lugar: ' + (res.message || 'Error desconocido'), 'Cerrar', { duration: 3000 });
-            }
-          },
-          error: err => {
-            console.error('Error al actualizar lugar:', err);
-            this.snackBar.open('Error al actualizar lugar: ' + (err.error?.message || err.message), 'Cerrar', { duration: 3000 });
-          }
-        });
-      }
-    });
-  }
-
-  toggleActivo(lugar: any) {
-    const newStatus = !lugar.active;
-    this.http.patch(getPlacesServiceUrl(`/places/${lugar._id}/status`), { active: newStatus }).subscribe({
-      next: (res: any) => {
-        if (res.success) {
-          this.snackBar.open(`Lugar ${newStatus ? 'activado' : 'desactivado'} correctamente`, 'Cerrar', { duration: 2000 });
-          this.cargarLugares();
-        } else {
-          this.snackBar.open('Error al cambiar estado: ' + (res.message || 'Error desconocido'), 'Cerrar', { duration: 3000 });
+    this.http.get<any>(getPlacesUrl('/places'), { params }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.places = response.data;
+          this.totalItems = response.pagination.total;
         }
       },
-      error: err => {
-        console.error('Error al cambiar estado:', err);
-        this.snackBar.open('Error al cambiar estado: ' + (err.error?.message || err.message), 'Cerrar', { duration: 3000 });
+      error: (error) => {
+        console.error('Error loading places:', error);
+        this.snackBar.open('Error al cargar lugares', 'Cerrar', { duration: 3000 });
       }
     });
+  }
+
+  openDialog(place?: Place): void {
+    const dialogRef = this.dialog.open(PlaceDialogComponent, {
+      width: '600px',
+      data: place || {}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result._id) {
+          this.updatePlace(result);
+        } else {
+          this.createPlace(result);
+        }
+      }
+    });
+  }
+
+  createPlace(placeData: any): void {
+    this.http.post(getPlacesUrl('/places'), placeData).subscribe({
+      next: (response) => {
+        this.snackBar.open('Lugar creado exitosamente', 'Cerrar', { duration: 3000 });
+        this.loadPlaces();
+      },
+      error: (error) => {
+        console.error('Error creating place:', error);
+        this.snackBar.open('Error al crear lugar', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  updatePlace(placeData: any): void {
+    this.http.put(getPlacesUrl(`/places/${placeData._id}`), placeData).subscribe({
+      next: (response) => {
+        this.snackBar.open('Lugar actualizado exitosamente', 'Cerrar', { duration: 3000 });
+        this.loadPlaces();
+      },
+      error: (error) => {
+        console.error('Error updating place:', error);
+        this.snackBar.open('Error al actualizar lugar', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  toggleStatus(place: Place): void {
+    const newStatus = !place.active;
+    this.http.patch(getPlacesUrl(`/places/${place._id}/status`), { active: newStatus }).subscribe({
+      next: (response) => {
+        this.snackBar.open(`Lugar ${newStatus ? 'activado' : 'desactivado'} exitosamente`, 'Cerrar', { duration: 3000 });
+        this.loadPlaces();
+      },
+      error: (error) => {
+        console.error('Error toggling place status:', error);
+        this.snackBar.open('Error al cambiar estado del lugar', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  deletePlace(place: Place): void {
+    if (confirm(`¿Estás seguro de que quieres eliminar "${place.name}"?`)) {
+      this.http.delete(getPlacesUrl(`/places/${place._id}`)).subscribe({
+        next: (response) => {
+          this.snackBar.open('Lugar eliminado exitosamente', 'Cerrar', { duration: 3000 });
+          this.loadPlaces();
+        },
+        error: (error) => {
+          console.error('Error deleting place:', error);
+          this.snackBar.open('Error al eliminar lugar', 'Cerrar', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  editPlace(place: Place): void {
+    this.openDialog(place);
+  }
+
+  applyFilter(): void {
+    this.currentPage = 0;
+    this.loadPlaces();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadPlaces();
+  }
+
+  sortData(sort: Sort): void {
+    // Implementar ordenamiento si es necesario
+    this.loadPlaces();
   }
 } 

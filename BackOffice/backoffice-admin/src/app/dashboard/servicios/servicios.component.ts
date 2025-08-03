@@ -1,46 +1,28 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { HttpClient } from '@angular/common/http';
-import { interval, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { getPlacesServiceUrl, getReviewsServiceUrl } from '../../config/api.config';
-import { StatsService } from '../../services/stats.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { getBackendUrl } from '../../config/api.config';
 
 interface Service {
-  _id: string;
-  nombre: string;
-  descripcion: string;
-  endpoint: string;
-  activo: boolean;
-  tipo: 'api' | 'database' | 'external' | 'internal';
-  version: string;
-  ultimaVerificacion: string;
-  estado: 'online' | 'offline' | 'error' | 'maintenance';
-  estadoReal: 'running' | 'stopped' | 'starting' | 'stopping' | 'error';
-  tiempoRespuesta: number;
-  puerto: number | null;
-  procesoId: string | null;
-  fechaCreacion: string;
-  fechaActualizacion: string;
+  name: string;
+  status: 'online' | 'offline' | 'error';
+  uptime: number;
+  memory: number;
+  connections: number;
+  port: number;
+  url: string;
 }
 
-interface ServiceStats {
-  total: number;
-  activos: number;
-  inactivos: number;
-  online: number;
-  offline: number;
-  error: number;
-  maintenance: number;
-  porcentajeDisponibilidad: number;
+interface ServicesResponse {
+  success: boolean;
+  data: Service[];
 }
 
 @Component({
@@ -52,601 +34,362 @@ interface ServiceStats {
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   template: `
-    <div class="servicios-container">
-      <!-- Header -->
-      <mat-card class="header-card">
-        <div class="header-content">
-          <div>
-            <h1>Monitoreo de Servicios</h1>
-            <p class="subtitle">Control y verificación de microservicios</p>
-          </div>
-          <div class="header-actions">
-            <button mat-raised-button color="primary" (click)="verificarTodos()" [disabled]="verificando">
-              <mat-icon>refresh</mat-icon>
-              Verificar Todos
-            </button>
-            <button mat-raised-button color="accent" (click)="activarTodos()" [disabled]="procesando">
-              <mat-icon>play_arrow</mat-icon>
-              Activar Todos
-            </button>
-            <button mat-raised-button color="warn" (click)="desactivarTodos()" [disabled]="procesando">
-              <mat-icon>stop</mat-icon>
-              Desactivar Todos
-            </button>
-          </div>
+    <div class="services-container">
+      <div class="header">
+        <h2>Monitoreo de Servicios</h2>
+        <div class="controls">
+          <button mat-raised-button color="primary" (click)="startAllServices()" [disabled]="isLoading">
+            <mat-icon>play_arrow</mat-icon>
+            Iniciar Todos
+          </button>
+          <button mat-raised-button color="warn" (click)="stopAllServices()" [disabled]="isLoading">
+            <mat-icon>stop</mat-icon>
+            Detener Todos
+          </button>
+          <button mat-raised-button (click)="refreshServices()" [disabled]="isLoading">
+            <mat-icon>refresh</mat-icon>
+            Actualizar
+          </button>
         </div>
-      </mat-card>
+      </div>
 
-      <!-- Estadísticas -->
-      <mat-card class="stats-card" *ngIf="stats">
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-number">{{ stats.total }}</div>
-            <div class="stat-label">Total Servicios</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number online">{{ stats.online }}</div>
-            <div class="stat-label">Online</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number offline">{{ stats.offline }}</div>
-            <div class="stat-label">Offline</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number error">{{ stats.error }}</div>
-            <div class="stat-label">Error</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number maintenance">{{ stats.maintenance }}</div>
-            <div class="stat-label">Mantenimiento</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number availability">{{ stats.porcentajeDisponibilidad }}%</div>
-            <div class="stat-label">Disponibilidad</div>
-          </div>
-        </div>
-      </mat-card>
+      <div class="status-overview">
+        <mat-card>
+          <mat-card-content>
+            <div class="status-grid">
+              <div class="status-item">
+                <span class="status-label">Servicios Online:</span>
+                <span class="status-value online">{{onlineServices}}</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Servicios Offline:</span>
+                <span class="status-value offline">{{offlineServices}}</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Estado General:</span>
+                <span class="status-value" [class]="overallStatus">{{getOverallStatusText()}}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
 
-      <!-- Tabla de Servicios -->
-      <mat-card class="table-card">
-        <div class="table-container">
-          <table mat-table [dataSource]="servicios" class="servicios-table">
-            <!-- Nombre -->
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Servicio</th>
-              <td mat-cell *matCellDef="let service">
-                <div class="service-info">
-                  <div class="service-name">{{ service.nombre }}</div>
-                  <div class="service-desc">{{ service.descripcion }}</div>
-                </div>
-              </td>
-            </ng-container>
+      <div class="services-table">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Servicios del Sistema</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="isLoading" class="loading">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Cargando servicios...</p>
+            </div>
 
-            <!-- Tipo -->
-            <ng-container matColumnDef="tipo">
-              <th mat-header-cell *matHeaderCellDef>Tipo</th>
-              <td mat-cell *matCellDef="let service">
-                <span class="type-chip" [class]="'type-' + service.tipo">
-                  {{ service.tipo }}
-                </span>
-              </td>
-            </ng-container>
+            <table mat-table [dataSource]="services" *ngIf="!isLoading">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef> Servicio </th>
+                <td mat-cell *matCellDef="let service"> {{service.name}} </td>
+              </ng-container>
 
-            <!-- Estado -->
-            <ng-container matColumnDef="estado">
-              <th mat-header-cell *matHeaderCellDef>Estado</th>
-              <td mat-cell *matCellDef="let service">
-                <div class="status-container">
-                  <span class="status-dot" [class]="'status-' + service.estado"></span>
-                  <span class="status-text">{{ service.estado }}</span>
-                </div>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef> Estado </th>
+                <td mat-cell *matCellDef="let service">
+                  <span class="status-indicator" [class]="'status-' + service.status">
+                    <mat-icon>{{getStatusIcon(service.status)}}</mat-icon>
+                    {{getStatusText(service.status)}}
+                  </span>
+                </td>
+              </ng-container>
 
-            <!-- Estado Real -->
-            <ng-container matColumnDef="estadoReal">
-              <th mat-header-cell *matHeaderCellDef>Proceso</th>
-              <td mat-cell *matCellDef="let service">
-                <div class="process-status-container">
-                  <span class="process-status-dot" [class]="'process-' + service.estadoReal"></span>
-                  <span class="process-status-text">{{ getEstadoRealText(service.estadoReal) }}</span>
-                  <div class="process-info" *ngIf="service.procesoId">
-                    <small>PID: {{ service.procesoId }}</small>
-                  </div>
-                </div>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="port">
+                <th mat-header-cell *matHeaderCellDef> Puerto </th>
+                <td mat-cell *matCellDef="let service"> {{service.port}} </td>
+              </ng-container>
 
-            <!-- Tiempo Respuesta -->
-            <ng-container matColumnDef="tiempoRespuesta">
-              <th mat-header-cell *matHeaderCellDef>Tiempo Respuesta</th>
-              <td mat-cell *matCellDef="let service">
-                <span class="response-time" [class]="getResponseTimeClass(service.tiempoRespuesta)">
-                  {{ service.tiempoRespuesta }}ms
-                </span>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="uptime">
+                <th mat-header-cell *matHeaderCellDef> Uptime </th>
+                <td mat-cell *matCellDef="let service"> {{formatUptime(service.uptime)}} </td>
+              </ng-container>
 
-            <!-- Activo -->
-            <ng-container matColumnDef="activo">
-              <th mat-header-cell *matHeaderCellDef>Activo</th>
-              <td mat-cell *matCellDef="let service">
-                <span class="active-status" [class]="service.activo ? 'active' : 'inactive'">
-                  {{ service.activo ? 'Sí' : 'No' }}
-                </span>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="memory">
+                <th mat-header-cell *matHeaderCellDef> Memoria </th>
+                <td mat-cell *matCellDef="let service"> {{formatMemory(service.memory)}} </td>
+              </ng-container>
 
-            <!-- Acciones -->
-            <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let service">
-                <div class="action-buttons">
-                  <button mat-icon-button color="primary" matTooltip="Verificar" (click)="verificarServicio(service)">
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Acciones </th>
+                <td mat-cell *matCellDef="let service">
+                  <button mat-icon-button (click)="startService(service)" 
+                          *ngIf="service.status === 'offline'"
+                          matTooltip="Iniciar servicio">
+                    <mat-icon>play_arrow</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="stopService(service)" 
+                          *ngIf="service.status === 'online'"
+                          matTooltip="Detener servicio">
+                    <mat-icon>stop</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="restartService(service)" 
+                          matTooltip="Reiniciar servicio">
                     <mat-icon>refresh</mat-icon>
                   </button>
-                  <button mat-icon-button color="accent" matTooltip="Reiniciar" (click)="reiniciarServicio(service)">
-                    <mat-icon>restart_alt</mat-icon>
-                  </button>
-                  <button mat-icon-button [color]="service.activo ? 'warn' : 'accent'" 
-                          [matTooltip]="service.activo ? 'Desactivar' : 'Activar'"
-                          (click)="alternarEstado(service)">
-                    <mat-icon>{{ service.activo ? 'block' : 'check_circle' }}</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </ng-container>
+                </td>
+              </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.zebra]="true"></tr>
-          </table>
-        </div>
-      </mat-card>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+      </div>
     </div>
   `,
   styles: [`
-    .servicios-container {
-      padding: 24px;
-      max-width: 1400px;
-      margin: 0 auto;
+    .services-container {
+      padding: 20px;
     }
-
-    .header-card {
-      margin-bottom: 24px;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
-
-    .header-content {
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+    .status-overview {
+      margin-bottom: 20px;
+    }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .status-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
-    .header-content h1 {
-      margin: 0;
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #1e3c72;
-    }
-
-    .subtitle {
-      color: #666;
-      margin-top: 4px;
-      font-size: 1.1rem;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .header-actions button {
-      min-width: 140px;
-    }
-
-    .stats-card {
-      margin-bottom: 24px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-      padding: 20px 0;
-    }
-
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .stat-number.online { color: #4caf50; }
-    .stat-number.offline { color: #f44336; }
-    .stat-number.error { color: #ff9800; }
-    .stat-number.maintenance { color: #2196f3; }
-    .stat-number.availability { color: #9c27b0; }
-
-    .stat-label {
-      color: #666;
-      font-size: 0.9rem;
-      text-transform: uppercase;
+    .status-label {
       font-weight: 500;
     }
-
-    .table-card {
-      margin-bottom: 24px;
+    .status-value {
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
     }
-
-    .table-container {
-      overflow-x: auto;
+    .status-value.online {
+      background-color: #e8f5e8;
+      color: #2e7d32;
     }
-
-    .servicios-table {
-      width: 100%;
-      min-width: 1000px;
+    .status-value.offline {
+      background-color: #ffebee;
+      color: #c62828;
     }
-
-    .service-info {
+    .status-value.healthy {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+    .status-value.degraded {
+      background-color: #fff3e0;
+      color: #ef6c00;
+    }
+    .status-value.unhealthy {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    .services-table {
+      margin-top: 20px;
+    }
+    .loading {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      padding: 40px;
+      gap: 16px;
     }
-
-    .service-name {
-      font-weight: 600;
-      color: #1e3c72;
-    }
-
-    .service-desc {
-      font-size: 0.85rem;
-      color: #666;
-    }
-
-    .type-chip {
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .type-api { background: #e3f2fd; color: #1976d2; }
-    .type-database { background: #f3e5f5; color: #7b1fa2; }
-    .type-external { background: #e8f5e8; color: #388e3c; }
-    .type-internal { background: #fff3e0; color: #f57c00; }
-
-    .status-container {
+    .status-indicator {
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .status-online { background: #4caf50; }
-    .status-offline { background: #f44336; }
-    .status-error { background: #ff9800; }
-    .status-maintenance { background: #2196f3; }
-
-    .status-text {
-      font-weight: 500;
-      text-transform: capitalize;
-    }
-
-    .process-status-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .process-status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
-    }
-
-    .process-running { background: #4caf50; }
-    .process-stopped { background: #f44336; }
-    .process-starting { background: #ff9800; animation: pulse 1.5s infinite; }
-    .process-stopping { background: #ff9800; animation: pulse 1.5s infinite; }
-    .process-error { background: #f44336; }
-
-    .process-status-text {
-      font-weight: 500;
-      font-size: 0.9rem;
-    }
-
-    .process-info {
-      font-size: 0.75rem;
-      color: #666;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-
-    .response-time {
-      font-weight: 500;
-      font-family: monospace;
-    }
-
-    .response-time.fast { color: #4caf50; }
-    .response-time.medium { color: #ff9800; }
-    .response-time.slow { color: #f44336; }
-
-    .active-status {
       padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.8rem;
+      border-radius: 4px;
       font-weight: 500;
     }
-
-    .active-status.active { background: #e8f5e8; color: #388e3c; }
-    .active-status.inactive { background: #ffebee; color: #d32f2f; }
-
-    .action-buttons {
-      display: flex;
-      gap: 4px;
+    .status-online {
+      background-color: #e8f5e8;
+      color: #2e7d32;
     }
-
-    tr.zebra {
-      background: #f8f9fa;
+    .status-offline {
+      background-color: #ffebee;
+      color: #c62828;
     }
-
-    @media (max-width: 768px) {
-      .servicios-container {
-        padding: 12px;
-      }
-
-      .header-content {
-        flex-direction: column;
-        gap: 16px;
-        align-items: flex-start;
-      }
-
-      .header-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-      }
-
-      .action-buttons {
-        flex-direction: column;
-      }
+    .status-error {
+      background-color: #fff3e0;
+      color: #ef6c00;
     }
   `]
 })
 export class ServiciosComponent implements OnInit {
-  servicios: any[] = [];
-  stats: any = null;
-  displayedColumns = ['nombre', 'tipo', 'estado', 'estadoReal', 'tiempoRespuesta', 'activo', 'acciones'];
-  verificando = false;
-  procesando = false;
-  private statsService = inject(StatsService);
-  private snackBar = inject(MatSnackBar);
-  private autoRefreshSubscription?: Subscription;
+  services: Service[] = [];
+  displayedColumns: string[] = ['name', 'status', 'port', 'uptime', 'memory', 'actions'];
+  isLoading = false;
+  onlineServices = 0;
+  offlineServices = 0;
+  overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+
+  constructor(
+    private http: HttpClient,
+    private snackBar: MatSnackBar
+  ) { }
 
   ngOnInit(): void {
-    this.cargarServicios();
-    this.iniciarAutoRefresh();
-  }
-
-  ngOnDestroy(): void {
-    if (this.autoRefreshSubscription) {
-      this.autoRefreshSubscription.unsubscribe();
-    }
-  }
-
-  cargarServicios() {
-    this.statsService.getHealthOverview().subscribe({
-      next: (res) => {
-        this.servicios = (res.data || []).map((svc: any) => ({
-          nombre: svc.name,
-          descripcion: svc.name,
-          tipo: svc.type ? svc.type.toLowerCase() : '',
-          estado: svc.status,
-          estadoReal: svc.status === 'online' ? 'running' : 'stopped',
-          tiempoRespuesta: svc.responseTime || 0,
-          activo: svc.status === 'online',
-          puerto: svc.port,
-          procesoId: null
-        }));
-        this.cargarEstadisticas();
-      },
-      error: () => {
-        this.servicios = [];
-        this.cargarEstadisticas();
-      }
-    });
-  }
-
-  cargarEstadisticas() {
-    // Calcular estadísticas basadas en los servicios hardcodeados
-    const total = this.servicios.length;
-    const activos = this.servicios.filter(s => s.activo).length;
-    const online = this.servicios.filter(s => s.estado === 'online').length;
-    const offline = this.servicios.filter(s => s.estado === 'offline').length;
-    const error = this.servicios.filter(s => s.estado === 'error').length;
-    const maintenance = this.servicios.filter(s => s.estado === 'maintenance').length;
-
-    this.stats = {
-      total,
-      activos,
-      inactivos: total - activos,
-      online,
-      offline,
-      error,
-      maintenance,
-      porcentajeDisponibilidad: total > 0 ? Math.round((online / total) * 100) : 0
-    };
-  }
-
-  iniciarAutoRefresh() {
+    this.loadServices();
     // Actualizar cada 30 segundos
-    this.autoRefreshSubscription = interval(30000).subscribe(() => {
-      this.cargarServicios();
-      this.cargarEstadisticas();
-    });
+    setInterval(() => {
+      this.loadServices();
+    }, 30000);
   }
 
-  verificarServicio(service: any) {
-    // Simular verificación
-    service.ultimaVerificacion = new Date().toISOString();
-    service.tiempoRespuesta = Math.floor(Math.random() * 200) + 10; // 10-210ms
-    this.snackBar.open(`Servicio ${service.nombre} verificado`, 'Cerrar', { duration: 2000 });
-  }
-
-  verificarTodos() {
-    this.verificando = true;
-    // Simular verificación de todos los servicios
-    setTimeout(() => {
-      this.servicios.forEach(service => {
-        service.ultimaVerificacion = new Date().toISOString();
-        service.tiempoRespuesta = Math.floor(Math.random() * 200) + 10;
-      });
-      this.cargarEstadisticas();
-      this.snackBar.open('Todos los servicios verificados', 'Cerrar', { duration: 2000 });
-      this.verificando = false;
-    }, 1000);
-  }
-
-  alternarEstado(service: any) {
-    if (service.nombre.toLowerCase().includes('autenticación')) {
-      if (!confirm('¡Advertencia! Si detienes el servicio de autenticación perderás la sesión y deberás volver a iniciar sesión cuando el servicio esté disponible. ¿Deseas continuar?')) {
-        return;
-      }
-    }
-    this.procesando = true;
-    const action = service.activo ? this.statsService.stopService : this.statsService.startService;
-    const key = this.obtenerKeyServicio(service.nombre);
-    action.call(this.statsService, key).subscribe({
+  loadServices(): void {
+    this.isLoading = true;
+    this.http.get<ServicesResponse>(getBackendUrl('/service')).subscribe({
       next: (response) => {
-        this.snackBar.open(`Servicio ${service.nombre} ${service.activo ? 'detenido' : 'iniciado'} correctamente`, 'Cerrar', { duration: 2000 });
-        setTimeout(() => this.cargarServicios(), 2000);
-        this.procesando = false;
+        this.isLoading = false;
+        if (response.success) {
+          this.services = response.data || [];
+          this.calculateStatus();
+        }
       },
       error: (error) => {
-        console.error('Error al cambiar estado del servicio:', error);
-        this.snackBar.open(`Error al ${service.activo ? 'detener' : 'iniciar'} el servicio ${service.nombre}`, 'Cerrar', { duration: 3000 });
-        this.procesando = false;
+        this.isLoading = false;
+        console.error('Error loading services:', error);
+        this.snackBar.open('Error al cargar servicios', 'Cerrar', { duration: 3000 });
       }
     });
   }
 
-  reiniciarServicio(service: any) {
-    if (service.nombre.toLowerCase().includes('autenticación')) {
-      if (!confirm('¡Advertencia! Si reinicias el servicio de autenticación perderás la sesión temporalmente. ¿Deseas continuar?')) {
-        return;
-      }
-    }
+  calculateStatus(): void {
+    this.onlineServices = this.services.filter(s => s.status === 'online').length;
+    this.offlineServices = this.services.filter(s => s.status === 'offline').length;
     
-    if (confirm(`¿Seguro que deseas reiniciar el servicio ${service.nombre}?`)) {
-      this.procesando = true;
-      const key = this.obtenerKeyServicio(service.nombre);
-      
-      this.statsService.restartService(key).subscribe({
-        next: (response) => {
-          this.snackBar.open(`Servicio ${service.nombre} reiniciado correctamente`, 'Cerrar', { duration: 2000 });
-          setTimeout(() => this.cargarServicios(), 3000); // Esperar un poco más para el reinicio
-          this.procesando = false;
-        },
-        error: (error) => {
-          console.error('Error al reiniciar servicio:', error);
-          this.snackBar.open(`Error al reiniciar el servicio ${service.nombre}`, 'Cerrar', { duration: 3000 });
-          this.procesando = false;
-        }
-      });
+    if (this.offlineServices === 0) {
+      this.overallStatus = 'healthy';
+    } else if (this.offlineServices < this.services.length / 2) {
+      this.overallStatus = 'degraded';
+    } else {
+      this.overallStatus = 'unhealthy';
     }
   }
 
-  obtenerKeyServicio(nombre: string): string {
-    if (nombre.toLowerCase().includes('autenticación')) return 'auth';
-    if (nombre.toLowerCase().includes('lugares')) return 'places';
-    if (nombre.toLowerCase().includes('media')) return 'media';
-    if (nombre.toLowerCase().includes('reseñas')) return 'reviews';
-    if (nombre.toLowerCase().includes('estadísticas')) return 'stats';
-    if (nombre.toLowerCase().includes('notificaciones')) return 'notifications';
-    if (nombre.toLowerCase().includes('mongo')) return 'db';
-    return '';
+  startService(service: Service): void {
+    this.http.post(getBackendUrl(`/service/${service.name}/start`), {}).subscribe({
+      next: () => {
+        this.snackBar.open(`Servicio ${service.name} iniciado`, 'Cerrar', { duration: 3000 });
+        this.loadServices();
+      },
+      error: (error) => {
+        console.error('Error starting service:', error);
+        this.snackBar.open(`Error al iniciar ${service.name}`, 'Cerrar', { duration: 3000 });
+      }
+    });
   }
 
-  activarTodos() {
-    if (confirm('¿Seguro que deseas activar todos los servicios? (El servicio de autenticación y estadísticas permanecerán activos)')) {
-      this.procesando = true;
-      this.statsService.startAllServices().subscribe({
-        next: (response) => {
-          const iniciados = (response.finalStates || []).filter((s: any) => s.status === 'online').length;
-          const total = (response.finalStates || []).length;
-          this.snackBar.open(`Servicios activados: ${iniciados} de ${total} (excepto auth y stats)`, 'Cerrar', { duration: 4000 });
-          this.cargarServicios();
-          this.procesando = false;
-        },
-        error: (error) => {
-          console.error('Error al activar todos los servicios:', error);
-          this.snackBar.open('Error al activar todos los servicios', 'Cerrar', { duration: 4000 });
-          this.procesando = false;
-        }
-      });
+  stopService(service: Service): void {
+    this.http.post(getBackendUrl(`/service/${service.name}/stop`), {}).subscribe({
+      next: () => {
+        this.snackBar.open(`Servicio ${service.name} detenido`, 'Cerrar', { duration: 3000 });
+        this.loadServices();
+      },
+      error: (error) => {
+        console.error('Error stopping service:', error);
+        this.snackBar.open(`Error al detener ${service.name}`, 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  restartService(service: Service): void {
+    this.http.post(getBackendUrl(`/service/${service.name}/restart`), {}).subscribe({
+      next: () => {
+        this.snackBar.open(`Servicio ${service.name} reiniciado`, 'Cerrar', { duration: 3000 });
+        this.loadServices();
+      },
+      error: (error) => {
+        console.error('Error restarting service:', error);
+        this.snackBar.open(`Error al reiniciar ${service.name}`, 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  startAllServices(): void {
+    this.http.post(getBackendUrl('/service/startAll'), {}).subscribe({
+      next: () => {
+        this.snackBar.open('Todos los servicios iniciados', 'Cerrar', { duration: 3000 });
+        this.loadServices();
+      },
+      error: (error) => {
+        console.error('Error starting all services:', error);
+        this.snackBar.open('Error al iniciar servicios', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  stopAllServices(): void {
+    this.http.post(getBackendUrl('/service/stopAll'), {}).subscribe({
+      next: () => {
+        this.snackBar.open('Todos los servicios detenidos', 'Cerrar', { duration: 3000 });
+        this.loadServices();
+      },
+      error: (error) => {
+        console.error('Error stopping all services:', error);
+        this.snackBar.open('Error al detener servicios', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  refreshServices(): void {
+    this.loadServices();
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case 'online': return 'check_circle';
+      case 'offline': return 'cancel';
+      case 'error': return 'error';
+      default: return 'help';
     }
   }
 
-  desactivarTodos() {
-    if (confirm('¿Seguro que deseas desactivar todos los servicios? (El servicio de autenticación y estadísticas permanecerán activos)')) {
-      this.procesando = true;
-      this.statsService.stopAllServices().subscribe({
-        next: (response) => {
-          const detenidos = (response.finalStates || []).filter((s: any) => s.status === 'stopped').length;
-          const total = (response.finalStates || []).length;
-          this.snackBar.open(`Servicios detenidos: ${detenidos} de ${total} (excepto auth y stats)`, 'Cerrar', { duration: 4000 });
-          this.cargarServicios();
-          this.procesando = false;
-        },
-        error: (error) => {
-          console.error('Error al detener todos los servicios:', error);
-          this.snackBar.open('Error al detener todos los servicios', 'Cerrar', { duration: 4000 });
-          this.procesando = false;
-        }
-      });
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'online': return 'Online';
+      case 'offline': return 'Offline';
+      case 'error': return 'Error';
+      default: return 'Desconocido';
     }
   }
 
-  getResponseTimeClass(tiempo: number): string {
-    if (tiempo < 100) return 'fast';
-    if (tiempo < 500) return 'medium';
-    return 'slow';
+  getOverallStatusText(): string {
+    switch (this.overallStatus) {
+      case 'healthy': return 'Saludable';
+      case 'degraded': return 'Degradado';
+      case 'unhealthy': return 'No Saludable';
+      default: return 'Desconocido';
+    }
   }
 
-  getEstadoRealText(estadoReal: string): string {
-    const estados = {
-      'running': 'Ejecutándose',
-      'stopped': 'Detenido',
-      'starting': 'Iniciando...',
-      'stopping': 'Deteniendo...',
-      'error': 'Error'
-    };
-    return estados[estadoReal as keyof typeof estados] || estadoReal;
+  formatUptime(uptime: number): string {
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  }
+
+  formatMemory(memory: number): string {
+    return `${(memory / 1024 / 1024).toFixed(1)} MB`;
   }
 } 

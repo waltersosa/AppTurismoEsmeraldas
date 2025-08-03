@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -22,7 +22,7 @@ import { AuthService } from './auth.service';
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
-export class Login {
+export class Login implements OnInit {
   loginForm: FormGroup;
   loading = false;
   errorMsg = '';
@@ -38,6 +38,13 @@ export class Login {
     });
   }
 
+  ngOnInit(): void {
+    // Si el usuario ya está autenticado y tiene permisos, redirigir al dashboard
+    if (this.authService.isAuthenticated() && this.authService.canAccessBackOffice()) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
   onSubmit() {
     if (this.loginForm.invalid) return;
     this.loading = true;
@@ -49,14 +56,13 @@ export class Login {
           console.log('Respuesta login:', response);
           console.log('Usuario actual:', this.authService.getCurrentUser());
           if (response.success) {
-            const user = response.user || response.data?.usuario;
-            if (user && (user.rol === 'gad' || user.rol === 'admin')) {
-            setTimeout(() => { this.router.navigate(['/dashboard']);
-              
-            },0)
-              
+            const user = response.data?.usuario;
+            if (user && user.rol === 'admin') {
+              setTimeout(() => { 
+                this.router.navigate(['/dashboard']);
+              }, 0);
             } else {
-              this.errorMsg = 'No tienes permisos para acceder al BackOffice. Solo usuarios GAD pueden acceder.';
+              this.errorMsg = 'No tienes permisos para acceder al BackOffice. Solo administradores pueden acceder.';
               this.authService.logout();
               this.loading = false;
             }

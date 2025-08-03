@@ -1,46 +1,22 @@
 import express from 'express';
 import * as notificationController from '../controllers/notificationController.js';
+import { autenticarToken, autorizarAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('health', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Notification Service is RUnning',
-        data: {
-            service: 'NOtification Service',
-            version: '1.0.0',
-            timestamp: new Date().toISOString(),
-            status: 'healthy'
-        }
-    });
-})
-
-// Crear notificación (usado por otros microservicios)
-router.post('/', notificationController.createNotification);
-
-// Listar notificaciones de un usuario
-router.get('/user/:userId', notificationController.getNotificationsByUser);
-
-//Listar notificaciones adminsitrativas
-router.get('/null', notificationController.getAdminNotification)
-
-// Obtener detalle de una notificación
+// ===== RUTAS PÚBLICAS =====
+router.get('/', notificationController.getNotificationsByUser);
 router.get('/:id', notificationController.getNotificationById);
-
-// Marcar como leída
-router.patch('/:id/read', notificationController.markAsRead);
-
-// Eliminar notificación
-router.delete('/:id', notificationController.deleteNotification);
-
-// Conteo total de notificaciones
 router.get('/count', notificationController.getNotificationsCount);
 
-// Envio de notificación (usado por otros microservicios)
-router.post('/send/:id', notificationController.sendNotification);
+// ===== RUTAS PARA USUARIOS AUTENTICADOS =====
+router.post('/', autenticarToken, notificationController.createNotification);
+router.put('/:id/read', autenticarToken, notificationController.markAsRead);
+router.delete('/:id', autenticarToken, notificationController.deleteNotification);
 
-// Envio de notificaciones para un usuario especifico.
-router.post('/send/:notiId/user/:userId', notificationController.sendNotificationToSingleUser)
+// ===== RUTAS ADMINISTRATIVAS (solo ADMIN) =====
+router.get('/admin', autenticarToken, autorizarAdmin, notificationController.getAdminNotification);
+router.post('/send/:id', autenticarToken, autorizarAdmin, notificationController.sendNotification);
+router.post('/send/:userId/:notiId', autenticarToken, autorizarAdmin, notificationController.sendNotificationToSingleUser);
 
 export default router; 

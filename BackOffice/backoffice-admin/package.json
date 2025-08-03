@@ -3,13 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --port 4300",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:backoffice-admin": "node dist/backoffice-admin/server/server.mjs",
-    "build:ssr": "ng build && ng run backoffice-admin:server",
-    "serve:ssr": "node dist/backoffice-admin/server/main.js"
+    "test": "ng test"
   },
   "private": true,
   "dependencies": {

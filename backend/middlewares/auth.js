@@ -26,39 +26,49 @@ export const autenticarToken = async (req, res, next) => {
 };
 
 /**
- * Middleware para verificar roles específicos
+ * Middleware para verificar si el usuario tiene uno de los roles especificados
  * @param {...string} roles - Roles permitidos
  */
 export const autorizarRoles = (...roles) => {
   return (req, res, next) => {
-    if (!req.usuario) {
-      return authErrorResponse(res, 'Autenticación requerida');
-    }
+    try {
+      if (!req.usuario) {
+        return res.status(401).json({
+          success: false,
+          message: 'Token no válido'
+        });
+      }
 
-    if (!roles.includes(req.usuario.rol)) {
-      return res.status(403).json({
+      if (!roles.includes(req.usuario.rol)) {
+        return res.status(403).json({
+          success: false,
+          message: 'No tienes permisos para realizar esta acción'
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Error en autorizarRoles:', error);
+      return res.status(500).json({
         success: false,
-        message: 'No tienes permisos para acceder a este recurso',
-        timestamp: new Date().toISOString()
+        message: 'Error interno del servidor'
       });
     }
-
-    next();
   };
 };
 
 /**
- * Middleware para verificar si es propietario o GAD
+ * Middleware para verificar si es propietario o admin
  */
-export const autorizarPropietarioOGAD = (req, res, next) => {
-  return autorizarRoles('propietario', 'gad')(req, res, next);
+export const autorizarPropietarioOAdmin = (req, res, next) => {
+  return autorizarRoles('propietario', 'admin')(req, res, next);
 };
 
 /**
- * Middleware para verificar si es GAD
+ * Middleware para verificar si es admin
  */
-export const autorizarGAD = (req, res, next) => {
-  return autorizarRoles('gad')(req, res, next);
+export const autorizarAdmin = (req, res, next) => {
+  return autorizarRoles('admin')(req, res, next);
 };
 
 /**

@@ -1,459 +1,329 @@
 import { Component, Inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { getApiUrl, getMediaServiceUrl } from '../../config/api.config';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpClient } from '@angular/common/http';
+import { getBackendUrl, getMediaUrl } from '../../config/api.config';
+
+interface Place {
+  _id?: string;
+  name: string;
+  description: string;
+  location: string;
+  category: string;
+  coverImageUrl?: string;
+  imageUrls?: string[];
+  active?: boolean;
+}
 
 @Component({
   selector: 'app-place-dialog',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
-    MatChipsModule,
+    MatButtonModule,
     MatIconModule,
-    MatProgressBarModule
+    MatSelectModule,
+    MatOptionModule
   ],
   template: `
-    <h2 mat-dialog-title>{{ isEditing ? 'Editar' : 'Agregar' }} Lugar Turístico</h2>
-    <div class="dialog-content">
-    <form [formGroup]="lugarForm" (ngSubmit)="onSubmit()" class="user-form-modal">
-      <mat-form-field appearance="outline" color="primary">
-        <mat-label>Nombre</mat-label>
-        <input matInput formControlName="name" required />
-      </mat-form-field>
+    <div class="dialog-container">
+      <h2 mat-dialog-title>
+        {{ data._id ? 'Editar Lugar Turístico' : 'Agregar Lugar Turístico' }}
+      </h2>
       
-      <mat-form-field appearance="outline" color="primary">
-        <mat-label>Descripción</mat-label>
-        <textarea matInput formControlName="description" required rows="3"></textarea>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" color="primary">
-        <mat-label>Ubicación</mat-label>
-        <input matInput formControlName="location" required />
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" color="primary">
-        <mat-label>Categoría</mat-label>
-        <mat-select formControlName="category">
-          <mat-option value="">Sin categoría</mat-option>
-          <mat-option value="Playa">Playa</mat-option>
-          <mat-option value="Montaña">Montaña</mat-option>
-          <mat-option value="Río">Río</mat-option>
-          <mat-option value="Parque">Parque</mat-option>
-          <mat-option value="Museo">Museo</mat-option>
-          <mat-option value="Restaurante">Restaurante</mat-option>
-          <mat-option value="Hotel">Hotel</mat-option>
-          <mat-option value="Otro">Otro</mat-option>
-        </mat-select>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" color="primary">
-        <mat-label>URL de Imagen de Portada</mat-label>
-        <input matInput formControlName="coverImageUrl" placeholder="https://ejemplo.com/imagen.jpg" autocomplete="off" />
-        <mat-hint *ngIf="!lugarForm.get('coverImageUrl')?.value">URL de la imagen principal del lugar</mat-hint>
-      </mat-form-field>
-      
-      <div class="image-urls-section">
-        <label class="section-label">URLs de Imágenes Adicionales</label>
-        <div class="url-input-container">
-          <input 
-            #urlInput
-            type="text" 
-            placeholder="https://ejemplo.com/imagen.jpg"
-            (keyup.enter)="addImageUrl(urlInput.value); urlInput.value = ''"
-            class="url-input"
-          />
-          <button 
-            type="button" 
-            mat-mini-fab 
-            color="primary" 
-            (click)="addImageUrl(urlInput.value); urlInput.value = ''"
-            class="add-url-btn"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-        </div>
-        
-        <div class="url-chips" *ngIf="imageUrls.length > 0">
-          <mat-chip 
-            *ngFor="let url of imageUrls; let i = index" 
-            (removed)="removeImageUrl(i)"
-            class="url-chip"
-          >
-            {{ url.length > 30 ? url.substring(0, 30) + '...' : url }}
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
-        </div>
-      </div>
-      
-      <div class="local-images-section">
-        <label class="section-label">Subir Imágenes Locales</label>
-        <div class="file-upload-container">
-          <input 
-            #fileInput
-            type="file" 
-            multiple 
-            accept="image/*"
-            (change)="onFileSelected($event)"
-            class="file-input"
-            [disabled]="isUploading"
-          />
-          <button 
-            type="button" 
-            mat-raised-button 
-            color="primary" 
-            (click)="fileInput.click()"
-            [disabled]="isUploading"
-            class="upload-btn"
-          >
-            <mat-icon>cloud_upload</mat-icon>
-            Seleccionar Imágenes
-          </button>
-        </div>
-        
-        <div *ngIf="isUploading" class="upload-progress">
-          <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
-          <span class="progress-text">Subiendo imágenes... {{ uploadProgress }}%</span>
-        </div>
-        
-        <div class="uploaded-images" *ngIf="uploadedImages.length > 0">
-          <div class="image-preview" *ngFor="let image of uploadedImages; let i = index">
-            <img [src]="getImageUrl(image.url)" [alt]="image.originalName" class="preview-img">
-            <div class="image-info">
-              <span class="image-name">{{ image.originalName }}</span>
-              <button 
-                type="button" 
-                mat-icon-button 
-                color="warn" 
-                (click)="removeUploadedImage(i)"
-                class="remove-btn"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
+      <form #placeForm="ngForm" (ngSubmit)="onSubmit()">
+        <mat-dialog-content>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre del Lugar</mat-label>
+              <input matInput [(ngModel)]="place.name" name="name" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Ubicación</mat-label>
+              <input matInput [(ngModel)]="place.location" name="location" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Categoría</mat-label>
+              <mat-select [(ngModel)]="place.category" name="category" required>
+                <mat-option value="natural">Natural</mat-option>
+                <mat-option value="cultural">Cultural</mat-option>
+                <mat-option value="gastronomico">Gastronómico</mat-option>
+                <mat-option value="recreativo">Recreativo</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Descripción</mat-label>
+              <textarea matInput [(ngModel)]="place.description" name="description" 
+                        rows="4" required></textarea>
+            </mat-form-field>
+
+            <div class="image-section">
+              <h3>Imágenes</h3>
+              
+              <div class="cover-image">
+                <label>Imagen de Portada</label>
+                <input type="file" (change)="onCoverImageSelected($event)" 
+                       accept="image/*" #coverImageInput>
+                <div *ngIf="place.coverImageUrl" class="image-preview">
+                  <img [src]="place.coverImageUrl" alt="Portada">
+                  <button type="button" mat-icon-button (click)="removeCoverImage()">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="gallery-images">
+                <label>Galería de Imágenes</label>
+                <input type="file" (change)="onGalleryImagesSelected($event)" 
+                       accept="image/*" multiple #galleryImagesInput>
+                <div *ngIf="place.imageUrls && place.imageUrls.length > 0" class="gallery-preview">
+                  <div *ngFor="let image of place.imageUrls; let i = index" class="image-item">
+                    <img [src]="image" [alt]="'Imagen ' + (i + 1)">
+                    <button type="button" mat-icon-button (click)="removeGalleryImage(i)">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-      
-      <div class="modal-actions">
-          <button mat-raised-button color="primary" type="submit">{{ isEditing ? 'Actualizar' : 'Agregar' }}</button>
-        <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-      </div>
-    </form>
+        </mat-dialog-content>
+
+        <mat-dialog-actions align="end">
+          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+          <button mat-raised-button color="primary" type="submit" 
+                  [disabled]="!placeForm.valid || isSubmitting">
+            {{ isSubmitting ? 'Guardando...' : (data._id ? 'Actualizar' : 'Crear') }}
+          </button>
+        </mat-dialog-actions>
+      </form>
     </div>
   `,
   styles: [`
-    .dialog-content {
-      max-height: 70vh;
-      overflow-y: auto;
-      padding-right: 8px;
+    .dialog-container {
+      padding: 20px;
+      max-width: 600px;
     }
-    
-    .dialog-content::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .dialog-content::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-    
-    .dialog-content::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 4px;
-    }
-    
-    .dialog-content::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
-    
-    .user-form-modal {
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-      min-width: 400px;
-      max-width: 500px;
-      margin: 0 auto;
-      background: #f8f9fa;
-      border-radius: 14px;
-      padding: 28px 24px 18px 24px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    }
-    .modal-actions {
-      display: flex;
-      gap: 16px;
-      justify-content: flex-end;
-      margin-top: 18px;
-    }
-    h2[mat-dialog-title] {
-      text-align: center;
-      font-size: 1.35rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: #1e3c72;
-    }
-    mat-form-field {
-      width: 100%;
-    }
-    ::ng-deep .user-form-modal input,
-    ::ng-deep .user-form-modal textarea,
-    ::ng-deep .user-form-modal .mat-input-element,
-    ::ng-deep .user-form-modal .mat-form-field-label {
-      color: #111 !important;
-      background: #fff !important;
-      caret-color: #111 !important;
-    }
-    button[mat-raised-button] {
-      min-width: 110px;
-      font-weight: 500;
-    }
-    button[mat-button] {
-      font-weight: 400;
-    }
-    
-    .image-urls-section {
-      margin-top: 16px;
-    }
-    
-    .section-label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: #333;
-      font-size: 14px;
-    }
-    
-    .url-input-container {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .url-input {
-      flex: 1;
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-    
-    .add-url-btn {
-      width: 36px;
-      height: 36px;
-    }
-    
-    .url-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    
-    .url-chip {
-      max-width: 200px;
-    }
-    
-    .local-images-section {
-      margin-top: 16px;
-    }
-    
-    .file-upload-container {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .file-input {
-      display: none;
-    }
-    
-    .upload-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .upload-progress {
-      margin-bottom: 12px;
-    }
-    
-    .progress-text {
-      display: block;
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
-    
-    .uploaded-images {
+    .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
+      gap: 16px;
     }
-    
-    .image-preview {
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .image-section {
+      grid-column: 1 / -1;
+      margin-top: 16px;
+    }
+    .image-section h3 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+    .cover-image, .gallery-images {
+      margin-bottom: 20px;
+    }
+    .cover-image label, .gallery-images label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
       border: 1px solid #ddd;
-      border-radius: 8px;
-      overflow: hidden;
+      border-radius: 4px;
       background: #f9f9f9;
     }
-    
-    .preview-img {
+    .image-preview, .gallery-preview {
+      margin-top: 12px;
+    }
+    .image-preview img {
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+    }
+    .gallery-preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .image-item {
+      position: relative;
+      display: inline-block;
+    }
+    .image-item img {
       width: 100%;
-      height: 80px;
+      height: 120px;
       object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #ddd;
     }
-    
-    .image-info {
-      padding: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .image-name {
-      font-size: 11px;
-      color: #666;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 80px;
-    }
-    
-    .remove-btn {
+    .image-item button {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #f44336;
+      color: white;
+      border-radius: 50%;
       width: 24px;
       height: 24px;
-      line-height: 24px;
+      min-width: 24px;
+      padding: 0;
+    }
+    .image-preview {
+      position: relative;
+      display: inline-block;
+    }
+    .image-preview button {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #f44336;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      padding: 0;
     }
   `]
 })
 export class PlaceDialogComponent {
-  lugarForm: FormGroup;
-  isEditing = false;
-  imageUrls: string[] = [];
-  uploadedImages: any[] = [];
-  isUploading = false;
-  uploadProgress = 0;
+  place: Place = {
+    name: '',
+    description: '',
+    location: '',
+    category: '',
+    imageUrls: []
+  };
+  isSubmitting = false;
 
   constructor(
-    private fb: FormBuilder,
     private dialogRef: MatDialogRef<PlaceDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: Place,
     private http: HttpClient,
-    @Inject(MAT_DIALOG_DATA) public data?: any
+    private snackBar: MatSnackBar
   ) {
-    this.lugarForm = this.fb.group({
-      name: ['', Validators.required],
-      description: ['', Validators.required],
-      location: ['', Validators.required],
-      category: [''],
-      coverImageUrl: ['']
-    });
+    if (data._id) {
+      this.place = { ...data };
+    }
+  }
 
-    // Si se pasan datos, es modo edición
-    if (data) {
-      this.isEditing = true;
-      this.imageUrls = data.imageUrls || [];
-      this.lugarForm.patchValue({
-        name: data.name || '',
-        description: data.description || '',
-        location: data.location || '',
-        category: data.category || '',
-        coverImageUrl: data.coverImageUrl || ''
+  onCoverImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.uploadImage(file, 'cover');
+    }
+  }
+
+  onGalleryImagesSelected(event: any): void {
+    const files = event.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        this.uploadImage(files[i], 'gallery');
+      }
+    }
+  }
+
+  uploadImage(file: File, type: 'cover' | 'gallery'): void {
+    const formData = new FormData();
+    formData.append('files', file);
+    formData.append('placeId', this.place._id || 'temp');
+    formData.append('type', type);
+
+    this.http.post(getMediaUrl('/media/upload'), formData).subscribe({
+      next: (response: any) => {
+        if (response.success && response.files && response.files.length > 0) {
+          const imageUrl = response.files[0].url;
+          
+          if (type === 'cover') {
+            this.place.coverImageUrl = imageUrl;
+          } else {
+            if (!this.place.imageUrls) {
+              this.place.imageUrls = [];
+            }
+            this.place.imageUrls.push(imageUrl);
+          }
+          
+          this.snackBar.open('Imagen subida exitosamente', 'Cerrar', { duration: 2000 });
+        }
+      },
+      error: (error) => {
+        console.error('Error uploading image:', error);
+        this.snackBar.open('Error al subir imagen', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  removeCoverImage(): void {
+    this.place.coverImageUrl = undefined;
+  }
+
+  removeGalleryImage(index: number): void {
+    if (this.place.imageUrls) {
+      this.place.imageUrls.splice(index, 1);
+    }
+  }
+
+  onSubmit(): void {
+    if (!this.place.name || !this.place.description || !this.place.location || !this.place.category) {
+      this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.isSubmitting = true;
+    const placeData = { ...this.place };
+    delete placeData._id; // Remover _id para el envío
+
+    if (this.data._id) {
+      // Actualizar lugar existente
+      this.http.put(getBackendUrl(`/places/${this.data._id}`), placeData).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.snackBar.open('Lugar actualizado exitosamente', 'Cerrar', { duration: 3000 });
+          this.dialogRef.close({ ...placeData, _id: this.data._id });
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          console.error('Error updating place:', error);
+          this.snackBar.open('Error al actualizar lugar', 'Cerrar', { duration: 3000 });
+        }
+      });
+    } else {
+      // Crear nuevo lugar
+      this.http.post(getBackendUrl('/places'), placeData).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.snackBar.open('Lugar creado exitosamente', 'Cerrar', { duration: 3000 });
+          this.dialogRef.close(response);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          console.error('Error creating place:', error);
+          this.snackBar.open('Error al crear lugar', 'Cerrar', { duration: 3000 });
+        }
       });
     }
   }
 
-  addImageUrl(url: string) {
-    if (url && url.trim()) {
-      this.imageUrls.push(url.trim());
-    }
-  }
-
-  removeImageUrl(index: number) {
-    this.imageUrls.splice(index, 1);
-  }
-
-  onFileSelected(event: any) {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      this.uploadFiles(files);
-    }
-  }
-
-  async uploadFiles(files: FileList) {
-    this.isUploading = true;
-    this.uploadProgress = 0;
-
-    try {
-      const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append('imagenes', files[i]);
-      }
-
-      // Forzar el envío del token JWT en la cabecera Authorization
-      const token = localStorage.getItem('token');
-      const httpHeaders = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-
-      const response: any = await this.http.post(
-        getMediaServiceUrl('/media/upload'),
-        formData,
-        { headers: httpHeaders }
-      ).toPromise();
-      
-      if (response.success) {
-        this.uploadedImages.push(...response.files);
-        this.uploadProgress = 100;
-      }
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      this.isUploading = false;
-      this.uploadProgress = 0;
-    }
-  }
-
-  getImageUrl(url: string): string {
-    if (url.startsWith('http')) {
-      return url;
-    }
-    return getApiUrl(url);
-  }
-
-  removeUploadedImage(index: number) {
-    this.uploadedImages.splice(index, 1);
-  }
-
-  onSubmit() {
-    if (this.lugarForm.invalid) return;
-    
-    const formData = this.lugarForm.value;
-    formData.imageUrls = this.imageUrls;
-    
-    // Agregar URLs de imágenes subidas localmente
-    if (this.uploadedImages.length > 0) {
-      const uploadedUrls = this.uploadedImages.map(img => this.getImageUrl(img.url));
-      formData.imageUrls = [...formData.imageUrls, ...uploadedUrls];
-    }
-    
-    this.dialogRef.close(formData);
-  }
-
-  onCancel() {
-    this.dialogRef.close(null);
+  onCancel(): void {
+    this.dialogRef.close();
   }
 } 

@@ -18,6 +18,15 @@ export const getPlaces = async (req, res, next) => {
   }
 };
 
+export const getPlacesCount = async (req, res, next) => {
+  try {
+    const count = await placeService.getPlacesCount();
+    res.json({ count });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getPlaceById = async (req, res, next) => {
   try {
     const place = await placeService.getPlaceById(req.params.id);

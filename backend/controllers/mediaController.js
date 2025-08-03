@@ -101,7 +101,7 @@ export const getMediaByPlace = async (req, res) => {
   }
 };
 
-// Eliminar imagen
+// Eliminar archivo
 export const deleteMedia = async (req, res) => {
   try {
     const { mediaId } = req.params;
@@ -111,28 +111,50 @@ export const deleteMedia = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Media not found' });
     }
 
-    // Si es imagen de portada, remover del lugar
+    // Eliminar archivo físico
+    const fs = await import('fs');
+    const filePath = path.join(process.cwd(), 'uploads', media.filename);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Eliminar de la base de datos
+    await Media.findByIdAndDelete(mediaId);
+
+    // Si era imagen de portada, limpiar referencia en el lugar
     if (media.type === 'cover') {
-      await Place.findByIdAndUpdate(media.placeId, { $unset: { coverImage: 1 } });
+      await Place.updateMany(
+        { coverImage: mediaId },
+        { $unset: { coverImage: 1 } }
+      );
     }
 
     // Remover de la lista de imágenes del lugar
-    await Place.findByIdAndUpdate(media.placeId, { 
-      $pull: { images: mediaId } 
-    });
-
-    // Eliminar el archivo físico (opcional)
-    // fs.unlinkSync(path.join(process.cwd(), 'uploads', media.filename));
-
-    await Media.findByIdAndDelete(mediaId);
+    await Place.updateMany(
+      { images: mediaId },
+      { $pull: { images: mediaId } }
+    );
 
     res.json({ 
       success: true, 
-      message: 'Media deleted successfully' 
+      message: 'Media deleted successfully',
+      media 
     });
 
   } catch (error) {
     console.error('Error deleting media:', error);
     res.status(500).json({ success: false, message: 'Error deleting media' });
+  }
+};
+
+// Obtener conteo de archivos de media
+export const getMediaCount = async (req, res) => {
+  try {
+    const count = await Media.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error getting media count:', error);
+    res.status(500).json({ success: false, message: 'Error getting media count' });
   }
 }; 
