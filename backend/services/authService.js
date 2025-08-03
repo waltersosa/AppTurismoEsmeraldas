@@ -1,5 +1,5 @@
 import userRepository from '../repositories/userRepository.js';
-import { generarToken, generarPayload, generarEmail } from '../utils/jwt.js';
+import { generarToken, generarPayload, generarEmailBienvenida } from '../utils/jwt.js';
 
 export class AuthService {
   /**
@@ -22,7 +22,7 @@ export class AuthService {
     const token = generarToken(payload);
 
     //Enviar correo de Bienvenida
-    generarEmail(usuario)
+    generarEmailBienvenida(usuario)
 
     return {
       usuario: {

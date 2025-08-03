@@ -1,5 +1,6 @@
 import Activity from '../models/Activity.js';
 import User from '../models/User.js';
+import { generarEmailDeBorrado, generarEmailDeHabilitacion, generarEmailDeshabilitacion } from '../utils/jwt.js';
 
 /**
  * Servicio para manejar actividades del sistema
@@ -95,6 +96,9 @@ class ActivityService {
    * Registrar habilitación de usuario
    */
   static async logUserEnabled(adminId, user) {
+    
+    generarEmailDeHabilitacion(user)
+    
     return this.logActivity({
       type: 'user',
       action: 'enable',
@@ -110,6 +114,9 @@ class ActivityService {
    * Registrar deshabilitación de usuario
    */
   static async logUserDisabled(adminId, user) {
+
+    generarEmailDeshabilitacion(user)
+
     return this.logActivity({
       type: 'user',
       action: 'disable',
@@ -125,6 +132,9 @@ class ActivityService {
    * Registrar eliminación de usuario
    */
   static async logUserDeleted(adminId, user) {
+
+    generarEmailDeBorrado(user)
+
     return this.logActivity({
       type: 'user',
       action: 'delete',

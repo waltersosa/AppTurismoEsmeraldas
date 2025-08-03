@@ -67,23 +67,81 @@ export const generarPayload = (user) => {
  * usuario recién registrado
  * @param {Object} user - El usuario que se acaba de resgistrar 
  */
-export const generarEmail = async (user) => {
+export const generarEmailBienvenida = async (user) => {
   const transporter = createEmailTransporter();
 
-//Llamamos al archivo html que se enviará por correo.
-  const filePath = path.resolve('./utils/emailsHTML/welcome.html'); 
- let htmlTemplate = await fs.readFile(filePath, { encoding: 'utf-8' });
+  //Llamamos al archivo html que se enviará por correo.
+  const filePath = path.resolve('./utils/emailsHTML/bienvenida.html');
+  let htmlTemplate = await fs.readFile(filePath, { encoding: 'utf-8' });
 
 
- //Pasamos el nombre del usuario al archivo html
-htmlTemplate = htmlTemplate.replace(/{{name}}/g, user.nombre); 
+  //Pasamos el nombre del usuario al archivo html
+  htmlTemplate = htmlTemplate.replace(/{{name}}/g, user.nombre);
 
   await transporter.sendMail({
     from: process.env.SMTP_USER,
     to: user.correo,
-    subject: 'Le damos la bienvenida a mi app',
+    subject: 'Le damos la bienvenida a Esmeraldas Turistica',
     html: htmlTemplate,
   });
 }
 
+export const generarEmailDeshabilitacion = async (user) => {
+  const transporter = createEmailTransporter();
+
+  //Llamamos al archivo html que se enviará por correo.
+  const filePath = path.resolve('./utils/emailsHTML/deshabilitacion.html');
+  let htmlTemplate = await fs.readFile(filePath, { encoding: 'utf-8' });
+
+
+  //Pasamos el nombre del usuario al archivo html
+  htmlTemplate = htmlTemplate.replace(/{{name}}/g, user.nombre);
+
+   await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: user.correo,
+    subject: 'Lamentamos informarle que su cuenta ha sido deshabilitada',
+    html: htmlTemplate,
+  });
+}
+
+
+export const generarEmailDeHabilitacion = async (user) => {
+  const transporter = createEmailTransporter();
+
+  //Llamamos al archivo html que se enviará por correo.
+  const filePath = path.resolve('./utils/emailsHTML/habilitacion.html');
+  let htmlTemplate = await fs.readFile(filePath, { encoding: 'utf-8' });
+
+
+  //Pasamos el nombre del usuario al archivo html
+  htmlTemplate = htmlTemplate.replace(/{{name}}/g, user.nombre);
+
+   await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: user.correo,
+    subject: 'Hemos Rehabilitado tu cuenta tu cuenta',
+    html: htmlTemplate,
+  });
+}
+
+export const generarEmailDeBorrado = async (user) => {
+  const transporter = createEmailTransporter();
+
+
+  //Llamamos al archivo html que se enviará por correo.
+  const filePath = path.resolve('./utils/emailsHTML/eliminacion.html');
+  let htmlTemplate = await fs.readFile(filePath, { encoding: 'utf-8' });
+
+
+  //Pasamos el nombre del usuario al archivo html
+  htmlTemplate = htmlTemplate.replace(/{{name}}/g, user.nombre);
+
+   await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: user.correo,
+    subject: 'Hemos Borrado tu cuenta',
+    html: htmlTemplate,
+  });
+}
 
