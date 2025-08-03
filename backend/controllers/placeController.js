@@ -21,7 +21,10 @@ export const getPlaces = async (req, res, next) => {
 export const getPlacesCount = async (req, res, next) => {
   try {
     const count = await placeService.getPlacesCount();
-    res.json({ count });
+    res.json({ 
+      success: true,
+      data: { count }
+    });
   } catch (err) {
     next(err);
   }

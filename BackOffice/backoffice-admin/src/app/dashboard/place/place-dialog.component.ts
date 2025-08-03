@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
-import { getBackendUrl, getMediaUrl } from '../../config/api.config';
+import { getBackendUrl } from '../../config/api.config';
 
 interface Place {
   _id?: string;
@@ -30,8 +30,8 @@ interface Place {
     CommonModule,
     FormsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatInputModule,
+    MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
@@ -248,7 +248,7 @@ export class PlaceDialogComponent {
     formData.append('placeId', this.place._id || 'temp');
     formData.append('type', type);
 
-    this.http.post(getMediaUrl('/media/upload'), formData).subscribe({
+    this.http.post(getBackendUrl('/media/upload'), formData).subscribe({
       next: (response: any) => {
         if (response.success && response.files && response.files.length > 0) {
           const imageUrl = response.files[0].url;

@@ -130,7 +130,10 @@ export const getReviewByIdAdmin = async (req, res, next) => {
 export const getReviewsCount = async (req, res, next) => {
   try {
     const count = await reviewService.getReviewsCount();
-    res.json({ count });
+    res.json({ 
+      success: true,
+      data: { count }
+    });
   } catch (err) {
     next(err);
   }

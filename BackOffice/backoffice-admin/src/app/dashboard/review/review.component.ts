@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { getPlacesUrl, getReviewsUrl } from '../../config/api.config';
+import { getBackendUrl } from '../../config/api.config';
 
 interface Review {
   _id: string;
@@ -243,7 +243,7 @@ export class ReviewComponent implements OnInit {
   }
 
   loadPlaces(): void {
-    this.http.get<any>(getPlacesUrl('/places')).subscribe(res => {
+    this.http.get<any>(getBackendUrl('/places')).subscribe(res => {
       if (res.success) {
         this.places = res.data || [];
       }
@@ -260,7 +260,7 @@ export class ReviewComponent implements OnInit {
     if (this.selectedStatus) params.estado = this.selectedStatus;
     if (this.selectedRating) params.calificacion = this.selectedRating;
 
-    this.http.get<any>(getReviewsUrl('/reviews/admin'), { params }).subscribe(res => {
+    this.http.get<any>(getBackendUrl('/reviews/admin'), { params }).subscribe(res => {
       if (res.success) {
         this.reviews = res.data || [];
         this.totalItems = res.pagination?.total || 0;
@@ -269,7 +269,7 @@ export class ReviewComponent implements OnInit {
   }
 
   approveReview(resena: Review): void {
-    this.http.put(getReviewsUrl(`/reviews/admin/${resena._id}`), { estado: 'activo' }).subscribe({
+    this.http.put(getBackendUrl(`/reviews/admin/${resena._id}`), { estado: 'activo' }).subscribe({
       next: (response) => {
         this.snackBar.open('Reseña aprobada exitosamente', 'Cerrar', { duration: 3000 });
         this.loadReviews();
@@ -282,7 +282,7 @@ export class ReviewComponent implements OnInit {
   }
 
   rejectReview(resena: Review): void {
-    this.http.put(getReviewsUrl(`/reviews/admin/${resena._id}`), { estado: 'rechazado' }).subscribe({
+    this.http.put(getBackendUrl(`/reviews/admin/${resena._id}`), { estado: 'rechazado' }).subscribe({
       next: (response) => {
         this.snackBar.open('Reseña rechazada exitosamente', 'Cerrar', { duration: 3000 });
         this.loadReviews();
@@ -296,7 +296,7 @@ export class ReviewComponent implements OnInit {
 
   deleteReview(resena: Review): void {
     if (confirm('¿Estás seguro de que quieres eliminar esta reseña?')) {
-      this.http.delete(getReviewsUrl(`/reviews/${resena._id}`)).subscribe({
+      this.http.delete(getBackendUrl(`/reviews/${resena._id}`)).subscribe({
         next: (response) => {
           this.snackBar.open('Reseña eliminada exitosamente', 'Cerrar', { duration: 3000 });
           this.loadReviews();

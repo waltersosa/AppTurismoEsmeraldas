@@ -345,9 +345,11 @@ export class HomeComponent implements OnInit {
 
   loadIndividualStats(): void {
     // Cargar conteo de usuarios
-    this.http.get<{count: number}>(getBackendUrl('/auth/users/count')).subscribe({
+    this.http.get<{success: boolean, data: {count: number}}>(getBackendUrl('/auth/users/count')).subscribe({
       next: (response) => {
-        this.stats.totalUsers = response.count;
+        if (response.success) {
+          this.stats.totalUsers = response.data.count;
+        }
       },
       error: (error) => {
         console.error('Error loading users count:', error);
@@ -355,9 +357,11 @@ export class HomeComponent implements OnInit {
     });
 
     // Cargar conteo de lugares
-    this.http.get<{count: number}>(getBackendUrl('/places/count')).subscribe({
+    this.http.get<{success: boolean, data: {count: number}}>(getBackendUrl('/places/count')).subscribe({
       next: (response) => {
-        this.stats.totalPlaces = response.count;
+        if (response.success) {
+          this.stats.totalPlaces = response.data.count;
+        }
       },
       error: (error) => {
         console.error('Error loading places count:', error);
@@ -365,9 +369,11 @@ export class HomeComponent implements OnInit {
     });
 
     // Cargar conteo de reseñas
-    this.http.get<{count: number}>(getBackendUrl('/reviews/count')).subscribe({
+    this.http.get<{success: boolean, data: {count: number}}>(getBackendUrl('/reviews/count')).subscribe({
       next: (response) => {
-        this.stats.totalReviews = response.count;
+        if (response.success) {
+          this.stats.totalReviews = response.data.count;
+        }
       },
       error: (error) => {
         console.error('Error loading reviews count:', error);
@@ -375,9 +381,11 @@ export class HomeComponent implements OnInit {
     });
 
     // Cargar conteo de imágenes
-    this.http.get<{count: number}>(getBackendUrl('/media/count')).subscribe({
+    this.http.get<{success: boolean, data: {count: number}}>(getBackendUrl('/media/count')).subscribe({
       next: (response) => {
-        this.stats.totalImages = response.count;
+        if (response.success) {
+          this.stats.totalImages = response.data.count;
+        }
       },
       error: (error) => {
         console.error('Error loading media count:', error);

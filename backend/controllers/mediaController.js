@@ -152,7 +152,10 @@ export const deleteMedia = async (req, res) => {
 export const getMediaCount = async (req, res) => {
   try {
     const count = await Media.countDocuments();
-    res.json({ count });
+    res.json({ 
+      success: true,
+      data: { count }
+    });
   } catch (error) {
     console.error('Error getting media count:', error);
     res.status(500).json({ success: false, message: 'Error getting media count' });

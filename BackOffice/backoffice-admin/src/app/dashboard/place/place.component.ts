@@ -9,11 +9,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClient } from '@angular/common/http';
-import { getPlacesUrl } from '../../config/api.config';
+import { getBackendUrl } from '../../config/api.config';
 import { PlaceDialogComponent } from './place-dialog.component';
 
 interface Place {
@@ -51,6 +52,7 @@ interface PlacesResponse {
     MatDialogModule,
     MatPaginatorModule,
     MatSortModule,
+    MatInputModule,
     MatFormFieldModule,
     MatSelectModule,
     MatOptionModule,
@@ -206,7 +208,7 @@ export class PlaceComponent implements OnInit {
       active: this.selectedStatus
     };
 
-    this.http.get<any>(getPlacesUrl('/places'), { params }).subscribe({
+    this.http.get<any>(getBackendUrl('/places'), { params }).subscribe({
       next: (response) => {
         if (response.success) {
           this.places = response.data;
@@ -238,7 +240,7 @@ export class PlaceComponent implements OnInit {
   }
 
   createPlace(placeData: any): void {
-    this.http.post(getPlacesUrl('/places'), placeData).subscribe({
+    this.http.post(getBackendUrl('/places'), placeData).subscribe({
       next: (response) => {
         this.snackBar.open('Lugar creado exitosamente', 'Cerrar', { duration: 3000 });
         this.loadPlaces();
@@ -251,7 +253,7 @@ export class PlaceComponent implements OnInit {
   }
 
   updatePlace(placeData: any): void {
-    this.http.put(getPlacesUrl(`/places/${placeData._id}`), placeData).subscribe({
+    this.http.put(getBackendUrl(`/places/${placeData._id}`), placeData).subscribe({
       next: (response) => {
         this.snackBar.open('Lugar actualizado exitosamente', 'Cerrar', { duration: 3000 });
         this.loadPlaces();
@@ -265,7 +267,7 @@ export class PlaceComponent implements OnInit {
 
   toggleStatus(place: Place): void {
     const newStatus = !place.active;
-    this.http.patch(getPlacesUrl(`/places/${place._id}/status`), { active: newStatus }).subscribe({
+    this.http.patch(getBackendUrl(`/places/${place._id}/status`), { active: newStatus }).subscribe({
       next: (response) => {
         this.snackBar.open(`Lugar ${newStatus ? 'activado' : 'desactivado'} exitosamente`, 'Cerrar', { duration: 3000 });
         this.loadPlaces();
@@ -279,7 +281,7 @@ export class PlaceComponent implements OnInit {
 
   deletePlace(place: Place): void {
     if (confirm(`¿Estás seguro de que quieres eliminar "${place.name}"?`)) {
-      this.http.delete(getPlacesUrl(`/places/${place._id}`)).subscribe({
+      this.http.delete(getBackendUrl(`/places/${place._id}`)).subscribe({
         next: (response) => {
           this.snackBar.open('Lugar eliminado exitosamente', 'Cerrar', { duration: 3000 });
           this.loadPlaces();
