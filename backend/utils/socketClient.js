@@ -48,7 +48,7 @@ export function notifyUser(userId, data) {
 export function notifyAll(data) {
   if (socket && socket.connected) {
     // console.log('[Socket] Enviando notificación a todos los usuarios:', data);
-    socket.emit('notification', data);
+    socket.emit('notified-user', data); // Usar el mismo evento que funciona
     console.log('[Socket] Notificación enviada a todos los usuarios');
   } else {
     console.error('[Socket] No conectado. No se pudo enviar la notificación a todos.');
@@ -56,18 +56,26 @@ export function notifyAll(data) {
 }
 
 
-export function enviarNotificacion(titulo, mensaje, userId = null) {
-  axios.post('http://localhost:3000/emitir', {
-    titulo,
-    mensaje,
-    userId // puede ser null o undefined para todos
-  })
-    .then(res => {
-      console.log('✅ Notificación enviada:', res.data);
-    })
-    .catch(err => {
-      console.error('❌ Error enviando notificación:', err.message);
+export function enviarNotificacion(titulo, mensaje, userId = null, type = 'info') {
+  // Si userId es 'all' o null, enviar a todos los usuarios
+  if (userId === 'all' || userId === null || userId === undefined) {
+    console.log('📤 Enviando notificación a todos los usuarios:', { titulo, mensaje, type });
+    notifyAll({
+      titulo: titulo || 'Notificación',
+      mensaje: mensaje || 'Sin mensaje',
+      type: type || 'info',
+      fecha: new Date().toISOString()
     });
+  } else {
+    // Enviar a usuario específico
+    console.log('📤 Enviando notificación a usuario específico:', userId, { titulo, mensaje, type });
+    notifyUser(userId, {
+      titulo: titulo || 'Notificación',
+      mensaje: mensaje || 'Sin mensaje',
+      type: type || 'info',
+      fecha: new Date().toISOString()
+    });
+  }
 }
 
 

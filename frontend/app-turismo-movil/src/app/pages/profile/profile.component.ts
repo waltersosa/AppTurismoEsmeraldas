@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -23,9 +25,13 @@ export class ProfileComponent {
   currentPassword: string = '';
   userId = localStorage.getItem('userId');
 
-  constructor(private router: Router, private http: HttpClient) {
+  constructor(
+    private router: Router, 
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
     try {
-      this.getUserDetails()
+      this.getUserDetails();
       this.newName = this.userName;
     } catch {
       this.userName = '';
@@ -33,8 +39,7 @@ export class ProfileComponent {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 
@@ -66,63 +71,64 @@ export class ProfileComponent {
       this.editError = 'Las contraseñas no coinciden.';
       return;
     }
-    const token = localStorage.getItem('token');
+    
+    const token = this.authService.getToken();
     if (!token) {
       this.editError = 'No hay sesión activa.';
       return;
     }
+
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    // Actualizar nombre
-    this.http.put<any>(`https://geoapi.esmeraldas.gob.ec/new/actualizarUser?id=${this.userId}`,
-      { nombre: this.newName }, { headers }).subscribe({
 
-        next: (resp) => {
-          if (resp.usuario) {
-            localStorage.setItem('user', JSON.stringify(resp.usuario));
-            this.userName = resp.usuario.nombre || resp.usuario.email || '';
-          } else {
-            // fallback por si la API no retorna el usuario actualizado
-            const userStr = localStorage.getItem('user');
-            let user = {};
-            if (userStr) {
-              try { user = JSON.parse(userStr); } catch { }
-            }
-            user = { ...user, nombre: this.newName };
-            localStorage.setItem('user', JSON.stringify(user));
-            this.userName = this.newName;
-          }
-          // Si hay nueva contraseña, hacer petición aparte
-          if (this.newPassword) {
-            this.http.put<any>('http://localhost:3001/auth/change-password', {
-              contraseñaActual: this.currentPassword,
-              nuevaContraseña: this.newPassword
-            }, { headers }).subscribe({
-              next: () => {
-                this.editing = false;
-                this.editError = '';
-                this.newPassword = '';
-                this.confirmPassword = '';
-                this.currentPassword = '';
-              },
-              error: (err) => {
-                this.editError = err.error?.error || 'Error al cambiar la contraseña';
-              }
-            });
-          } else {
-            this.editing = false;
-            this.editError = '';
-            this.newPassword = '';
-            this.confirmPassword = '';
-            this.currentPassword = '';
-          }
-        },
-        error: (err) => {
-          this.editError = err.error?.error || 'Error al actualizar perfil';
+    // Actualizar perfil en BD local
+    this.http.put<any>(environment.auth.local.profile, {
+      nombre: this.newName
+    }, { headers }).subscribe({
+      next: (resp) => {
+        console.log('✅ Perfil actualizado:', resp);
+        
+        // Actualizar datos en localStorage
+        const user = this.authService.getUser();
+        if (user) {
+          user.nombre = this.newName;
+          localStorage.setItem('user', JSON.stringify(user));
         }
-      });
+        
+        this.userName = this.newName;
+        
+        // Si hay nueva contraseña, hacer petición aparte
+        if (this.newPassword) {
+          this.http.put<any>(environment.auth.local.changePassword, {
+            contraseñaActual: this.currentPassword,
+            nuevaContraseña: this.newPassword
+          }, { headers }).subscribe({
+            next: () => {
+              this.editing = false;
+              this.editError = '';
+              this.newPassword = '';
+              this.confirmPassword = '';
+              this.currentPassword = '';
+            },
+            error: (err) => {
+              this.editError = err.error?.error || 'Error al cambiar la contraseña';
+            }
+          });
+        } else {
+          this.editing = false;
+          this.editError = '';
+          this.newPassword = '';
+          this.confirmPassword = '';
+          this.currentPassword = '';
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar perfil:', err);
+        this.editError = err.error?.error || 'Error al actualizar perfil';
+      }
+    });
   }
 
   showSoon() {
@@ -132,26 +138,24 @@ export class ProfileComponent {
     }, 1800);
   }
 
-
   getUserDetails() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No se encontró token para autenticación');
-      return;
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`
-    };
-
-    this.http.get<any>('https://geoapi.esmeraldas.gob.ec/new/me', { headers }).subscribe({
+    console.log('👤 Obteniendo detalles del usuario desde BD local...');
+    
+    this.authService.obtenerPerfil().subscribe({
       next: (resp) => {
-        // Asumiendo que 'resp' tiene la estructura con 'nombre' o 'email'
-        this.userName = resp.data.name || '';
+        console.log('✅ Perfil obtenido:', resp);
+        if (resp.data?.usuario) {
+          this.userName = resp.data.usuario.nombre || resp.data.usuario.correo || '';
+          this.userId = resp.data.usuario.id;
+        }
       },
       error: (err) => {
-        console.error('Error al obtener detalles de usuario', err);
-        // Aquí puedes manejar algún mensaje de error si quieres
+        console.error('❌ Error al obtener perfil:', err);
+        // Fallback: intentar obtener datos del localStorage
+        const user = this.authService.getUser();
+        if (user) {
+          this.userName = user.nombre || user.correo || '';
+        }
       }
     });
   }

@@ -1,65 +1,18 @@
-.fondo {
-    background: linear-gradient(rgb(230, 255, 200), rgb(200, 255, 230));
-    min-height: 100vh;
-    height: max-content;
+/* Estilos específicos para notificaciones si son necesarios */
+/* El diseño principal ahora usa Tailwind CSS */
+
+/* Animación de entrada para las notificaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.botonVolver {
-    position: absolute;
-    top: 30px;
-    left: 20px;
-    z-index: 10;
-}
-
-.notificaciones-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-}
-
-ul {
-    list-style: none;
-    padding: 0;
-    width: 100%;
-    max-width: 600px;
-}
-
-.notificacion-item {
-    display: flex;
-    justify-content: center;
-}
-
-.notificacion-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 0px;
-    border-bottom: 1px solid rgb(167, 221, 122);
-}
-
-.time-label {
-    font-size: 15spx;
-    text-align: right;
-    margin-bottom: 8px;
-}
-
-.card-notificacion {
-    background-color: rgba(188, 252, 136, 0.6);
-    border: 1px solid rgb(167, 221, 122);
-    border-radius: 2rem;
-    padding: 15px;
-    margin-bottom: 10px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-}
-
-h2 {
-    color: black;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: xx-large;
-    font-family: Arial, Helvetica, sans-serif
+.notification-enter {
+  animation: fadeInUp 0.3s ease-out;
 }

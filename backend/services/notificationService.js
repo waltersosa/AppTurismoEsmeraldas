@@ -1,4 +1,5 @@
 import Notification from '../models/Notification.js';
+import User from '../models/User.js';
 import { connectSocketServer, notifyAll, enviarNotificacion } from '../utils/socketClient.js';
 import mongoose from 'mongoose';
 
@@ -52,22 +53,45 @@ export const sendNotification = async (id) => {
   }
 
   try {
-
-    //await connectSocketServer('notifier-system');
-    //console.log("NOtificación a enviar:", notificationSelected);
-    /*  notifyAll({
-        type: 'notification',
-        message: notificationSelected.message,
-        notification: notificationSelected
-      })
-      console.log('Payload de notificación enviada:', {
-        type: 'notification',
-        message: notificationSelected.message,
-        notification: notificationSelected
-      });*/
-    enviarNotificacion(notificationSelected.title, notificationSelected.message);
+    // Enviar a todos los usuarios por socket
+    enviarNotificacion(notificationSelected.title, notificationSelected.message, 'all', notificationSelected.type);
+    console.log('✅ Notificación enviada a todos los usuarios por socket');
+    
+    // Crear notificaciones individuales para cada usuario
+    await createNotificationsForAllUsers(notificationSelected);
+    console.log('✅ Notificaciones individuales creadas para todos los usuarios');
+    
   } catch (error) {
-    console.error('No se pudo establecerla conexión al servidor:', error);
+    console.error('❌ No se pudo establecer la conexión al servidor:', error);
+    throw error;
+  }
+}
+
+// Función para crear notificaciones individuales para todos los usuarios
+export const createNotificationsForAllUsers = async (notificationData) => {
+  try {
+    // Obtener todos los usuarios
+    const users = await User.find({}, '_id');
+    console.log(`📋 Encontrados ${users.length} usuarios para crear notificaciones`);
+    
+    // Crear notificaciones individuales para cada usuario
+    const notificationsToCreate = users.map(user => ({
+      title: notificationData.title,
+      message: notificationData.message,
+      userId: user._id,
+      type: notificationData.type || 'info',
+      data: notificationData.data || {},
+      read: false
+    }));
+    
+    if (notificationsToCreate.length > 0) {
+      await Notification.insertMany(notificationsToCreate);
+      console.log(`✅ Creadas ${notificationsToCreate.length} notificaciones individuales`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error al crear notificaciones individuales:', error);
+    throw error;
   }
 }
 
@@ -82,7 +106,7 @@ export const sendNotificationToSingleUser = async (userId, notiId) => {
   try {
 
     enviarNotificacion(notificationSelected.title, notificationSelected.message,
-      userId);
+      userId, notificationSelected.type);
   } catch (error) {
     console.error('No se pudo establecer conexión', error)
   }

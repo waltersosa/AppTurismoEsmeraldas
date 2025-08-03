@@ -1,84 +1,25 @@
-/*import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NotificationSocketService } from '../../services/socket.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { SocketService } from './../../services/socket.io.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import {
-  trigger,
-  transition,
-  style,
-  animate
-} from '@angular/animations';
-
-@Component({
-  standalone: true,
-  imports: [CommonModule],
-  selector: 'app-notificaciones',
-  templateUrl: './notificaciones.component.html',
-  styleUrls: ['./notificaciones.component.css'],
-  animations: [
-    trigger('fadeInUp', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
-  ]
-})
-export class NotificacionesComponent implements OnInit, OnDestroy {
-  notificaciones: any[] = [];
-  private notificationSub?: Subscription;
-
-  constructor(private notificationSocket: NotificationSocketService) { }
-
-  ngOnInit(): void {
-    console.log('Inicializando NotificacionesComponent');
-    const userId = localStorage.getItem('userId') || 'system'; // Asegúrate que tienes un userId
-    this.notificationSocket.connect(userId);
-
-    console.log('Conectando al socket de notificaciones para el usuario:', userId);
-    // Escuchamos notificaciones generales
-    this.notificationSub = this.notificationSocket.onNotification().subscribe((notif) => {
-      console.log('Nueva notificación recibida:', notif);
-      this.notificaciones.unshift(notif);
-
-    });
-
-    // Si el socket emite notificaciones individuales
-    this.notificationSocket.onNotifiedUser().subscribe((notif) => {
-      this.notificaciones.unshift(notif);
-    });
-
-  }
-
-  ngOnDestroy(): void {
-    this.notificationSub?.unsubscribe();
-    this.notificationSocket.disconnect();
-  }
-}*/
-// src/app/Componentes/notificaciones/notificaciones.component.ts
-
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { SocketService } from './../../services/socket.io.service' // Ajusta la ruta si es necesario
-import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';  // IMPORTANTE para *ngFor y otras directivas comunes
 import { trigger, transition, style, animate } from '@angular/animations';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Router } from '@angular/router'
+import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { MenuInferiorComponent } from '../menu-inferior/menu-inferior.component';
 
 interface Notificacion {
   titulo: string;
   mensaje: string;
   fecha: Date;
-  // Puedes agregar más campos si es necesario
+  leida?: boolean;
+  id?: string;
 }
-
 
 @Component({
   selector: 'app-notificaciones',
   standalone: true,
   templateUrl: './notificaciones.component.html',
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, MenuInferiorComponent],
   styleUrls: ['./notificaciones.component.css'],
   animations: [
     trigger('fadeInUp', [
@@ -92,8 +33,13 @@ interface Notificacion {
 export class NotificacionesComponent implements OnInit, OnDestroy {
   notificaciones: Notificacion[] = [];
   private notificationSub!: Subscription;
+  isLoading: boolean = false;
 
-  constructor(private socketService: SocketService, private router: Router, private http: HttpClient) {
+  constructor(
+    private socketService: SocketService, 
+    private router: Router, 
+    private http: HttpClient
+  ) {
     this.getPersistentNotification();
   }
 
@@ -105,13 +51,13 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
     this.notificationSub = this.socketService.onNotification().subscribe(
       (data: any) => {
         if (data) {
-          // Asumiendo que data tiene las propiedades titulo y mensaje
-
-          console.log(data)
+          console.log('Nueva notificación recibida:', data);
           const nuevaNotificacion: Notificacion = {
+            id: data.id || Date.now().toString(),
             titulo: data.titulo || 'Sin título',
             mensaje: data.mensaje || 'Sin mensaje',
-            fecha: new Date(data.fecha)
+            fecha: new Date(data.fecha || new Date()),
+            leida: false
           };
 
           // Agrega la notificación al arreglo para mostrar en pantalla
@@ -124,13 +70,31 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
     );
   }
 
+  trackByNotificacion(index: number, notificacion: Notificacion): string {
+    return notificacion.id || index.toString();
+  }
+
   formatearFecha(fecha: Date): string {
-    const horas = fecha.getHours().toString().padStart(2, '0');
-    const minutos = fecha.getMinutes().toString().padStart(2, '0');
-    const dia = fecha.getDate().toString().padStart(2, '0');
-    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-    const anio = fecha.getFullYear();
-    return `${horas}:${minutos} - ${dia}/${mes}/${anio}`;
+    const ahora = new Date();
+    const diferencia = ahora.getTime() - fecha.getTime();
+    const minutos = Math.floor(diferencia / (1000 * 60));
+    const horas = Math.floor(diferencia / (1000 * 60 * 60));
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+
+    if (minutos < 1) {
+      return 'Ahora mismo';
+    } else if (minutos < 60) {
+      return `Hace ${minutos} minuto${minutos > 1 ? 's' : ''}`;
+    } else if (horas < 24) {
+      return `Hace ${horas} hora${horas > 1 ? 's' : ''}`;
+    } else if (dias < 7) {
+      return `Hace ${dias} día${dias > 1 ? 's' : ''}`;
+    } else {
+      const dia = fecha.getDate().toString().padStart(2, '0');
+      const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const anio = fecha.getFullYear();
+      return `${dia}/${mes}/${anio}`;
+    }
   }
 
   ngOnDestroy(): void {
@@ -141,35 +105,47 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
   }
 
   getPersistentNotification() {
+    this.isLoading = true;
     const userId = localStorage.getItem('userId');
-    console.log(userId);
+    
     if (!userId) {
       console.error('Error al recuperar la identidad del usuario');
-      return
+      this.isLoading = false;
+      return;
     }
 
-    //Traemos las notificaciones de la base de datos.
-    this.http.get<any>(`http://localhost:3001/notifications/user/${userId}`).subscribe({
+    // Traemos las notificaciones de la base de datos
+    this.http.get<any>(`http://localhost:3001/notifications/by-user/${userId}`).subscribe({
       next: (resp) => {
-        console.log(resp.data[0].title);
+        console.log('Notificaciones cargadas:', resp);
+        
+        if (resp.data && Array.isArray(resp.data)) {
+          const nuevasNotificaciones: Notificacion[] = resp.data.map((item: any) => ({
+            id: item.id || item._id || Date.now().toString(),
+            titulo: item.title || item.titulo || 'Sin título',
+            mensaje: item.message || item.mensaje || 'Sin mensaje',
+            fecha: new Date(item.createdAt || item.fecha || new Date()),
+            leida: item.leida || false
+          }));
 
-        const nuevasNotificaciones: Notificacion[] = resp.data.map((item: any) => ({
-          titulo: item.title,
-          mensaje: item.message,
-          fecha: new Date(item.createdAt)
-        }));
-
-        this.notificaciones.unshift(...nuevasNotificaciones);
+          this.notificaciones = nuevasNotificaciones;
+        }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error al recuperar las notificaciones', err);
+        this.isLoading = false;
       }
-    })
-
+    });
   }
 
   returnHome() {
     this.router.navigate(['/home']);
   }
 
+  marcarComoLeida(notificacion: Notificacion) {
+    notificacion.leida = true;
+    // Aquí podrías hacer una llamada al backend para marcar como leída
+    console.log('Notificación marcada como leída:', notificacion);
+  }
 }

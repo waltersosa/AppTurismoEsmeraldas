@@ -168,6 +168,49 @@ export class SocketService {
     }
   }
 
+  // Método para enviar notificaciones a todos los usuarios
+  public notifyAll(data: any): void {
+    console.log('📤 Notify All Users', data);
+    
+    // Validar que los datos no sean undefined
+    if (!data.titulo || !data.mensaje) {
+      console.error('❌ Datos de notificación incompletos:', data);
+      return;
+    }
+    
+    if (!this.socket || !this.isInitialized) {
+      console.error('❌ Socket no está inicializado. Intentando inicializar...');
+      this.inicializador();
+      
+      // Esperar un poco y reintentar
+      setTimeout(() => {
+        if (this.socket && this.isInitialized) {
+          this.socket.emit('notification', data);
+          console.log('✅ Notificación masiva enviada después de reintento');
+        } else {
+          console.error('❌ No se pudo inicializar el socket después de reintento');
+          // Intentar una vez más después de 3 segundos
+          setTimeout(() => {
+            if (this.socket && this.isInitialized) {
+              this.socket.emit('notification', data);
+              console.log('✅ Notificación masiva enviada en segundo reintento');
+            } else {
+              console.error('❌ Socket definitivamente no disponible');
+            }
+          }, 3000);
+        }
+      }, 2000);
+      return;
+    }
+
+    try {
+      this.socket.emit('notification', data);
+      console.log('✅ Notificación masiva enviada exitosamente a todos los usuarios');
+    } catch (error) {
+      console.error('❌ Error al enviar notificación masiva:', error);
+    }
+  }
+
   public getUserNotifications(): Observable<any> {
     const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
     

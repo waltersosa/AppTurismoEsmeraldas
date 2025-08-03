@@ -89,8 +89,8 @@ interface Place {
               <div class="gallery-images">
                 <label>URLs de Galería de Imágenes</label>
                 <div class="url-inputs">
-                  <div *ngFor="let url of place.imageUrls; let i = index" class="url-input-row">
-                    <input type="url" [(ngModel)]="place.imageUrls[i]" 
+                  <div *ngFor="let url of place.imageUrls || []; let i = index" class="url-input-row">
+                    <input type="url" [(ngModel)]="place.imageUrls![i]" 
                            [name]="'imageUrl' + i" 
                            placeholder="https://ejemplo.com/imagen.jpg" class="url-input">
                     <button type="button" mat-icon-button (click)="removeGalleryImage(i)">
@@ -103,7 +103,7 @@ interface Place {
                   </button>
                 </div>
                 <div *ngIf="place.imageUrls && place.imageUrls.length > 0" class="gallery-preview">
-                  <div *ngFor="let image of place.imageUrls; let i = index" class="image-item">
+                  <div *ngFor="let image of place.imageUrls || []; let i = index" class="image-item">
                     <img [src]="image" [alt]="'Imagen ' + (i + 1)" (error)="onImageError($event)">
                   </div>
                 </div>
@@ -235,6 +235,10 @@ export class PlaceDialogComponent {
   ) {
     if (data._id) {
       this.place = { ...data };
+    }
+    // Asegurar que imageUrls siempre esté inicializado
+    if (!this.place.imageUrls) {
+      this.place.imageUrls = [];
     }
   }
 

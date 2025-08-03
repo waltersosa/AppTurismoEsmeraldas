@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -566,10 +567,11 @@ export class NotificationsComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private socketService: SocketService,
+    public socketService: SocketService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -738,8 +740,8 @@ export class NotificationsComponent implements OnInit {
 
     try {
       if (sendTo === 'all') {
-        // Enviar a todos los usuarios
-        this.socketService.notifyUser('all', data);
+        // Enviar a todos los usuarios usando notifyAll
+        this.socketService.notifyAll(data);
         this.snackBar.open('✅ Notificación enviada a todos los usuarios', 'Cerrar', { duration: 3000 });
       } else if (sendTo === 'specific' && specificUserId) {
         // Enviar a usuario específico
@@ -774,14 +776,54 @@ export class NotificationsComponent implements OnInit {
   resendNotification(notification: Notification) {
     this.confirmationService.confirm({
       title: 'Reenviar Notificación',
-      message: `¿Estás seguro de que quieres reenviar "${notification.title}"?`,
+      message: `¿Estás seguro de que quieres reenviar "${notification.title}" a todos los usuarios?`,
       confirmText: 'Reenviar',
       cancelText: 'Cancelar',
       type: 'info'
     }).subscribe(confirmed => {
       if (confirmed) {
+        // Enviar por socket
         this.sendNotificationToUsers(notification, 'all');
-        this.snackBar.open('Notificación reenviada exitosamente', 'Cerrar', { duration: 3000 });
+        
+        // También crear notificaciones individuales en la base de datos
+        this.createIndividualNotifications(notification);
+        
+        this.snackBar.open('Notificación reenviada exitosamente a todos los usuarios', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  // Método para crear notificaciones individuales para todos los usuarios
+  createIndividualNotifications(notification: Notification) {
+    // Crear una nueva notificación administrativa que será procesada por el backend
+    const adminNotification = {
+      title: notification.title,
+      message: notification.message,
+      userId: null, // Notificación administrativa
+      type: notification.type || 'info',
+      data: notification.data || {},
+      read: false,
+      sent: false
+    };
+
+    this.socketService.createNotification(adminNotification).subscribe({
+      next: (savedNotification) => {
+        console.log('✅ Notificación administrativa creada para reenvío:', savedNotification);
+        
+        // Ahora enviar la notificación usando el endpoint del backend
+        this.http.post(`http://localhost:3001/notifications/send/${savedNotification._id}`, {}).subscribe({
+          next: (response: any) => {
+            console.log('✅ Notificación reenviada exitosamente:', response);
+          },
+          error: (error: any) => {
+            console.error('❌ Error al reenviar notificación:', error);
+            this.snackBar.open('Error al reenviar notificación', 'Cerrar', { duration: 3000 });
+          }
+        });
+      },
+      error: (error) => {
+        console.error('❌ Error al crear notificación administrativa:', error);
+        this.snackBar.open('Error al crear notificación administrativa', 'Cerrar', { duration: 3000 });
       }
     });
   }

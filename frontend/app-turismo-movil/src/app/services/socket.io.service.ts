@@ -105,32 +105,43 @@ export class SocketService {
       const userId =
         localStorage.getItem('userId') ||
         sessionStorage.getItem('userId');
-      console.log("id del usuario", userId);
+      console.log("🔌 Inicializando socket para usuario:", userId);
+      
       if (userId) {
         this.socket = io('https://geoapi.esmeraldas.gob.ec', {
           path: '/new/socket.io',
+          transports: ['websocket', 'polling'],
+          timeout: 10000
         });
 
         this.socket.on('connect', () => {
-          console.log('Socket connected:', this.socket.connected);
+          console.log('✅ Socket connected:', this.socket.connected);
 
           if (userId) {
             this.socket.emit('set-user-id', userId);
-            console.log(userId)
-            const userid = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
-         //   this.notifyUser(userid, { titulo: "BUenas tardes", mensaje: "XD" });
+            console.log('👤 User ID set:', userId);
           } else {
-            console.error(
-              'User ID not found in localStorage or sessionStorage.'
-            );
+            console.error('❌ User ID not found in localStorage or sessionStorage.');
           }
         });
-        this.socket.on('error', (error) => {
-          console.error('Socket error:', error);
+        
+        this.socket.on('connect_error', (error) => {
+          console.error('❌ Socket connection error:', error);
         });
+        
+        this.socket.on('error', (error) => {
+          console.error('❌ Socket error:', error);
+        });
+        
+        this.socket.on('disconnect', (reason) => {
+          console.log('🔌 Socket disconnected:', reason);
+        });
+        
+      } else {
+        console.error('❌ No se pudo obtener el userId para inicializar el socket');
       }
     } catch (error) {
-      console.error('Error initializing Socket.IO:', error);
+      console.error('❌ Error initializing Socket.IO:', error);
     }
   }
 
@@ -152,9 +163,20 @@ export class SocketService {
   }
   onNotification(): Observable<any> {
     return new Observable((observer) => {
-      this.socket.on('notification', (data) => {
-        observer.next(data);
-      });
+      if (this.socket) {
+        // Escuchar ambos eventos para compatibilidad
+        this.socket.on('notification', (data) => {
+          console.log('🔔 Notificación masiva recibida en frontend:', data);
+          observer.next(data);
+        });
+        
+        this.socket.on('notified-user', (data) => {
+          console.log('🔔 Notificación recibida en frontend (masiva o personalizada):', data);
+          observer.next(data);
+        });
+      } else {
+        console.error('❌ Socket no está inicializado');
+      }
     });
   }
 
