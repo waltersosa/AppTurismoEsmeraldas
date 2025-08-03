@@ -1,0 +1,19 @@
+h1 {
+    display: flex;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: xxx-large;
+    margin: 0%;
+}
+
+h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0%;
+}
+
+body {
+    background: linear-gradient(rgb(230, 255, 200), rgb(200, 255, 230));
+    height: 100vh;
+}

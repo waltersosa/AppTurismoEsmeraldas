@@ -1,0 +1,18 @@
+/* Estilos específicos para notificaciones si son necesarios */
+/* El diseño principal ahora usa Tailwind CSS */
+
+/* Animación de entrada para las notificaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-enter {
+  animation: fadeInUp 0.3s ease-out;
+}
