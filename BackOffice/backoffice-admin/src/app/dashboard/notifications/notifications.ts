@@ -20,6 +20,7 @@ import { AuthService, User } from '../../auth/auth.service';
 import { SocketService } from './notificationsService';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { NotificationDialogComponent } from './notification-dialog.component';
+import { SendNotificationDialogComponent } from './SendNotificationDialogComponent';
 
 export interface Notification {
   _id?: string;
@@ -212,6 +213,13 @@ export interface NotificationStats {
               </div>
               
               <div class="notification-actions">
+
+                <button mat-raised-button color="primary" 
+                          (click)="sendNotification(notification)" 
+                          *ngIf="!notification.sent">
+                    <mat-icon>send</mat-icon> Enviar
+                  </button>
+
                 <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Acciones">
                   <mat-icon>more_vert</mat-icon>
                 </button>
@@ -550,12 +558,12 @@ export class NotificationsComponent implements OnInit {
   nuevaNotificacion: Notification = { title: '', message: '' };
   userId: string = '';
   notificacionSeleccionada: Notification | null = null;
-  
+
   // Filtros
   searchTerm: string = '';
   selectedType: string = '';
   selectedStatus: string = '';
-  
+
   // Estadísticas
   stats: NotificationStats = {
     total: 0,
@@ -583,18 +591,18 @@ export class NotificationsComponent implements OnInit {
 
   get filteredNotifications(): Notification[] {
     return this.notificaciones.filter(notification => {
-      const matchesSearch = !this.searchTerm || 
+      const matchesSearch = !this.searchTerm ||
         notification.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         notification.message.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
+
       const matchesType = !this.selectedType || notification.type === this.selectedType;
-      
-      const matchesStatus = !this.selectedStatus || 
+
+      const matchesStatus = !this.selectedStatus ||
         (this.selectedStatus === 'sent' && notification.sent) ||
         (this.selectedStatus === 'pending' && !notification.sent) ||
         (this.selectedStatus === 'read' && notification.read) ||
         (this.selectedStatus === 'unread' && !notification.read);
-      
+
       return matchesSearch && matchesType && matchesStatus;
     });
   }
@@ -692,7 +700,7 @@ export class NotificationsComponent implements OnInit {
 
   handleNotificationResult(result: any) {
     const { sendTo, specificUserId, ...notificationData } = result;
-    
+
     // Crear la notificación base
     const notification = {
       ...notificationData,
@@ -710,12 +718,12 @@ export class NotificationsComponent implements OnInit {
       next: (savedNotification) => {
         console.log('Notificación guardada:', savedNotification);
         this.snackBar.open('Notificación guardada exitosamente', 'Cerrar', { duration: 2000 });
-        
+
         // Si se debe enviar, enviar la notificación
         if (sendTo !== 'save') {
           this.sendNotificationToUsers(savedNotification, sendTo, specificUserId);
         }
-        
+
         this.cargarNotificaciones();
       },
       error: (error) => {
@@ -728,12 +736,14 @@ export class NotificationsComponent implements OnInit {
   sendNotificationToUsers(notification: Notification, sendTo: string, specificUserId?: string) {
     // Asegurar que los datos no sean undefined
     const data = {
-      titulo: notification.title || 'Notificación',
-      mensaje: notification.message || 'Sin mensaje',
-      type: notification.type || 'info',
-      fecha: notification.fechaCreacion || new Date().toISOString(),
-      extra: notification.data || {}
+      titulo: (notification.data && notification.data.title) || notification.title || 'Notificación',
+      mensaje: (notification.data && notification.data.message) || notification.message || 'Sin mensaje',
+      type: (notification.data && notification.data.type) || notification.type || 'info',
+      fecha: (notification.data && notification.data.fechaCreacion) || notification.fechaCreacion || new Date().toISOString(),
+      extra: (notification.data && notification.data.extra) || {},
+      sent: true
     };
+
 
     console.log('📤 Enviando notificación con datos:', data);
     console.log('🔌 Estado del socket:', this.socketService.getSocketStatus());
@@ -748,11 +758,9 @@ export class NotificationsComponent implements OnInit {
         this.socketService.notifyUser(specificUserId, data);
         this.snackBar.open(`✅ Notificación enviada al usuario ${specificUserId}`, 'Cerrar', { duration: 3000 });
       }
-      
-      // Marcar como enviada
-      notification.sent = true;
+
       this.updateStats();
-      
+
     } catch (error) {
       console.error('❌ Error al enviar notificación:', error);
       this.snackBar.open('❌ Error al enviar notificación', 'Cerrar', { duration: 3000 });
@@ -760,15 +768,30 @@ export class NotificationsComponent implements OnInit {
   }
 
   sendNotification(notification: Notification) {
-    this.confirmationService.confirm({
-      title: 'Enviar Notificación',
-      message: `¿Estás seguro de que quieres enviar "${notification.title}" a todos los usuarios?`,
-      confirmText: 'Enviar',
-      cancelText: 'Cancelar',
-      type: 'info'
-    }).subscribe(confirmed => {
-      if (confirmed) {
-        this.sendNotificationToUsers(notification, 'all');
+    /*    this.confirmationService.confirm({
+          title: 'Enviar Notificación',
+          message: `¿Estás seguro de que quieres enviar "${notification.title}" a todos los usuarios?`,
+          confirmText: 'Enviar',
+          cancelText: 'Cancelar',
+          type: 'info'
+        }).subscribe(confirmed => {
+          if (confirmed) {
+            this.sendNotificationToUsers(notification, 'all');
+          }
+        });*/
+
+    const dialogRef = this.dialog.open(SendNotificationDialogComponent, {
+      width: '400px',
+      data: { notification }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.sendTo === 'all') {
+          this.sendNotificationToUsers(notification, 'all');
+        } else if (result.sendTo === 'specific' && result.specificUserId) {
+          this.sendNotificationToUsers(notification, 'specific', result.specificUserId);
+        }
       }
     });
   }
@@ -784,10 +807,10 @@ export class NotificationsComponent implements OnInit {
       if (confirmed) {
         // Enviar por socket
         this.sendNotificationToUsers(notification, 'all');
-        
+
         // También crear notificaciones individuales en la base de datos
         this.createIndividualNotifications(notification);
-        
+
         this.snackBar.open('Notificación reenviada exitosamente a todos los usuarios', 'Cerrar', { duration: 3000 });
       }
     });
@@ -809,7 +832,7 @@ export class NotificationsComponent implements OnInit {
     this.socketService.createNotification(adminNotification).subscribe({
       next: (savedNotification) => {
         console.log('✅ Notificación administrativa creada para reenvío:', savedNotification);
-        
+
         // Ahora enviar la notificación usando el endpoint del backend
         this.http.post(`http://localhost:3001/notifications/send/${savedNotification._id}`, {}).subscribe({
           next: (response: any) => {

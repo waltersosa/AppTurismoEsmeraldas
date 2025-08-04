@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { type } from 'os';
 
 const notificationSchema = new mongoose.Schema({
   userId: {
@@ -31,6 +32,10 @@ const notificationSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  sent: {
+    type: Boolean,
+    default: false
   }
 });
 

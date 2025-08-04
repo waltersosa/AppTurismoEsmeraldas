@@ -55,7 +55,7 @@ export class SocketService {
       this.socket.on('connect_error', (error) => {
         console.error('❌ Socket connection error:', error);
         this.isInitialized = false;
-        
+
         // Intentar reconectar después de 5 segundos
         setTimeout(() => {
           console.log('🔄 Intentando reconectar...');
@@ -71,7 +71,7 @@ export class SocketService {
       this.socket.on('disconnect', (reason) => {
         console.log('🔌 Socket disconnected:', reason);
         this.isInitialized = false;
-        
+
         // Si no fue una desconexión voluntaria, intentar reconectar
         if (reason !== 'io client disconnect') {
           setTimeout(() => {
@@ -128,17 +128,17 @@ export class SocketService {
   // Método para enviar notificaciones a un usuario específico
   public notifyUser(userId: string, data: any): void {
     console.log('📤 Notify User', userId, data);
-    
+
     // Validar que los datos no sean undefined
     if (!data.titulo || !data.mensaje) {
       console.error('❌ Datos de notificación incompletos:', data);
       return;
     }
-    
+
     if (!this.socket || !this.isInitialized) {
       console.error('❌ Socket no está inicializado. Intentando inicializar...');
       this.inicializador();
-      
+
       // Esperar un poco y reintentar
       setTimeout(() => {
         if (this.socket && this.isInitialized) {
@@ -150,6 +150,8 @@ export class SocketService {
           setTimeout(() => {
             if (this.socket && this.isInitialized) {
               this.socket.emit('notify-user', { userId, data });
+              // console.log('Esto es lo que le pasamos a create Notification',data)
+              // this.createNotification(data)
               console.log('✅ Notificación enviada en segundo reintento');
             } else {
               console.error('❌ Socket definitivamente no disponible');
@@ -162,6 +164,28 @@ export class SocketService {
 
     try {
       this.socket.emit('notify-user', { userId, data });
+      data = {
+        userId: userId,
+        type: data.type,
+        title: data.titulo,
+        message: data.mensaje,
+        data: {},
+        read: false,
+        sent: true,
+        createdAt: new Date().toISOString(),
+      }
+      //this.createNotification(data);
+
+      this.createNotification(data).subscribe({
+        next: (response) => {
+          console.log('Respuesta del servidor:', response);
+        },
+        error: (error) => {
+          console.error('Error del servidor:', error);
+        }
+      });
+
+
       console.log('✅ Notificación enviada exitosamente');
     } catch (error) {
       console.error('❌ Error al enviar notificación:', error);
@@ -171,17 +195,17 @@ export class SocketService {
   // Método para enviar notificaciones a todos los usuarios
   public notifyAll(data: any): void {
     console.log('📤 Notify All Users', data);
-    
+
     // Validar que los datos no sean undefined
     if (!data.titulo || !data.mensaje) {
       console.error('❌ Datos de notificación incompletos:', data);
       return;
     }
-    
+
     if (!this.socket || !this.isInitialized) {
       console.error('❌ Socket no está inicializado. Intentando inicializar...');
       this.inicializador();
-      
+
       // Esperar un poco y reintentar
       setTimeout(() => {
         if (this.socket && this.isInitialized) {
@@ -204,7 +228,29 @@ export class SocketService {
     }
 
     try {
-      this.socket.emit('notification', data);
+      data = {
+        userId: null,
+        type: data.type,
+        title: data.titulo,
+        message: data.mensaje,
+        data: {},
+        read: false,
+        sent: true,
+        createdAt: new Date().toISOString(),
+      }
+
+      this.socket.emit('notification', { data });
+      console.log('datos que trae la notificación general', data)
+
+      this.createNotification(data).subscribe({
+        next: (response) => {
+          console.log('Respuesta del servidor:', response);
+        },
+        error: (error) => {
+          console.error('Error del servidor:', error);
+        }
+      });
+
       console.log('✅ Notificación masiva enviada exitosamente a todos los usuarios');
     } catch (error) {
       console.error('❌ Error al enviar notificación masiva:', error);
@@ -217,7 +263,7 @@ export class SocketService {
   }
 
   public createNotification(notificacion: any): Observable<any> {
-    //console.log('Hola soy la función createNotification, estos son los datos que estoy recibiendo', notificacion)
+    console.log('Hola soy la función createNotification, estos son los datos que estoy recibiendo', notificacion)
     const url = `http://localhost:3001/notifications/`;
     return this.http.post<any>(url, notificacion);
   }

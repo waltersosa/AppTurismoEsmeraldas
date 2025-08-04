@@ -6,8 +6,8 @@ export const createNotification = async (req, res) => {
     res.status(201).json({ success: true, data: notification });
   } catch (error) {
     console.error('❌ Error al crear notificación:', error);
-    res.status(400).json({ 
-      success: false, 
+    res.status(400).json({
+      success: false,
       message: error.message,
       timestamp: new Date().toISOString()
     });
@@ -17,18 +17,18 @@ export const createNotification = async (req, res) => {
 export const getNotificationsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     // Si userId es 'empty', devolver notificaciones administrativas (userId: null)
     if (userId === 'empty') {
       const notifications = await notificationService.getAdminNotifications();
       return res.json({ success: true, data: notifications });
     }
-    
+
     // Si userId está vacío, undefined, o es 'by-user' (cuando se accede a /by-user/ sin parámetro)
     if (!userId || userId === '' || userId === 'by-user' || userId === 'user') {
       return res.json({ success: true, data: [] });
     }
-    
+
     const notifications = await notificationService.getNotificationsByUser(userId);
     res.json({ success: true, data: notifications });
   } catch (error) {
@@ -37,10 +37,21 @@ export const getNotificationsByUser = async (req, res) => {
   }
 };
 
+
+export const getSentNotifications = async (req, res) => {
+  try {
+    const notifications = await notificationService.getSentNotifications(req.params.userId);
+    if (!notifications) return res.status(404).json({ success: false, message: 'Parece que no hay notificaciones para mostrar' });
+    res.json({success: true, data: notifications})
+  } catch (error) {
+    res.status(400).json({success: false, message: error.message })
+  }
+}
+
 export const getNotificationById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const notification = await notificationService.getNotificationById(id);
     if (!notification) return res.status(404).json({ success: false, message: 'Notificación no encontrada' });
     res.json({ success: true, data: notification });
@@ -58,7 +69,7 @@ export const getAdminNotification = async (req, res) => {
   try {
     const notification = await notificationService.getAdminNotifications();
     if (!notification) return res.status(404).json({
-      success: false, message: 'Hubo un problema,'
+      success: false, message: 'Hubo un problema,'  
         + 'parece que no hay notificaciones en la base de datos para enviar'
     });
     res.json({ success: true, data: notification });

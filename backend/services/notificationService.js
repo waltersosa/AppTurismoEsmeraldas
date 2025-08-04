@@ -1,4 +1,5 @@
 import Notification from '../models/Notification.js';
+import mongoose from 'mongoose';
 //import { connectSocketServer, notifyAll, enviarNotificacion } from '../utils/socketClient.js';
 
 export const createNotification = (data) => {
@@ -6,7 +7,7 @@ export const createNotification = (data) => {
   if (!data.userId || data.userId === '' || data.userId === 'null') {
     data.userId = null;
   }
-  
+
   return Notification.create(data);
 };
 
@@ -15,20 +16,41 @@ export const getNotificationsByUser = (userId) => {
   if (!userId || userId === '' || userId === 'null' || userId === 'undefined') {
     return Promise.resolve([]);
   }
-  
+
   // Verificar si userId es un ObjectId válido
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return Promise.resolve([]);
   }
-  
+
   return Notification.find({ userId }).sort({ createdAt: -1 });
 };
+
+//Retorna todas las notificaciones vinculadas a un usuario y catalogadas como leidas
+export const getSentNotifications = (userId) => {
+  // Si userId está vacío o no es válido, retornar array vacío
+  if (!userId || userId === '' || userId === 'null' || userId === 'undefined') {
+    return Promise.resolve([]);
+  }
+
+  // Verificar si userId es un ObjectId válido
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return Promise.resolve([]);
+  }
+
+  return Notification.find({
+    $or: [
+      { userId: userId },
+      { sent: true, userId: null }
+    ]
+  }).sort({ createdAt: -1 });
+
+}
 
 export const getNotificationById = (id) =>
   Notification.findById(id);
 
 export const getAdminNotifications = async () => {
-  const notifications = await Notification.find({ userId: null }).sort({ createdAt: -1 });
+  const notifications = await Notification.find({ userId: null, sent: false }).sort({ createdAt: -1 });
   return notifications;
 };
 
@@ -64,26 +86,26 @@ export const sendNotification = async (id) => {
         message: notificationSelected.message,
         notification: notificationSelected
       });*/
-  /*  enviarNotificacion(notificationSelected.title, notificationSelected.message);
-  } catch (error) {
-    console.error('❌ Error al crear notificaciones individuales:', error);
-    throw error;
-  }
+/*  enviarNotificacion(notificationSelected.title, notificationSelected.message);
+} catch (error) {
+  console.error('❌ Error al crear notificaciones individuales:', error);
+  throw error;
+}
 }
 
 
 export const sendNotificationToSingleUser = async (userId, notiId) => {
-  const notificationSelected = await getNotificationById(notiId).lean().exec();
+const notificationSelected = await getNotificationById(notiId).lean().exec();
 
-  if (!notificationSelected) {
-    throw new Error('Esta notificación no existe');
-  }
+if (!notificationSelected) {
+  throw new Error('Esta notificación no existe');
+}
 
-  try {
+try {
 
-    enviarNotificacion(notificationSelected.title, notificationSelected.message,
-      userId, notificationSelected.type);
-  } catch (error) {
-    console.error('No se pudo establecer conexión', error)
-  }
+  enviarNotificacion(notificationSelected.title, notificationSelected.message,
+    userId, notificationSelected.type);
+} catch (error) {
+  console.error('No se pudo establecer conexión', error)
+}
 }*/

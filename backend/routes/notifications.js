@@ -11,13 +11,17 @@ router.post('/send/:userId/:notiId', autenticarToken, autorizarAdmin, notificati
 
 // ===== RUTAS PÚBLICAS =====
 router.get('/count', notificationController.getNotificationsCount);
-router.get('/admin', autenticarToken, autorizarAdmin, notificationController.getAdminNotification);
 router.get('/by-user/:userId', notificationController.getNotificationsByUser);
+router.get('/sentNotifications/:userId', notificationController.getSentNotifications)
 
 // ===== RUTAS PARA USUARIOS AUTENTICADOS =====
 router.post('/', autenticarToken, notificationController.createNotification);
 router.put('/:id/read', autenticarToken, notificationController.markAsRead);
 router.delete('/:id', autenticarToken, notificationController.deleteNotification);
+
+
+// ===== RUTA PARA OBTENER NOTIFICACIÓN POR ID (debe ir al final) =====
+router.get('/:id', notificationController.getNotificationById);
 
 
 export default router; 

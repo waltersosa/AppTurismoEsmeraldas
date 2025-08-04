@@ -115,7 +115,7 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
     }
 
     // Traemos las notificaciones de la base de datos
-    this.http.get<any>(`http://localhost:3001/notifications/by-user/${userId}`).subscribe({
+    this.http.get<any>(`http://localhost:3001/notifications/sentNotifications/${userId}`).subscribe({
       next: (resp) => {
         console.log('Notificaciones cargadas:', resp);
         
