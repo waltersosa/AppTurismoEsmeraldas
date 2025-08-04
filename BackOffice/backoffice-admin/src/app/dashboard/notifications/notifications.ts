@@ -860,6 +860,19 @@ export class NotificationsComponent implements OnInit {
       type: 'danger'
     }).subscribe(confirmed => {
       if (confirmed) {
+        try {
+          this.socketService.deleteNotification(notification).subscribe({
+            next: (response) => {
+              console.log('Respuesta del servidor:', response);
+            },
+            error: (error) => {
+              console.error('Error del servidor:', error);
+            }
+          });
+        } catch (error) {
+          console.error('Hubo un error', error)
+        }
+
         // TODO: Implementar eliminación en el backend
         // Por ahora solo eliminar del array local
         this.notificaciones = this.notificaciones.filter(n => n._id !== notification._id);

@@ -26,7 +26,7 @@ export const getNotificationsByUser = (userId) => {
 };
 
 //Retorna todas las notificaciones vinculadas a un usuario y catalogadas como leidas
-export const getSentNotifications = (userId) => {
+export const getSentNotifications = async (userId) => {
   // Si userId está vacío o no es válido, retornar array vacío
   if (!userId || userId === '' || userId === 'null' || userId === 'undefined') {
     return Promise.resolve([]);
@@ -37,6 +37,21 @@ export const getSentNotifications = (userId) => {
     return Promise.resolve([]);
   }
 
+
+  // Fecha límite (hace 1 año)
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+  // Primero eliminamos las notificaciones con más de un año de haber sido creadas
+  await Notification.deleteMany({
+    $or: [
+      { userId: userId },
+      { sent: true, userId: null }
+    ],
+    createdAt: { $lt: oneYearAgo } // Menores a la fecha límite
+  });
+
+//AHora recuperamos las que quedaron
   return Notification.find({
     $or: [
       { userId: userId },

@@ -268,6 +268,12 @@ export class SocketService {
     return this.http.post<any>(url, notificacion);
   }
 
+  public deleteNotification(notificacion: any): Observable<any> {
+    console.log('Eliminando la notificación', notificacion);
+    const url = `http://localhost:3001/notifications/${notificacion._id}`;
+    return this.http.delete<any>(url)
+  }
+
   public getSocketStatus(): { connected: boolean, initialized: boolean } {
     return {
       connected: this.socket ? this.socket.connected : false,
