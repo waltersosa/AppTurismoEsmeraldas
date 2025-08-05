@@ -349,6 +349,17 @@ node scripts/cleanPlacesData.js
 
 ## 🔔 Sistema de Notificaciones
 
+#### Funcionamiento
+  Existen dos tipos de notificaciones, las administrativas y las de usuario.
+  
+  Las primeras se crean y usan en el backoffice, los adminstradores las usan como plantillas, en la sección de notificaciones, a los usuarios administradores les apareceran las notificaciones admintrativas, las mismas las podrán enviar a los usuarios, también pueden crear otras notificaciones adminostrativas, esto se hizo así por temas de reusabilidad.
+  
+  Las notificaciones de usuario contienen el campo sent = true, que quiere decir que la notificación fue enviada, y por ende la misma puede ser vista por otros usuarios.
+
+  Al enviar la notificación, si la misma tiene la id del usuario, se almacenará la id. 
+
+  En el frontend, la aplicación pedirá al backend las notificaciones cuyo campo sent sea igual a true y no tengan id de usuario, o que su campo sent sea igual a true, y contengan la id del usaurio.
+
 ### Arquitectura de 4 Nodos
 
 1. **Backend** - Persistencia en MongoDB
