@@ -57,10 +57,10 @@ export class LoginComponent {
       }).subscribe({
         next: (resp) => {
           console.log('✅ Login exitoso:', resp);
-          
+          //console.log("mira esto si te logeaste cin nuestro backend", resp.data?.usuario._id)
           // Manejar diferentes formatos de respuesta
           const token = resp.data?.token || resp.token;
-          const userId = resp.data?.userid || resp.userId;
+          const userId = resp.data?.userid || resp.data?.usuario._id;
           const user = resp.data?.usuario || resp.user;
 
           // Guardar datos en localStorage
@@ -72,6 +72,10 @@ export class LoginComponent {
           }
           if (user) {
             localStorage.setItem('user', JSON.stringify(user));
+          }
+
+          if (user) {
+            localStorage.setItem('userName', JSON.stringify(resp.data?.usuario.nombre));
           }
 
           this.successMsg = '¡Inicio de sesión exitoso!';

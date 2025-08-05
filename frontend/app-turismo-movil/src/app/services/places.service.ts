@@ -35,7 +35,7 @@ export interface PlaceResponse {
   providedIn: 'root'
 })
 export class PlacesService {
-  private apiUrl = 'http://localhost:3002/places';
+  private apiUrl = 'http://localhost:3001/places';
 
   constructor(private http: HttpClient) { }
 

@@ -21,12 +21,17 @@ export class HomeComponent {
       const userStr = localStorage.getItem('user');
       if (userStr) {
         try {
+
           this.getUserDetails();
         } catch {
           this.userName = ' ';
         }
       }
     }
+  }
+
+  ngOnInit(): void {
+    this.getUserDetails()
   }
 
   getUserDetails() {
@@ -48,6 +53,9 @@ export class HomeComponent {
       error: (err) => {
         console.error('Error al obtener detalles de usuario', err);
         // Aquí puedes manejar algún mensaje de error si quieres
+        const nombreDeUsuario = localStorage.getItem('userName');
+        this.userName = nombreDeUsuario ? nombreDeUsuario.replace(/^"(.*)"$/, '$1') : '';
+ 
       }
     });
   }

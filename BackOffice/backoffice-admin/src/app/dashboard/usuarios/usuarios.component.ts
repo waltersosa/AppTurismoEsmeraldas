@@ -62,6 +62,10 @@ import { ConfirmationService } from '../../services/confirmation.service';
 
       <div class="usuarios-table-wrapper">
         <table mat-table [dataSource]="usuarios" class="mat-elevation-z8 usuarios-table">
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let user">{{ user._id }}</td>
+          </ng-container>
           <ng-container matColumnDef="nombre">
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
             <td mat-cell *matCellDef="let user">{{ user.nombre }}</td>
@@ -156,7 +160,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
 })
 export class UsuariosComponent implements OnInit {
   usuarios: User[] = [];
-  displayedColumns = ['nombre', 'correo', 'rol', 'estado', 'acciones'];
+  //El id del usuario es necesario para que funcionen las notificaciones
+  displayedColumns = ['id', 'nombre', 'correo', 'rol', 'estado', 'acciones'];
   userForm: FormGroup;
   editMode = false;
   editingUserId: string | null = null;
@@ -199,7 +204,7 @@ export class UsuariosComponent implements OnInit {
         console.log('Respuesta del servidor:', res);
         console.log('res.data:', res.data);
         console.log('res.data.usuarios:', res.data?.usuarios);
-        
+
         // El backend devuelve { success: true, data: { usuarios: [...] } }
         if (res && res.data && res.data.usuarios && Array.isArray(res.data.usuarios)) {
           console.log('Usando res.data.usuarios:', res.data.usuarios);
@@ -218,7 +223,7 @@ export class UsuariosComponent implements OnInit {
           console.log('Estructura completa de res:', JSON.stringify(res, null, 2));
           this.usuarios = [];
         }
-        
+
         console.log('Usuarios finales:', this.usuarios);
       },
       error: (err) => {

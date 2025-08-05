@@ -24,13 +24,12 @@ export const createReview = async (req, res, next) => {
 // Obtener reseñas públicas aprobadas de un lugar
 export const getReviewsByPlace = async (req, res, next) => {
   try {
-    const { lugarId } = req.params;
+    const lugarId  = req.params.placeId;
     const { page, limit, sortBy, order } = req.query;
-    
-    const { data, total } = await reviewService.getReviewsByPlace(lugarId, { 
-      page, limit, sortBy, order 
+    const { data, total } = await reviewService.getReviewsByPlace(lugarId, {
+      page, limit, sortBy, order
     });
-
+    console.log({ data, total });
     res.json({
       success: true,
       data,
@@ -51,9 +50,9 @@ export const getReviewsByPlace = async (req, res, next) => {
 export const getReviewsAdmin = async (req, res, next) => {
   try {
     const { page, limit, estado, search, lugarId, usuarioId, sortBy, order } = req.query;
-    
-    const { data, total } = await reviewService.getReviewsAdmin({ 
-      page, limit, estado, search, lugarId, usuarioId, sortBy, order 
+
+    const { data, total } = await reviewService.getReviewsAdmin({
+      page, limit, estado, search, lugarId, usuarioId, sortBy, order
     });
 
     res.json({
@@ -77,9 +76,9 @@ export const updateReviewStatus = async (req, res, next) => {
     const { estado } = req.body;
 
     if (!['pendiente', 'aprobada', 'rechazada'].includes(estado)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Estado inválido. Debe ser: pendiente, aprobada o rechazada' 
+      return res.status(400).json({
+        success: false,
+        message: 'Estado inválido. Debe ser: pendiente, aprobada o rechazada'
       });
     }
 
@@ -99,7 +98,7 @@ export const deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     const review = await reviewService.deleteReview(id);
-    
+
     if (!review) {
       return res.status(404).json({ success: false, message: 'Review no encontrada' });
     }
@@ -115,7 +114,7 @@ export const getReviewByIdAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
     const review = await reviewService.getReviewById(id);
-    
+
     if (!review) {
       return res.status(404).json({ success: false, message: 'Review no encontrada' });
     }
@@ -130,7 +129,7 @@ export const getReviewByIdAdmin = async (req, res, next) => {
 export const getReviewsCount = async (req, res, next) => {
   try {
     const count = await reviewService.getReviewsCount();
-    res.json({ 
+    res.json({
       success: true,
       data: { count }
     });

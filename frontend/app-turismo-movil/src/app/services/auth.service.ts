@@ -25,6 +25,15 @@ interface LoginResponse {
     userid: string;
     usuario: any;
   };
+  usuario: {
+    _id: string
+    activo: boolean
+    correo: string
+    fechaCreacion: Date
+    nombre: string
+    rol: string
+    ultimoAcceso: Date
+  }
   token?: string;
   userId?: string;
   user?: any;
@@ -41,7 +50,7 @@ export class AuthService {
    */
   login(data: LoginData): Observable<LoginResponse> {
     console.log('🔐 Iniciando login híbrido...');
-    
+
     // Primero intenta con la base de datos local
     return this.http.post<LoginResponse>(environment.auth.local.login, {
       correo: data.email,
@@ -49,7 +58,7 @@ export class AuthService {
     }).pipe(
       catchError((localError) => {
         console.log('❌ Login local falló, intentando con municipio...');
-        
+
         // Si falla local, intenta con la API del municipio
         return this.http.post<LoginResponse>(environment.auth.municipio.login, {
           email: data.email,

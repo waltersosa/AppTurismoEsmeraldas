@@ -11,6 +11,7 @@ export const getReviewsByPlace = async (lugarId, { page = 1, limit = 10, sortBy 
   sort[sortBy] = order === 'asc' ? 1 : -1;
 
   const total = await Review.countDocuments(query);
+  console.log(total, "esto")
   const data = await Review.find(query)
     .populate('usuarioId', 'nombre')
     .sort(sort)

@@ -37,7 +37,7 @@ export interface ReviewPayload {
   providedIn: 'root'
 })
 export class ReviewsService {
-  private apiUrl = 'http://localhost:3004/reviews'; // Cambia el puerto si tu microservicio usa otro
+  private apiUrl = 'http://localhost:3001/reviews'; // Cambia el puerto si tu microservicio usa otro
 
   constructor(private http: HttpClient) { }
 

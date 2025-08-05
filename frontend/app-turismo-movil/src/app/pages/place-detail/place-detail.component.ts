@@ -56,6 +56,7 @@ export class PlaceDetailComponent implements OnInit {
           this.place = response.data;
           this.loading = false;
           this.loadReviews();
+          console.log('NO puede ser',this.loadReviews());
         },
         error: (err) => {
           this.error = true;
@@ -77,6 +78,7 @@ export class PlaceDetailComponent implements OnInit {
         this.reviews = response.data;
         this.calculateRatings();
         this.reviewsLoading = false;
+        console.log("REspuesta desde el backend: ", response)
       },
       error: () => {
         this.reviewsError = true;
@@ -167,6 +169,7 @@ export class PlaceDetailComponent implements OnInit {
         }
       });
     } else {
+      console.log(review)
       this.reviewsService.addReview(review).subscribe({
         next: () => {
           this.reviewForm.reset({ comment: '', rating: 5 });
