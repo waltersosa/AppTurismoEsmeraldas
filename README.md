@@ -1,8 +1,8 @@
-# 🏖️ Esmeraldas Turismo — Sistema Modular Completo
+# 🏖️ Esmeraldas Turismo — Sistema Completo de Gestión Turística
 
 ## 📋 Descripción General
 
-**Esmeraldas Turismo** es un sistema modular basado en microservicios para la gestión integral de turismo en Esmeraldas, Ecuador. Diseñado para gobiernos locales (GAD), propietarios de establecimientos y turistas, incluye autenticación robusta, gestión de lugares turísticos, reseñas, subida de imágenes y notificaciones en tiempo real.
+**Esmeraldas Turismo** es un sistema completo de gestión turística para Esmeraldas, Ecuador. Diseñado para gobiernos locales (GAD), propietarios de establecimientos y turistas, incluye autenticación robusta, gestión de lugares turísticos, reseñas, subida de imágenes y notificaciones en tiempo real.
 
 ## 🏗️ Arquitectura del Sistema
 
@@ -10,22 +10,27 @@
 
 ```
 AppTurismoEsmeraldas/
-├── 📱 Frontend/                    # Aplicación móvil Angular 17
-├── 🖥️ BackOffice/                  # Panel administrativo Angular 20
-├── ⚙️ backend/                     # Microservicios Node.js/Express
-└── 📚 Documentación               # APIs y guías de uso
+├── 📱 Frontend/app-turismo-movil/   # Aplicación móvil Angular 17 + Capacitor
+├── 🌐 Frontend/                     # Aplicación web Angular 19 (básica)
+├── 🖥️ BackOffice/                   # Panel administrativo Angular 20
+├── ⚙️ backend/                      # API Backend unificada Node.js/Express
+└── 📚 Documentación                # APIs y guías de uso
 ```
 
 ### Stack Tecnológico
 
 | Componente | Tecnología | Versión | Puerto |
 |------------|------------|---------|--------|
-| **Backend** | Node.js + Express | ES Modules | 3001 |
+| **Backend API** | Node.js + Express + ES Modules | v1.0.0 | 3001 |
 | **Base de Datos** | MongoDB + Mongoose | 7.5.0 | 27017 |
-| **Frontend Móvil** | Angular + PrimeNG | 17.3.0 | 4300 |
-| **BackOffice** | Angular + Material | 20.0.0 | 4200 |
-| **Notificaciones** | Socket.io | 4.8.1 | 3000 |
+| **App Móvil** | Angular + PrimeNG + Capacitor | 17.3.0 | 4300 |
+| **App Web** | Angular + PrimeNG | 19.2.0 | 4200 |
+| **BackOffice** | Angular + Material Design | 20.0.0 | 4300 |
+| **Notificaciones** | Socket.io (tiempo real) | 4.8.1 | integrado |
 | **Estilos** | Tailwind CSS | 3.4.17 | - |
+
+### ⚠️ **Arquitectura Actual**
+El sistema utiliza una **API Backend unificada** (monolítica) en el puerto 3001 que maneja todos los servicios: autenticación, lugares, reseñas, notificaciones y actividades. Aunque la documentación menciona microservicios, la implementación actual es un backend consolidado más eficiente para el tamaño del proyecto.
 
 ## 🚀 Instalación y Configuración
 
@@ -63,40 +68,62 @@ EOF
 node index.js
 ```
 
-### 3. Configurar Frontend Móvil
+### 3. Configurar Aplicación Móvil
 
 ```bash
 cd Frontend/app-turismo-movil
 npm install
-ng serve
+ng serve --port 4300
+# La app estará disponible en http://localhost:4300
 ```
 
-### 4. Configurar BackOffice
+### 4. Configurar Aplicación Web (Opcional)
+
+```bash
+cd Frontend
+npm install
+ng serve --port 4200
+# La app web estará disponible en http://localhost:4200
+```
+
+### 5. Configurar BackOffice Administrativo
 
 ```bash
 cd BackOffice/backoffice-admin
 npm install
-ng serve
+ng serve --port 4300
+# El panel admin estará disponible en http://localhost:4300
 ```
 
-## 📱 Aplicación Móvil (Frontend)
+### 6. Crear Usuario Administrador
 
-### Funcionalidades Implementadas
+```bash
+cd backend
+node scripts/createAdminUser.js
+# Credenciales por defecto: admin@esmeraldas.gob.ec / admin123
+```
 
-#### ✅ **Completadas**
+## 📱 Aplicación Móvil (Frontend/app-turismo-movil)
+
+### Estado: ✅ **COMPLETAMENTE FUNCIONAL**
+
+#### ✅ **Funcionalidades Implementadas**
 - **Portada de bienvenida** con imagen atractiva
-- **Sistema de autenticación** (login/registro)
-- **Listado de lugares turísticos** con filtros por categoría
-- **Detalle de lugares** con galería de imágenes
-- **Sistema de reseñas** (comentarios y valoraciones)
-- **Perfil de usuario** básico
-- **Notificaciones en tiempo real** via Socket.io
-- **Página de emergencias** con acceso a reporte
-- **Navegación con menú inferior** intuitivo
-- **Diseño responsivo** con Tailwind CSS
+- **Sistema de autenticación** completo (login/registro/validación)
+- **Dashboard principal** con navegación intuitiva
+- **Listado de lugares turísticos** con 12 categorías de filtro
+- **Detalle de lugares** con galería de imágenes y ubicación
+- **Sistema de reseñas completo** (crear, editar, eliminar, calificaciones 1-5)
+- **Perfil de usuario** con gestión de datos
+- **Notificaciones en tiempo real** vía Socket.io
+- **Página de emergencias** con información de contacto
+- **Navegación con menú inferior** responsive
+- **Diseño moderno** con Tailwind CSS + PrimeNG
 
 #### 🔄 **En Desarrollo**
-- **Reporte de incidencias** (UI lista, lógica pendiente)
+- **Reporte de incidencias** (UI implementada, lógica backend pendiente)
+- **Mapa interactivo** (estructura básica lista)
+- **Cultura y gastronomía** (sección preparada)
 
 ### Estructura de Páginas
 
@@ -120,22 +147,28 @@ src/app/pages/
 ### Servicios Integrados
 
 #### **PlacesService** (`src/app/services/places.service.ts`)
-- Consumo de microservicio de lugares (puerto 3002)
-- Filtros por categoría, búsqueda, paginación
-- CRUD completo para usuarios autenticados
+- Consumo de API backend unificada (puerto 3001)
+- Filtros por categoría: playas, ríos, cascadas, reservas, montañas, bosques, museos, iglesias, parques, miradores, gastronomía
+- Búsqueda por nombre y paginación
 - Gestión de imágenes y estados
 
 #### **ReviewsService** (`src/app/services/reviews.service.ts`)
-- Consumo de microservicio de reseñas (puerto 3004)
-- Creación, edición y eliminación de reseñas
-- Calificaciones y comentarios
-- Autenticación requerida
+- Integración completa con backend de reseñas
+- CRUD completo: crear, editar, eliminar reseñas
+- Sistema de calificaciones de 1-5 estrellas
+- Autenticación JWT requerida
+
+#### **AuthService** (`src/app/services/auth.service.ts`)
+- Autenticación JWT con tokens seguros
+- Login/registro con validaciones
+- Gestión de sesiones y roles de usuario
+- Interceptores HTTP automáticos
 
 #### **SocketService** (`src/app/services/socket.io.service.ts`)
 - Conexión en tiempo real con Socket.io
-- Recepción de notificaciones push
+- Recepción de notificaciones push instantáneas
 - Gestión de eventos de usuario
-- Reconexión automática
+- Reconexión automática y manejo de errores
 
 ### Configuración de Capacitor
 
@@ -148,21 +181,47 @@ const config: CapacitorConfig = {
 };
 ```
 
+## 🌐 Aplicación Web (Frontend)
+
+### Estado: ⚠️ **DESARROLLO BÁSICO**
+
+#### ✅ **Funcionalidades Implementadas**
+- **Sistema de autenticación** (login/registro)
+- **Dashboard inicial** básico
+- **Listado de lugares** simple
+- **Notificaciones** estructura básica
+
+#### ⚠️ **Limitaciones Actuales**
+- Funcionalidades limitadas comparado con la app móvil
+- Diseño básico sin optimización
+- Servicios de integración incompletos
+- Falta implementar funcionalidades avanzadas
+
+#### 🔄 **Recomendaciones**
+- Unificar versión de Angular a v20
+- Implementar funcionalidades completas de la app móvil
+- Mejorar diseño y UX
+- Completar servicios de integración
+
+---
+
 ## 🖥️ BackOffice Administrativo
 
-### Funcionalidades del Panel
+### Estado: ✅ **COMPLETAMENTE FUNCIONAL**
 
-#### ✅ **Completadas**
-- **Dashboard** con métricas en tiempo real
-- **Gestión de usuarios** (CRUD completo)
-- **Gestión de lugares turísticos** (CRUD + imágenes)
-- **Gestión de reseñas** (moderación y filtros)
-- **Sistema de notificaciones** (envío masivo)
-- **Monitoreo de servicios** (health check)
-- **Autenticación segura** (solo usuarios GAD)
+#### ✅ **Funcionalidades Administrativas Completas**
+- **Dashboard principal** con métricas en tiempo real y estadísticas
+- **Gestión de usuarios** (CRUD completo, roles, activación/desactivación)
+- **Gestión de lugares turísticos** (CRUD + imágenes, categorías, estados)
+- **Gestión de reseñas** (moderación, aprobación/rechazo, filtros)
+- **Sistema de notificaciones avanzado** (plantillas, envío masivo, dirigido)
+- **Monitoreo del sistema** (health check del backend, estadísticas)
+- **Autenticación segura** (solo usuarios admin, JWT)
+- **Actividad reciente** (log de acciones administrativas)
 
-#### 🔄 **En Desarrollo**
-- **Sistema de reportes** (marcado como "Próximamente")
+#### 🔄 **Próximamente**
+- **Sistema de reportes avanzados** (analytics detallados)
+- **Dashboard de métricas** (gráficos y estadísticas avanzadas)
 
 ### Estructura del BackOffice
 
@@ -180,48 +239,69 @@ src/app/
 └── services/            # Servicios de datos
 ```
 
-### Configuración de Microservicios
+### Configuración de Backend
 
 ```typescript
 // src/app/config/api.config.ts
-export const MICROSERVICES_CONFIG = {
-  AUTH_SERVICE: { BASE_URL: 'http://localhost:3001' },
-  PLACES_SERVICE: { BASE_URL: 'http://localhost:3002' },
-  MEDIA_SERVICE: { BASE_URL: 'http://localhost:3003' },
-  REVIEWS_SERVICE: { BASE_URL: 'http://localhost:3004' },
-  STATS_SERVICE: { BASE_URL: 'http://localhost:3005' },
-  NOTIFICATIONS_SERVICE: { BASE_URL: 'http://localhost:3006' }
+export const BACKEND_CONFIG = {
+  BASE_URL: 'http://localhost:3001',
+  ENDPOINTS: {
+    AUTH: { /* endpoints de autenticación */ },
+    PLACES: { /* endpoints de lugares */ },
+    REVIEWS: { /* endpoints de reseñas */ },
+    NOTIFICATIONS: { /* endpoints de notificaciones */ }
+  }
 };
 ```
 
 ### Acceso al BackOffice
 
-- **URL:** http://localhost:4200
-- **Usuario GAD:** `gad@gmail.com`
-- **Contraseña:** `Admin123`
+- **URL:** http://localhost:4300
+- **Usuario Admin:** `admin@esmeraldas.gob.ec`
+- **Contraseña:** `admin123`
 
-## ⚙️ Backend (Microservicios)
+### Sistema de Notificaciones Administrativas
 
-### Arquitectura de Microservicios
+#### **Tipos de Notificaciones**
+1. **Plantillas Administrativas** (sent: false) - Reutilizables para administradores
+2. **Notificaciones de Usuario** (sent: true) - Enviadas a usuarios finales
 
-| Servicio | Puerto | Descripción | Estado |
-|----------|--------|-------------|--------|
-| **Auth Service** | 3001 | Autenticación y usuarios | ✅ Activo |
-| **Places Service** | 3002 | Gestión de lugares | ✅ Activo |
-| **Media Service** | 3003 | Subida de imágenes | ✅ Activo |
-| **Reviews Service** | 3004 | Gestión de reseñas | ✅ Activo |
-| **Stats Service** | 3005 | Estadísticas y health check | ✅ Activo |
-| **Notifications Service** | 3006 | Notificaciones en tiempo real | ✅ Activo |
+#### **Flujo de Notificaciones**
+1. Admin crea plantilla en BackOffice
+2. Selecciona destinatarios (usuario específico o masivo)
+3. Sistema envía vía Socket.io + persiste en BD
+4. Apps cliente reciben en tiempo real
+5. Usuarios marcan como leídas
+
+## ⚙️ Backend API Unificada
+
+### Arquitectura Actual
+
+**API Backend Monolítica** - Puerto 3001
+
+| Servicio Integrado | Endpoint Base | Descripción | Estado |
+|-------------------|---------------|-------------|--------|
+| **Auth** | `/auth` | Autenticación y gestión de usuarios | ✅ Funcional |
+| **Places** | `/places` | CRUD de lugares turísticos | ✅ Funcional |
+| **Reviews** | `/reviews` | Sistema de reseñas y calificaciones | ✅ Funcional |
+| **Notifications** | `/notifications` | Notificaciones en tiempo real | ✅ Funcional |
+| **Activities** | `/activities` | Log de actividades administrativas | ✅ Funcional |
+
+### Ventajas de la Arquitectura Unificada
+- **Simplicidad**: Un solo servidor para gestionar
+- **Eficiencia**: Menos overhead de comunicación entre servicios
+- **Desarrollo**: Más rápido para equipos pequeños
+- **Mantenimiento**: Centralizado y fácil de debuggear
 
 ### Modelos de Datos
 
 #### **Usuario (User)**
 ```javascript
 {
-  nombre: String (requerido, 2-50 chars),
+  nombre: String (2-50 chars, requerido),
   correo: String (único, email válido),
-  contraseña: String (hasheada con bcrypt),
-  rol: ['usuario', 'propietario', 'gad'],
+  contraseña: String (hasheada con bcrypt, min 6 chars),
+  rol: ['usuario', 'propietario', 'admin'], // admin para BackOffice
   activo: Boolean (default: true),
   fechaCreacion: Date,
   ultimoAcceso: Date
@@ -234,12 +314,11 @@ export const MICROSERVICES_CONFIG = {
   name: String (requerido),
   description: String (requerido),
   location: String (requerido),
-  category: String,
-  coverImage: Mixed (ObjectId o URL),
-  coverImageUrl: String,
-  images: [ObjectId],
-  imageUrls: [String],
-  active: Boolean (default: true)
+  category: String, // playa, rio, cascada, reserva, montaña, bosque, museo, iglesia, parque, mirador, gastronomía
+  coverImageUrl: String (URL directa),
+  imageUrls: [String] (URLs directas),
+  active: Boolean (default: true),
+  timestamps: true
 }
 ```
 
@@ -248,85 +327,88 @@ export const MICROSERVICES_CONFIG = {
 {
   lugarId: ObjectId (referencia a Place),
   usuarioId: ObjectId (referencia a User),
-  comentario: String,
-  calificacion: Number (1-5),
-  estado: String (default: 'activo')
+  comentario: String (requerido),
+  calificacion: Number (1-5, requerido),
+  estado: ['aprobada', 'bloqueada'] (default: 'aprobada'),
+  fecha: Date,
+  timestamps: true
 }
 ```
 
 #### **Notificación (Notification)**
 ```javascript
 {
-  titulo: String (requerido),
-  mensaje: String (requerido),
-  tipo: String,
-  userId: ObjectId (opcional),
-  leida: Boolean (default: false),
-  fechaEnvio: Date
+  userId: ObjectId (null para notificaciones masivas),
+  type: ['review', 'info', 'alert'] (default: 'info'),
+  title: String (requerido),
+  message: String (requerido),
+  data: Object (metadatos adicionales),
+  read: Boolean (default: false),
+  sent: Boolean (default: false), // true = enviada a usuarios
+  createdAt: Date
 }
 ```
 
-#### **Media (Media)**
+#### **Actividad (Activity)**
 ```javascript
 {
-  filename: String,
-  originalName: String,
-  mimetype: String,
-  size: Number,
-  placeId: ObjectId,
-  type: String (cover/gallery)
+  userId: ObjectId (referencia a User),
+  action: ['user', 'place', 'review', 'notification', 'login', 'logout'],
+  details: String (descripción de la acción),
+  resourceType: String (tipo de recurso),
+  resourceId: ObjectId (ID del recurso),
+  metadata: Object (datos adicionales),
+  timestamps: true
 }
 ```
 
 ### APIs REST Disponibles
 
-#### **Auth Service** (`/auth`)
+#### **Autenticación** (`/auth`)
 ```bash
 POST /auth/register          # Registro de usuarios
-POST /auth/login            # Autenticación
-GET  /auth/validate         # Validación de token
-GET  /auth/profile          # Perfil del usuario
-GET  /auth/users            # Listar usuarios (solo GAD)
-GET  /auth/health           # Health check
+POST /auth/login            # Autenticación y obtención de JWT
+GET  /auth/validate         # Validación de token JWT
+GET  /auth/profile          # Perfil del usuario autenticado
+GET  /auth/users            # Listar usuarios (solo admin)
+GET  /auth/users/count      # Contar usuarios (admin)
 ```
 
-#### **Places Service** (`/places`)
+#### **Lugares Turísticos** (`/places`)
 ```bash
-GET    /places              # Listar lugares con filtros
-GET    /places/:id          # Obtener lugar específico
-POST   /places              # Crear lugar (solo GAD)
-PUT    /places/:id          # Actualizar lugar (solo GAD)
-DELETE /places/:id          # Eliminar lugar (solo GAD)
-PATCH  /places/:id/status   # Cambiar estado
-GET    /places/health       # Health check
+GET    /places              # Listar lugares (público, con filtros)
+GET    /places/:id          # Obtener lugar específico (público)
+POST   /places              # Crear lugar (solo admin)
+PUT    /places/:id          # Actualizar lugar (solo admin)
+DELETE /places/:id          # Eliminar lugar (solo admin)
+PATCH  /places/:id/status   # Cambiar estado activo/inactivo (admin)
+GET    /places/count        # Contar lugares (admin)
 ```
 
-#### **Reviews Service** (`/reviews`)
+#### **Reseñas** (`/reviews`)
 ```bash
-GET    /reviews/lugar/:id   # Reseñas de un lugar
-POST   /reviews             # Crear reseña (autenticado)
-PUT    /reviews/:id         # Actualizar reseña
-DELETE /reviews/:id         # Eliminar reseña
-GET    /reviews/admin       # Listar todas (solo GAD)
-PUT    /reviews/admin/:id   # Moderar reseña (solo GAD)
-GET    /reviews/health      # Health check
+GET    /reviews/lugar/:id   # Reseñas de un lugar (público)
+POST   /reviews             # Crear reseña (usuario autenticado)
+PUT    /reviews/:id         # Actualizar reseña (propietario)
+DELETE /reviews/:id         # Eliminar reseña (propietario/admin)
+GET    /reviews/admin       # Listar todas las reseñas (admin)
+PUT    /reviews/admin/:id   # Moderar reseña (admin)
+GET    /reviews/count       # Contar reseñas (admin)
 ```
 
-#### **Media Service** (`/media`)
+#### **Notificaciones** (`/notifications`)
 ```bash
-POST   /media/upload        # Subir imágenes (solo GAD)
-GET    /media/:id           # Obtener imagen
-DELETE /media/:id           # Eliminar imagen (solo GAD)
-GET    /media/health        # Health check
-```
-
-#### **Notifications Service** (`/notifications`)
-```bash
-GET    /notifications       # Obtener notificaciones
-POST   /notifications       # Crear notificación (solo GAD)
-PUT    /notifications/:id   # Marcar como leída
+GET    /notifications       # Obtener notificaciones del usuario
+POST   /notifications       # Crear notificación/plantilla (admin)
+PUT    /notifications/:id/read # Marcar como leída
 DELETE /notifications/:id   # Eliminar notificación
-GET    /notifications/health # Health check
+GET    /notifications/admin # Plantillas administrativas (admin)
+```
+
+#### **Actividades** (`/activities`)
+```bash
+GET    /activities/recent   # Actividad reciente (admin)
+POST   /activities          # Registrar actividad (sistema)
 ```
 
 ### Scripts de Utilidad
@@ -341,11 +423,17 @@ node scripts/migratePlaces.js
 node scripts/cleanPlacesData.js
 ```
 
+#### **Crear Usuario Administrador**
+```bash
+# Crear usuario admin para BackOffice
+cd backend
+node scripts/createAdminUser.js
+```
+
 #### **Documentación de APIs**
-- `Postman_Collection.md` - Colección completa de pruebas
-- `Postman_Collection_Places.md` - Pruebas específicas de lugares
-- `Postman_Collection_Reviews.md` - Pruebas específicas de reseñas
-- `Postman_Collection_Media.md` - Pruebas específicas de media
+- `backend/Postman_Collection.md` - Colección completa de pruebas
+- `backend/Postman_Collection_Places.md` - Pruebas específicas de lugares
+- `backend/Postman_Collection_Reviews.md` - Pruebas específicas de reseñas
 
 ## 🔔 Sistema de Notificaciones
 
@@ -394,9 +482,9 @@ socket.emit('notification', { titulo, mensaje, userId });
 - **Algoritmo:** HS256
 
 ### Roles y Permisos
-- **usuario:** Acceso básico a la app móvil
-- **propietario:** Gestión de sus establecimientos
-- **gad:** Acceso completo al BackOffice
+- **usuario:** Acceso básico a las apps (móvil/web)
+- **propietario:** Gestión de sus establecimientos (futuro)
+- **admin:** Acceso completo al BackOffice administrativo
 
 ### Middleware de Autenticación
 ```javascript
@@ -464,10 +552,11 @@ ng build --configuration production
 
 ## 📊 Monitoreo y Logs
 
-### Health Checks
-- **Endpoint:** `/health` en cada microservicio
+### Health Check del Sistema
+- **Backend:** Monitoreo integrado del estado del servidor
 - **Estado:** healthy/degraded/unhealthy
 - **Métricas:** uptime, memoria, conexiones DB
+- **BackOffice:** Dashboard de monitoreo en tiempo real
 
 ### Logs Estructurados
 ```javascript
@@ -515,37 +604,41 @@ kill -9 <PID>
 ## 📈 Métricas y Estadísticas
 
 ### Dashboard del BackOffice
-- **Usuarios activos:** Conteo en tiempo real
-- **Lugares turísticos:** Total y por categoría
+- **Usuarios registrados:** Conteo total y activos
+- **Lugares turísticos:** Total por categoría y estado
 - **Reseñas:** Total y promedio de calificaciones
-- **Imágenes:** Total subidas al sistema
-- **Estado de servicios:** Health check de microservicios
+- **Actividad reciente:** Log de acciones administrativas
+- **Estado del sistema:** Health check del backend
 
-### APIs de Estadísticas
-```bash
-GET /stats/overview      # Estadísticas generales
-GET /stats/users         # Métricas de usuarios
-GET /stats/places        # Métricas de lugares
-GET /stats/reviews       # Métricas de reseñas
-```
+### Métricas Disponibles
+- Estadísticas de usuarios (total, activos, por rol)
+- Análisis de lugares (categorías más populares)
+- Análisis de reseñas (promedio de calificaciones)
+- Actividad administrativa en tiempo real
 
 ## 🔄 Roadmap y Mejoras Futuras
 
-### ✅ **Completado**
-- Arquitectura base de microservicios
-- Sistema de autenticación robusto
-- CRUD completo para lugares y reseñas
-- Frontend móvil funcional
-- BackOffice administrativo
-- Sistema de notificaciones en tiempo real
-- Validaciones y manejo de errores
-- Documentación completa de APIs
+### ✅ **Completado - Estado Actual del Proyecto**
+- **Backend API unificada** con todos los servicios integrados
+- **Sistema de autenticación JWT** robusto con roles
+- **CRUD completo** para usuarios, lugares y reseñas
+- **Aplicación móvil Angular 17** completamente funcional
+- **BackOffice administrativo Angular 20** con gestión completa
+- **Sistema de notificaciones** en tiempo real con Socket.io
+- **Validaciones y manejo de errores** comprehensivo
+- **Documentación completa** de APIs con Postman
 
-### 🔄 **En Desarrollo**
-- Reporte de incidencias (UI lista, lógica pendiente)
-- Sistema de reportes en BackOffice
-- Optimización de rendimiento
-- Tests automatizados
+### 🔄 **En Desarrollo Activo**
+- **Aplicación web** (completar funcionalidades faltantes)
+- **Reporte de incidencias** (UI lista, lógica backend pendiente)
+- **Sistema de reportes avanzados** en BackOffice
+- **Mapa interactivo** (estructura preparada)
+
+### ⚠️ **Recomendaciones Inmediatas**
+- **Unificar versiones de Angular** a v20 en todos los módulos
+- **Completar aplicación web** con funcionalidades de la app móvil
+- **Implementar testing automatizado**
+- **Actualizar documentación** para reflejar arquitectura actual
 
 ### 🚀 **Próximas Funcionalidades**
 - **Sistema de reservas** para establecimientos
@@ -563,11 +656,11 @@ GET /stats/reviews       # Métricas de reseñas
 - `backend/Postman_Collection.md` - Guía completa de APIs
 - `backend/Postman_Collection_Places.md` - Pruebas de lugares
 - `backend/Postman_Collection_Reviews.md` - Pruebas de reseñas
-- `backend/Postman_Collection_Media.md` - Pruebas de media
-- `BackOffice/backoffice-admin/MICROSERVICES_MIGRATION.md` - Guía de migración
+- `BackOffice/backoffice-admin/MICROSERVICES_MIGRATION.md` - Historial de migración
 
-### Scripts de Desarrollo
-- `backend/scripts/migratePlaces.js` - Migración de datos
+### Scripts de Utilidad
+- `backend/scripts/createAdminUser.js` - Crear usuario administrador
+- `backend/scripts/migratePlaces.js` - Migración de datos de lugares
 - `backend/scripts/cleanPlacesData.js` - Limpieza de datos
 
 ## 👥 Contribución
@@ -590,13 +683,6 @@ chore: tareas de mantenimiento
 4. **Validar cambios** en múltiples navegadores
 5. **Probar en dispositivos móviles** reales
 
-## 📞 Soporte
-
-### Contacto del Equipo
-- **Desarrollador Principal:** [Tu Nombre]
-- **Email:** [tu-email@dominio.com]
-- **GitHub:** [tu-usuario-github]
-
 ### Recursos Adicionales
 - **Documentación Angular:** https://angular.io/docs
 - **Documentación Express:** https://expressjs.com/
@@ -610,6 +696,24 @@ chore: tareas de mantenimiento
 **Esmeraldas Turismo** es una iniciativa del Gobierno Autónomo Descentralizado de Esmeraldas para promover el turismo sostenible y la gestión eficiente de los recursos turísticos de la provincia.
 
 **Versión:** 1.0.0  
+**Estado:** 80% Completo - Listo para deployment gradual  
 **Última actualización:** Diciembre 2024  
 **Licencia:** MIT
+
+---
+
+## 📊 Resumen del Estado del Proyecto
+
+| Componente | Estado | Completitud | Observaciones |
+|------------|--------|-------------|---------------|
+| **Backend API** | ✅ Funcional | 95% | API unificada completa |
+| **App Móvil** | ✅ Funcional | 85% | Lista para producción |
+| **BackOffice** | ✅ Funcional | 90% | Panel admin completo |
+| **App Web** | ⚠️ Básica | 40% | Necesita desarrollo |
+| **Documentación** | ✅ Completa | 90% | Actualizada |
+
+### 🎯 **Recomendación de Deployment**
+1. **Fase 1**: Backend + App Móvil + BackOffice (Listo)
+2. **Fase 2**: Completar App Web y funcionalidades pendientes
+3. **Fase 3**: Funcionalidades avanzadas y optimizaciones
 
