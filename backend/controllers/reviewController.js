@@ -49,10 +49,10 @@ export const getReviewsByPlace = async (req, res, next) => {
 // Listado filtrable y paginado para administradores
 export const getReviewsAdmin = async (req, res, next) => {
   try {
-    const { page, limit, estado, search, lugarId, usuarioId, sortBy, order } = req.query;
+    const { page, limit, estado, search, lugarId, calificacion, usuarioId, sortBy, order } = req.query;
 
     const { data, total } = await reviewService.getReviewsAdmin({
-      page, limit, estado, search, lugarId, usuarioId, sortBy, order
+      page, limit, estado, search, lugarId, usuarioId, sortBy, order, calificacion
     });
 
     res.json({
@@ -75,10 +75,10 @@ export const updateReviewStatus = async (req, res, next) => {
     const { id } = req.params;
     const { estado } = req.body;
 
-    if (!['pendiente', 'aprobada', 'rechazada'].includes(estado)) {
+    if (!['aprobada', 'bloqueada'].includes(estado)) {
       return res.status(400).json({
         success: false,
-        message: 'Estado inválido. Debe ser: pendiente, aprobada o rechazada'
+        message: 'Estado inválido. Debe ser: bloqueada o aprobada'
       });
     }
 

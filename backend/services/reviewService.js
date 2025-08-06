@@ -29,12 +29,14 @@ export const getReviewsAdmin = async ({
   search, 
   lugarId, 
   usuarioId, 
+  calificacion,
   sortBy = 'fecha', 
   order = 'desc' 
 }) => {
   const query = {};
   
   if (estado) query.estado = estado;
+  if (calificacion) query.calificacion = calificacion;
   if (lugarId) query.lugarId = lugarId;
   if (usuarioId) query.usuarioId = usuarioId;
   if (search) query.comentario = { $regex: search, $options: 'i' };

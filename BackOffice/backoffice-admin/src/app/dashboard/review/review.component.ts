@@ -75,9 +75,8 @@ interface ReviewsResponse {
           <mat-label>Estado</mat-label>
           <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilter()">
             <mat-option value="">Todos los estados</mat-option>
-            <mat-option value="activo">Activo</mat-option>
-            <mat-option value="pendiente">Pendiente</mat-option>
-            <mat-option value="rechazado">Rechazado</mat-option>
+            <mat-option value="aprobada">Aprobada</mat-option>
+            <mat-option value="bloqueada">bloqueada</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -98,12 +97,12 @@ interface ReviewsResponse {
         <table mat-table [dataSource]="reviews">
           <ng-container matColumnDef="lugar">
             <th mat-header-cell *matHeaderCellDef> Lugar </th>
-            <td mat-cell *matCellDef="let review"> {{review.lugar?.name || 'N/A'}} </td>
+            <td mat-cell *matCellDef="let review"> {{review.lugarId?.name || 'N/A'}} </td>
           </ng-container>
 
           <ng-container matColumnDef="usuario">
             <th mat-header-cell *matHeaderCellDef> Usuario </th>
-            <td mat-cell *matCellDef="let review"> {{review.usuario?.nombre || 'Anónimo'}} </td>
+            <td mat-cell *matCellDef="let review"> {{review.usuarioId?.nombre || 'Anónimo'}} </td>
           </ng-container>
 
           <ng-container matColumnDef="calificacion">
@@ -144,12 +143,12 @@ interface ReviewsResponse {
             <th mat-header-cell *matHeaderCellDef> Acciones </th>
             <td mat-cell *matCellDef="let review">
               <button mat-icon-button (click)="approveReview(review)" 
-                      *ngIf="review.estado === 'pendiente'"
+                      *ngIf="review.estado === 'bloqueada'"
                       matTooltip="Aprobar">
                 <mat-icon>check</mat-icon>
               </button>
               <button mat-icon-button (click)="rejectReview(review)" 
-                      *ngIf="review.estado === 'pendiente'"
+                      *ngIf="review.estado === 'aprobada'"
                       matTooltip="Rechazar">
                 <mat-icon>close</mat-icon>
               </button>
@@ -260,8 +259,10 @@ export class ReviewComponent implements OnInit {
     if (this.selectedStatus) params.estado = this.selectedStatus;
     if (this.selectedRating) params.calificacion = this.selectedRating;
 
+    console.log(params)
     this.http.get<any>(getBackendUrl('/reviews/admin'), { params }).subscribe(res => {
       if (res.success) {
+        console.log(res.data)
         this.reviews = res.data || [];
         this.totalItems = res.pagination?.total || 0;
       }
@@ -269,7 +270,7 @@ export class ReviewComponent implements OnInit {
   }
 
   approveReview(resena: Review): void {
-    this.http.put(getBackendUrl(`/reviews/admin/${resena._id}`), { estado: 'activo' }).subscribe({
+    this.http.put(getBackendUrl(`/reviews/admin/${resena._id}`), { estado: 'aprobada' }).subscribe({
       next: (response) => {
         this.snackBar.open('Reseña aprobada exitosamente', 'Cerrar', { duration: 3000 });
         this.loadReviews();
@@ -282,7 +283,7 @@ export class ReviewComponent implements OnInit {
   }
 
   rejectReview(resena: Review): void {
-    this.http.put(getBackendUrl(`/reviews/admin/${resena._id}`), { estado: 'rechazado' }).subscribe({
+    this.http.put(getBackendUrl(`/reviews/admin/${resena._id}`), { estado: 'bloqueada' }).subscribe({
       next: (response) => {
         this.snackBar.open('Reseña rechazada exitosamente', 'Cerrar', { duration: 3000 });
         this.loadReviews();
@@ -332,4 +333,9 @@ export class ReviewComponent implements OnInit {
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('es-ES');
   }
+
+  toggleStatus(review: Review): void {
+    console.log('togleStatus')
+  }
+
 } 
